@@ -282,6 +282,62 @@ window.ProfesorDashboard = function ProfesorDashboard({
     var currentClaseObj = currentUnidadObj ? currentUnidadObj.clases.find(function(c) { return c.num === currentClase; }) : null;
     var recentActivities = activities.slice(0, 10);
 
+    // ---- Vocabulario auto-desbloqueado al avanzar de clase ----
+    function autoUnlockVocabulario(targetUnidad, targetClase) {
+        // Desbloquear vocabulario para TODOS los estudiantes basado en progreso
+        // Regla: vocabulario de unidades anteriores = todo desbloqueado
+        // Vocabulario de unidad actual = proporcional a la clase actual
+        var unidadIdx = unidades.findIndex(function(u) { return u.id === targetUnidad; });
+        if (unidadIdx < 0) return;
+
+        var termsToUnlock = [];
+
+        // Todas las unidades anteriores: desbloquear todo su vocabulario
+        for (var i = 0; i < unidadIdx; i++) {
+            var vocab = unidades[i].vocabulario || [];
+            vocab.forEach(function(v) { termsToUnlock.push(v.termino); });
+        }
+
+        // Unidad actual: desbloquear proporcionalmente
+        var currentU = unidades[unidadIdx];
+        var vocab = currentU.vocabulario || [];
+        var totalClasesU = currentU.totalClases || currentU.clases.length;
+        if (vocab.length > 0 && totalClasesU > 0) {
+            // Cuantos terminos desbloquear segun la clase actual
+            var ratio = targetClase / totalClasesU;
+            var numTerms = Math.min(Math.ceil(ratio * vocab.length), vocab.length);
+            for (var j = 0; j < numTerms; j++) {
+                termsToUnlock.push(vocab[j].termino);
+            }
+        }
+
+        if (termsToUnlock.length === 0) return;
+
+        // Actualizar todos los estudiantes
+        setStudents(function(prev) {
+            return prev.map(function(s) {
+                var existing = s.vocabularioDescubierto || [];
+                var merged = [].concat(existing);
+                var changed = false;
+                termsToUnlock.forEach(function(term) {
+                    if (merged.indexOf(term) === -1) {
+                        merged.push(term);
+                        changed = true;
+                    }
+                });
+                if (!changed) return s;
+                return Object.assign({}, s, { vocabularioDescubierto: merged });
+            });
+        });
+    }
+
+    // Auto-desbloquear vocabulario cuando cambia la posicion
+    useEffect(function() {
+        if (students.length > 0) {
+            autoUnlockVocabulario(currentUnidad, currentClase);
+        }
+    }, [currentUnidad, currentClase]);
+
     // Navegacion de clase
     function prevClase() {
         if (currentClase > 1) {

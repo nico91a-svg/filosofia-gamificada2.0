@@ -220,8 +220,11 @@ window.FilosofoApp = () => {
             <window.EstudianteDashboard
                 currentUser={freshStudent || currentUser}
                 students={students}
+                setStudents={setStudents}
                 activities={activities}
                 unidades={unidades}
+                currentUnidad={currentUnidad}
+                currentClase={currentClase}
                 onLogout={handleLogout}
             />
         );

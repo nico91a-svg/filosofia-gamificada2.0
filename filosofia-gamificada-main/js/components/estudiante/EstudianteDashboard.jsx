@@ -1,8 +1,12 @@
 // Dashboard del Estudiante - Vista gamificada completa
-window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onLogout }) => {
+// Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
+window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onLogout, setStudents }) => {
     const { useState } = React;
     const [activeTab, setActiveTab] = useState('perfil');
     const [expandedUnidades, setExpandedUnidades] = useState({});
+    const [showTradeModal, setShowTradeModal] = useState(false);
+    const [selectedTradeArt, setSelectedTradeArt] = useState(null);
+    const [tradeTarget, setTradeTarget] = useState('');
 
     // ---- Datos derivados ----
     const nivel = window.getNivel(currentUser.xp || 0);
@@ -14,7 +18,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
     const unidadesData = unidades || window.UNIDADES_DEFAULT;
     const vocabDescubierto = currentUser.vocabularioDescubierto || [];
 
-    // Ranking position (sin mostrar datos de otros)
+    // Ranking
     const sortedStudents = [...(students || [])].sort((a, b) => (b.xp || 0) - (a.xp || 0));
     const rankPosition = sortedStudents.findIndex(s => s.id === currentUser.id) + 1;
     const totalStudents = sortedStudents.length;
@@ -35,10 +39,31 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
         setExpandedUnidades(prev => ({ ...prev, [uid]: !prev[uid] }));
     };
 
+    // ---- Avatar evolutivo ----
+    const getAvatar = (nivelNum) => {
+        // Apariencia del avatar segun nivel
+        var avatares = [
+            { nivel: 1, emoji: '🧒', titulo: 'Aprendiz Curioso', accesorio: 'Toga sencilla', bg: 'from-gray-600 to-gray-700' },
+            { nivel: 2, emoji: '🧑‍🎓', titulo: 'Estudiante Pensador', accesorio: 'Toga + Pergamino', bg: 'from-blue-600 to-blue-700' },
+            { nivel: 3, emoji: '🧑‍🏫', titulo: 'Discipulo Reflexivo', accesorio: 'Toga + Libro abierto', bg: 'from-indigo-600 to-indigo-700' },
+            { nivel: 4, emoji: '🤓', titulo: 'Buscador de Verdad', accesorio: 'Toga + Lupa dorada', bg: 'from-purple-600 to-purple-700' },
+            { nivel: 5, emoji: '🦉', titulo: 'Sabio en Formacion', accesorio: 'Toga + Buho de Atenea', bg: 'from-violet-600 to-violet-700' },
+            { nivel: 6, emoji: '⚗️', titulo: 'Alquimista de Ideas', accesorio: 'Toga + Alambique mistico', bg: 'from-fuchsia-600 to-fuchsia-700' },
+            { nivel: 7, emoji: '🏛️', titulo: 'Guardian del Liceo', accesorio: 'Toga dorada + Columnas', bg: 'from-amber-600 to-amber-700' },
+            { nivel: 8, emoji: '🔮', titulo: 'Oraculo del Saber', accesorio: 'Toga purpura + Orbe', bg: 'from-pink-600 to-pink-700' },
+            { nivel: 9, emoji: '👑', titulo: 'Maestro Filosofo', accesorio: 'Corona de laurel + Cetro', bg: 'from-yellow-600 to-yellow-700' },
+            { nivel: 10, emoji: '🌟', titulo: 'Filosofo Legendario', accesorio: 'Aura dorada + Estrella', bg: 'from-yellow-500 to-amber-500' }
+        ];
+        return avatares.find(a => a.nivel === nivelNum) || avatares[0];
+    };
+
+    const avatar = getAvatar(nivel.nivel);
+
     // ---- Tabs config ----
     const tabs = [
         { id: 'perfil', label: 'Mi Perfil', emoji: '👤' },
-        { id: 'progreso', label: 'Progreso', emoji: '📊' },
+        { id: 'mapa', label: 'Aventura', emoji: '🗺️' },
+        { id: 'ranking', label: 'Ranking', emoji: '🏆' },
         { id: 'vocabulario', label: 'Vocabulario', emoji: '📚' },
         { id: 'actividades', label: 'Actividades', emoji: '⚡' },
         { id: 'artefactos', label: 'Artefactos', emoji: '🏺' }
@@ -61,19 +86,82 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
         return window.TIPOS_ACTIVIDAD.find(t => t.id === tipoId) || { nombre: tipoId, icon: '📋' };
     };
 
+    // ---- Intercambio de artefactos ----
+    const handleTrade = () => {
+        if (!selectedTradeArt || !tradeTarget || !setStudents) return;
+        var targetId = Number(tradeTarget);
+        var fromStudent = students.find(s => s.id === currentUser.id);
+        if (!fromStudent) return;
+        var artIdx = selectedTradeArt;
+        var inventario = fromStudent.artefactos || [];
+        if (!inventario[artIdx] || inventario[artIdx].usado) return;
+        var artefacto = inventario[artIdx];
+
+        setStudents(prev => prev.map(s => {
+            if (s.id === currentUser.id) {
+                var newArts = s.artefactos.filter((_, i) => i !== artIdx);
+                return { ...s, artefactos: newArts };
+            }
+            if (s.id === targetId) {
+                var newArts2 = (s.artefactos || []).concat([{
+                    id: artefacto.id,
+                    obtenido: new Date().toISOString(),
+                    usado: false,
+                    regaladoPor: currentUser.id
+                }]);
+                return { ...s, artefactos: newArts2 };
+            }
+            return s;
+        }));
+        setShowTradeModal(false);
+        setSelectedTradeArt(null);
+        setTradeTarget('');
+    };
+
     // ============================================================
-    // TAB: MI PERFIL
+    // TAB: MI PERFIL (con Avatar Evolutivo)
     // ============================================================
     const renderPerfil = () => (
         <div className="space-y-6">
-            {/* Header card */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center border border-white/20">
-                <div className="text-6xl mb-3">{clase.emoji}</div>
-                <h2 className="text-3xl font-bold text-white mb-1">{currentUser.nombre}</h2>
-                <span className={`inline-block px-4 py-1 rounded-full text-white text-sm font-semibold ${clase.color}`}>
-                    {clase.nombre}
-                </span>
-                <p className="text-purple-200 text-sm mt-2">{clase.descripcion}</p>
+            {/* Avatar Card */}
+            <div className={`bg-gradient-to-br ${avatar.bg} rounded-2xl p-6 text-center border border-white/20 relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-white/5"></div>
+                <div className="relative">
+                    <div className="text-7xl mb-2 drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>
+                        {avatar.emoji}
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-1">{currentUser.nombre}</h2>
+                    <p className="text-white/80 text-sm font-semibold">{avatar.titulo}</p>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                        <span className={`inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${clase.color}`}>
+                            {clase.emoji} {clase.nombre}
+                        </span>
+                        <span className="bg-white/20 px-3 py-1 rounded-full text-white text-xs font-semibold">
+                            {avatar.accesorio}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Evolucion del Avatar */}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                <h3 className="text-white font-bold mb-3 text-center">Evolucion del Avatar</h3>
+                <div className="flex items-center gap-1 overflow-x-auto pb-2">
+                    {[1,2,3,4,5,6,7,8,9,10].map(n => {
+                        var av = getAvatar(n);
+                        var isReached = nivel.nivel >= n;
+                        var isCurrent = nivel.nivel === n;
+                        return (
+                            <div key={n} className={`flex flex-col items-center min-w-[60px] p-2 rounded-xl transition-all ${
+                                isCurrent ? 'bg-yellow-500/30 ring-2 ring-yellow-400' :
+                                isReached ? 'bg-white/10' : 'opacity-30'
+                            }`}>
+                                <span className={`text-2xl ${!isReached ? 'grayscale' : ''}`}>{isReached ? av.emoji : '🔒'}</span>
+                                <span className="text-white text-xs font-bold mt-1">Nv.{n}</span>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Nivel y XP */}
@@ -93,7 +181,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                         style={{ width: xpProgress + '%' }}></div>
                 </div>
                 <p className="text-purple-300 text-sm text-center">
-                    {nivel.nivel < 10 ? (nivel.xp_max - (currentUser.xp || 0)) + ' XP para siguiente nivel' : 'Nivel maximo alcanzado'}
+                    {nivel.nivel < 10 ? (nivel.xp_max - (currentUser.xp || 0)) + ' XP para siguiente nivel' : 'Nivel maximo alcanzado!'}
                 </p>
             </div>
 
@@ -147,95 +235,152 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                     </div>
                 )}
             </div>
-
-            {/* Posicion en ranking */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
-                <div className="text-4xl mb-2">🏆</div>
-                <h3 className="text-lg font-bold text-white mb-1">Posicion en el Ranking</h3>
-                <p className="text-3xl font-bold text-yellow-400">#{rankPosition}</p>
-                <p className="text-purple-300 text-sm">de {totalStudents} estudiantes</p>
-            </div>
         </div>
     );
 
     // ============================================================
-    // TAB: PROGRESO
+    // TAB: MAPA DE AVENTURA
     // ============================================================
-    const renderProgreso = () => {
-        // Determinar unidad actual (simple: la primera sin completar todas las actividades)
+    const renderMapa = () => {
         var currentUnidadIdx = 0;
         unidadesData.forEach((u, idx) => {
-            var clasesConActividad = u.clases.filter(c => {
-                return myActivities.some(a => a.unidadId === u.id && a.claseNum === c.num);
-            }).length;
+            var clasesConActividad = u.clases.filter(c =>
+                myActivities.some(a => a.unidadId === u.id && a.claseNum === c.num)
+            ).length;
             if (clasesConActividad >= u.clases.length && idx < unidadesData.length - 1) {
                 currentUnidadIdx = idx + 1;
             }
         });
 
+        // Colores de terreno por unidad
+        var terrenos = [
+            { bg: 'from-blue-800 to-indigo-900', path: 'bg-blue-400', icon: '🏛️', terrain: 'El Agora Inicial' },
+            { bg: 'from-purple-800 to-pink-900', path: 'bg-purple-400', icon: '🏔️', terrain: 'Monte Ontologico' },
+            { bg: 'from-green-800 to-teal-900', path: 'bg-green-400', icon: '🏛️', terrain: 'Templo del Conocimiento' },
+            { bg: 'from-orange-800 to-red-900', path: 'bg-orange-400', icon: '🌋', terrain: 'Volcan de la Praxis' }
+        ];
+
         return (
             <div className="space-y-4">
-                <h3 className="text-xl font-bold text-white mb-2">Progreso por Unidad</h3>
+                {/* Titulo del mapa */}
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 text-center">
+                    <div className="text-4xl mb-2">🗺️</div>
+                    <h3 className="text-xl font-bold text-white">El Camino del Filosofo</h3>
+                    <p className="text-purple-300 text-sm">Tu viaje a traves del saber filosofico</p>
+                    <div className="flex items-center justify-center gap-2 mt-3">
+                        <span className="text-2xl">{avatar.emoji}</span>
+                        <span className="text-white font-semibold">{avatar.titulo}</span>
+                    </div>
+                </div>
+
+                {/* Mapa por unidades */}
                 {unidadesData.map((unidad, idx) => {
-                    var clasesConActividad = unidad.clases.filter(c => {
-                        return myActivities.some(a => a.unidadId === unidad.id && a.claseNum === c.num);
-                    }).length;
+                    var terreno = terrenos[idx] || terrenos[0];
+                    var clasesConActividad = unidad.clases.filter(c =>
+                        myActivities.some(a => a.unidadId === unidad.id && a.claseNum === c.num)
+                    ).length;
                     var progClases = unidad.clases.length > 0 ? Math.round((clasesConActividad / unidad.clases.length) * 100) : 0;
+                    var isPast = idx < currentUnidadIdx;
+                    var isCurrent = idx === currentUnidadIdx;
+                    var isFuture = idx > currentUnidadIdx;
 
                     var vocabTotal = (unidad.vocabulario || []).length;
                     var vocabFound = vocabTotal > 0 ? (unidad.vocabulario || []).filter(v => vocabDescubierto.includes(v.termino)).length : 0;
 
-                    var isCurrent = idx === currentUnidadIdx;
-
                     return (
                         <div key={unidad.id}
-                            className={`bg-white/10 backdrop-blur-md rounded-2xl p-5 border transition-all ${isCurrent ? 'border-yellow-400/60 ring-2 ring-yellow-400/30' : 'border-white/20'}`}>
-                            <div className="flex items-center gap-3 mb-3">
-                                <span className="text-3xl">{unidad.emoji}</span>
+                            className={`bg-gradient-to-br ${terreno.bg} rounded-2xl p-5 border-2 transition-all relative overflow-hidden ${
+                                isCurrent ? 'border-yellow-400 ring-2 ring-yellow-400/30 shadow-lg shadow-yellow-500/20' :
+                                isPast ? 'border-green-400/50' : 'border-gray-600/30 opacity-60'
+                            }`}>
+                            {/* Decoracion de fondo */}
+                            <div className="absolute top-2 right-2 text-6xl opacity-10">{terreno.icon}</div>
+
+                            {/* Header */}
+                            <div className="flex items-center gap-3 mb-4 relative">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
+                                    isPast ? 'bg-green-500' : isCurrent ? 'bg-yellow-500 animate-pulse' : 'bg-gray-600'
+                                }`}>
+                                    {isPast ? '✅' : isCurrent ? avatar.emoji : '🔒'}
+                                </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
+                                        <span className="text-2xl">{unidad.emoji}</span>
                                         <h4 className="text-white font-bold">{unidad.nombre}</h4>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-white/60 text-xs">{terreno.terrain}</span>
                                         {isCurrent && (
-                                            <span className="bg-yellow-500 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">ACTUAL</span>
+                                            <span className="bg-yellow-500 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">ESTAS AQUI</span>
+                                        )}
+                                        {isPast && (
+                                            <span className="bg-green-500/30 text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">COMPLETADO</span>
                                         )}
                                     </div>
-                                    <p className="text-purple-300 text-sm">{unidad.periodo}</p>
                                 </div>
                             </div>
 
-                            {/* Barra de clases */}
-                            <div className="mb-3">
+                            {/* Camino de clases (nodos) */}
+                            <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-2">
+                                {unidad.clases.map((cl, ci) => {
+                                    var hasActivity = myActivities.some(a => a.unidadId === unidad.id && a.claseNum === cl.num);
+                                    var isNextClass = isCurrent && !hasActivity && (ci === 0 || unidad.clases.slice(0, ci).every(prev =>
+                                        myActivities.some(a => a.unidadId === unidad.id && a.claseNum === prev.num)
+                                    ));
+                                    return (
+                                        <React.Fragment key={ci}>
+                                            <div className={`flex flex-col items-center min-w-[52px] transition-all`}
+                                                title={cl.titulo}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all ${
+                                                    hasActivity ? `${terreno.path} border-white text-white shadow-lg` :
+                                                    isNextClass ? 'bg-yellow-500/30 border-yellow-400 animate-pulse' :
+                                                    'bg-gray-700/50 border-gray-600 opacity-50'
+                                                }`}>
+                                                    {hasActivity ? cl.emoji : isNextClass ? '👣' : (ci + 1)}
+                                                </div>
+                                                <span className={`text-xs mt-1 text-center leading-tight max-w-[52px] ${hasActivity ? 'text-white' : 'text-gray-400'}`}>
+                                                    {hasActivity ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'Clase ' + cl.num}
+                                                </span>
+                                            </div>
+                                            {ci < unidad.clases.length - 1 && (
+                                                <div className={`w-4 h-0.5 mt-[-16px] ${hasActivity ? terreno.path : 'bg-gray-600'}`}></div>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Barra de progreso */}
+                            <div className="mb-2">
                                 <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-purple-200">Clases completadas</span>
-                                    <span className="text-white font-semibold">{clasesConActividad}/{unidad.clases.length}</span>
+                                    <span className="text-white/70">Progreso</span>
+                                    <span className="text-white font-bold">{clasesConActividad}/{unidad.clases.length} clases</span>
                                 </div>
-                                <div className="w-full bg-purple-900/50 rounded-full h-3">
-                                    <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all"
+                                <div className="w-full bg-black/30 rounded-full h-3">
+                                    <div className={`${terreno.path} h-3 rounded-full transition-all duration-700`}
                                         style={{ width: progClases + '%' }}></div>
                                 </div>
                             </div>
 
                             {/* Vocabulario */}
                             {vocabTotal > 0 && (
-                                <div className="mb-3">
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-purple-200">Vocabulario descubierto</span>
-                                        <span className="text-white font-semibold">{vocabFound}/{vocabTotal}</span>
-                                    </div>
-                                    <div className="w-full bg-purple-900/50 rounded-full h-3">
-                                        <div className="bg-gradient-to-r from-blue-400 to-cyan-500 h-3 rounded-full transition-all"
-                                            style={{ width: (vocabTotal > 0 ? (vocabFound / vocabTotal) * 100 : 0) + '%' }}></div>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-sm">📚</span>
+                                    <span className="text-white/70 text-xs">Vocabulario: {vocabFound}/{vocabTotal}</span>
+                                    <div className="flex-1 bg-black/30 rounded-full h-2">
+                                        <div className="bg-cyan-400 h-2 rounded-full transition-all"
+                                            style={{ width: (vocabFound / vocabTotal * 100) + '%' }}></div>
                                     </div>
                                 </div>
                             )}
 
                             {/* Evaluacion */}
                             {unidad.evaluacionSumativa && (
-                                <div className="flex items-center gap-2 mt-2 bg-white/5 rounded-lg p-2">
-                                    <span className="text-lg">📝</span>
+                                <div className="flex items-center gap-2 mt-3 bg-black/20 rounded-lg p-2">
+                                    <span className="text-lg">🎯</span>
                                     <div className="flex-1">
-                                        <p className="text-white text-sm font-semibold">{unidad.evaluacionSumativa.nombre}</p>
-                                        <p className="text-purple-300 text-xs">{unidad.evaluacionSumativa.descripcion}</p>
+                                        <p className="text-white text-xs font-semibold">{unidad.evaluacionSumativa.nombre}</p>
+                                        <p className="text-white/50 text-xs">{unidad.evaluacionSumativa.descripcion}</p>
                                     </div>
                                 </div>
                             )}
@@ -247,7 +392,135 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
     };
 
     // ============================================================
-    // TAB: VOCABULARIO
+    // TAB: RANKING (Leaderboard Top 5)
+    // ============================================================
+    const renderRanking = () => {
+        var top5 = sortedStudents.slice(0, 5);
+        var medalEmojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+        var medalBgs = [
+            'from-yellow-500/30 to-amber-500/30 border-yellow-400/50',
+            'from-gray-400/20 to-gray-500/20 border-gray-400/50',
+            'from-orange-500/20 to-amber-600/20 border-orange-400/50',
+            'from-white/5 to-white/10 border-white/20',
+            'from-white/5 to-white/10 border-white/20'
+        ];
+
+        return (
+            <div className="space-y-4">
+                {/* Tu posicion */}
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
+                    <div className="text-5xl mb-2">🏆</div>
+                    <h3 className="text-xl font-bold text-white">Tu Posicion</h3>
+                    <div className="flex items-center justify-center gap-4 mt-3">
+                        <div>
+                            <p className="text-4xl font-bold text-yellow-400">#{rankPosition}</p>
+                            <p className="text-purple-300 text-sm">de {totalStudents}</p>
+                        </div>
+                        <div className="h-12 w-px bg-white/20"></div>
+                        <div>
+                            <p className="text-4xl font-bold text-cyan-400">{currentUser.xp || 0}</p>
+                            <p className="text-purple-300 text-sm">XP Total</p>
+                        </div>
+                        <div className="h-12 w-px bg-white/20"></div>
+                        <div>
+                            <p className="text-4xl">{avatar.emoji}</p>
+                            <p className="text-purple-300 text-sm">Nv.{nivel.nivel}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Top 5 Leaderboard */}
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                    <h3 className="text-white font-bold mb-4 text-center">Top 5 Filosofos</h3>
+                    <div className="space-y-3">
+                        {top5.map((student, idx) => {
+                            var sNivel = window.getNivel(student.xp || 0);
+                            var sAvatar = getAvatar(sNivel.nivel);
+                            var sClase = window.CLASES_FILOSOFICAS.find(c => c.id === student.clase);
+                            var isMe = student.id === currentUser.id;
+                            return (
+                                <div key={student.id}
+                                    className={`bg-gradient-to-r ${medalBgs[idx]} rounded-xl p-4 border-2 transition-all ${
+                                        isMe ? 'ring-2 ring-yellow-400/50 shadow-lg' : ''
+                                    }`}>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-3xl">{medalEmojis[idx]}</span>
+                                        <span className="text-2xl">{sAvatar.emoji}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <p className={`font-bold text-sm truncate ${isMe ? 'text-yellow-400' : 'text-white'}`}>
+                                                    {student.nombre} {isMe ? '(Tu)' : ''}
+                                                </p>
+                                                {sClase && (
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full text-white ${sClase.color}`}>
+                                                        {sClase.emoji}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-white/60 text-xs">Nv.{sNivel.nivel} {sNivel.titulo}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-yellow-400 font-bold text-lg">{student.xp || 0}</p>
+                                            <p className="text-white/50 text-xs">XP</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Si no esta en top 5, mostrar su fila */}
+                    {rankPosition > 5 && (
+                        <div className="mt-4">
+                            <div className="text-center text-white/30 my-2">• • •</div>
+                            <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-xl p-4 border-2 border-yellow-400/30 ring-2 ring-yellow-400/30">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl font-bold text-white/60">#{rankPosition}</span>
+                                    <span className="text-2xl">{avatar.emoji}</span>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-sm text-yellow-400">{currentUser.nombre} (Tu)</p>
+                                        <p className="text-white/60 text-xs">Nv.{nivel.nivel} {nivel.titulo}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-yellow-400 font-bold text-lg">{currentUser.xp || 0}</p>
+                                        <p className="text-white/50 text-xs">XP</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Stats comparativos */}
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                    <h3 className="text-white font-bold mb-3">Tu desempeno vs el curso</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <p className="text-purple-300 text-xs">Tu XP</p>
+                            <p className="text-xl font-bold text-yellow-400">{currentUser.xp || 0}</p>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <p className="text-purple-300 text-xs">Promedio curso</p>
+                            <p className="text-xl font-bold text-cyan-400">
+                                {totalStudents > 0 ? Math.round(sortedStudents.reduce((s, st) => s + (st.xp || 0), 0) / totalStudents) : 0}
+                            </p>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <p className="text-purple-300 text-xs">Tus actividades</p>
+                            <p className="text-xl font-bold text-green-400">{myActivities.length}</p>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-3 text-center">
+                            <p className="text-purple-300 text-xs">Tus insignias</p>
+                            <p className="text-xl font-bold text-pink-400">{(currentUser.badges || []).length}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ============================================================
+    // TAB: VOCABULARIO (sin cambios mayores)
     // ============================================================
     const renderVocabulario = () => {
         var totalTerminos = 0;
@@ -259,7 +532,6 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
 
         return (
             <div className="space-y-4">
-                {/* Contador total */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 text-center">
                     <div className="text-4xl mb-2">📚</div>
                     <h3 className="text-xl font-bold text-white">Lexico Filosofico</h3>
@@ -271,18 +543,15 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                     </div>
                 </div>
 
-                {/* Por unidad */}
                 {unidadesData.map(unidad => {
                     var vocab = unidad.vocabulario || [];
                     if (vocab.length === 0) return null;
                     var found = vocab.filter(v => vocabDescubierto.includes(v.termino)).length;
-                    var isOpen = expandedUnidades[unidad.id] !== false; // abierto por defecto
+                    var isOpen = expandedUnidades[unidad.id] !== false;
 
                     return (
                         <div key={unidad.id} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
-                            {/* Header colapsable */}
-                            <button
-                                onClick={() => toggleUnidad(unidad.id)}
+                            <button onClick={() => toggleUnidad(unidad.id)}
                                 className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{unidad.emoji}</span>
@@ -291,12 +560,8 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                                         <span className="text-cyan-400 text-sm font-semibold">{found}/{vocab.length} descubierto</span>
                                     </div>
                                 </div>
-                                <span className={`text-white text-xl transition-transform ${isOpen ? 'rotate-90' : ''}`}>
-                                    ▶
-                                </span>
+                                <span className={`text-white text-xl transition-transform ${isOpen ? 'rotate-90' : ''}`}>&#9654;</span>
                             </button>
-
-                            {/* Contenido */}
                             {isOpen && (
                                 <div className="px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-2">
                                     {vocab.map((v, vi) => {
@@ -337,22 +602,15 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
     // TAB: ACTIVIDADES
     // ============================================================
     const renderActividades = () => {
-        // Estadisticas por tipo
         var tipoCount = {};
-        myActivities.forEach(a => {
-            tipoCount[a.tipo] = (tipoCount[a.tipo] || 0) + 1;
-        });
+        myActivities.forEach(a => { tipoCount[a.tipo] = (tipoCount[a.tipo] || 0) + 1; });
 
-        // Habilidad mas fuerte
         var habPoints = currentUser.habilidades || {};
         var strongestHab = null;
         var maxPts = 0;
         window.HABILIDADES.forEach(h => {
             var pts = habPoints[h.id] || 0;
-            if (pts > maxPts) {
-                maxPts = pts;
-                strongestHab = h;
-            }
+            if (pts > maxPts) { maxPts = pts; strongestHab = h; }
         });
 
         var maxTipoCount = 0;
@@ -360,7 +618,6 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
 
         return (
             <div className="space-y-4">
-                {/* Estadisticas resumen */}
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center">
                         <p className="text-2xl font-bold text-yellow-400">{myActivities.length}</p>
@@ -376,7 +633,6 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                     </div>
                 </div>
 
-                {/* Grafico de barras por tipo */}
                 {Object.keys(tipoCount).length > 0 && (
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
                         <h3 className="text-white font-bold mb-3">Actividades por Tipo</h3>
@@ -401,7 +657,6 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                     </div>
                 )}
 
-                {/* Lista de actividades recientes */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
                     <h3 className="text-white font-bold mb-3">Actividades Recientes</h3>
                     {myActivities.length === 0 ? (
@@ -434,18 +689,20 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
     };
 
     // ============================================================
-    // TAB: ARTEFACTOS
+    // TAB: ARTEFACTOS (con intercambio)
     // ============================================================
     const renderArtefactos = () => {
         var inventario = currentUser.inventarioArtefactos || currentUser.artefactos || [];
 
-        // Map inventario items to full artifact info
-        var items = inventario.map(item => {
+        var items = inventario.map((item, idx) => {
             var artefactoId = typeof item === 'string' ? item : (item.id || item.artefactoId);
             var usado = typeof item === 'object' ? (item.usado || false) : false;
+            var regaladoPor = typeof item === 'object' ? (item.regaladoPor || null) : null;
             var artefacto = window.ARTEFACTOS.find(a => a.id === artefactoId);
-            return artefacto ? { ...artefacto, usado: usado } : null;
+            return artefacto ? { ...artefacto, usado, regaladoPor, _idx: idx } : null;
         }).filter(Boolean);
+
+        var otherStudents = (students || []).filter(s => s.id !== currentUser.id);
 
         return (
             <div className="space-y-4">
@@ -471,6 +728,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                                     : 'border-blue-400/50 bg-blue-500/10';
                             var rarezaLabel = art.rareza === 'legendario' ? '⭐ Legendario'
                                 : art.rareza === 'epico' ? '💜 Epico' : '💙 Raro';
+                            var fromStudent = art.regaladoPor ? (students || []).find(s => s.id === art.regaladoPor) : null;
 
                             return (
                                 <div key={i}
@@ -488,15 +746,25 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                                             </div>
                                             <p className="text-purple-200 text-xs mb-1">{art.efecto}</p>
                                             <p className="text-xs">{rarezaLabel}</p>
+                                            {fromStudent && (
+                                                <p className="text-purple-400 text-xs mt-1">🎁 Regalo de {fromStudent.nombre}</p>
+                                            )}
                                         </div>
                                     </div>
+                                    {/* Boton de regalar (solo si no usado y hay setStudents) */}
+                                    {!art.usado && setStudents && otherStudents.length > 0 && (
+                                        <button onClick={() => { setSelectedTradeArt(art._idx); setShowTradeModal(true); }}
+                                            className="mt-3 w-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 text-purple-300 hover:text-white py-2 rounded-xl text-xs font-semibold transition-all">
+                                            🎁 Regalar a un companero
+                                        </button>
+                                    )}
                                 </div>
                             );
                         })}
                     </div>
                 )}
 
-                {/* Catalogo de todos los artefactos */}
+                {/* Catalogo */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
                     <h3 className="text-white font-bold mb-3">Catalogo Completo</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -505,9 +773,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                             return (
                                 <div key={art.id}
                                     className={`rounded-xl p-3 text-center border transition-all ${
-                                        owned
-                                            ? 'border-yellow-400/30 bg-yellow-500/10'
-                                            : 'border-gray-600/30 bg-gray-800/30 opacity-50'
+                                        owned ? 'border-yellow-400/30 bg-yellow-500/10' : 'border-gray-600/30 bg-gray-800/30 opacity-50'
                                     }`}>
                                     <div className="text-2xl mb-1">{owned ? art.emoji : '❓'}</div>
                                     <p className={`text-xs font-semibold ${owned ? 'text-white' : 'text-gray-500'}`}>
@@ -528,7 +794,8 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
     const renderContent = () => {
         switch (activeTab) {
             case 'perfil': return renderPerfil();
-            case 'progreso': return renderProgreso();
+            case 'mapa': return renderMapa();
+            case 'ranking': return renderRanking();
             case 'vocabulario': return renderVocabulario();
             case 'actividades': return renderActividades();
             case 'artefactos': return renderArtefactos();
@@ -542,15 +809,18 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
             <header className="bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-2xl">{clase.emoji}</span>
+                        <span className="text-2xl">{avatar.emoji}</span>
                         <div>
                             <h1 className="text-white font-bold text-lg leading-tight">{currentUser.nombre}</h1>
-                            <p className="text-purple-300 text-xs">Nivel {nivel.nivel} - {nivel.titulo}</p>
+                            <p className="text-purple-300 text-xs">Nv.{nivel.nivel} {avatar.titulo}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-yellow-500/20 text-yellow-400 text-sm font-bold px-3 py-1 rounded-full">
                             {currentUser.xp || 0} XP
+                        </span>
+                        <span className="bg-purple-500/20 text-purple-300 text-sm font-bold px-3 py-1 rounded-full">
+                            #{rankPosition}
                         </span>
                         <button onClick={onLogout}
                             className="text-purple-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
@@ -591,9 +861,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                         <button key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-all ${
-                                activeTab === tab.id
-                                    ? 'text-white'
-                                    : 'text-purple-400'
+                                activeTab === tab.id ? 'text-white' : 'text-purple-400'
                             }`}>
                             <span className={`text-lg ${activeTab === tab.id ? 'scale-110' : ''} transition-transform`}>{tab.emoji}</span>
                             <span className="text-xs font-medium">{tab.label}</span>
@@ -604,6 +872,36 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                     ))}
                 </div>
             </nav>
+
+            {/* Modal de intercambio de artefactos */}
+            {showTradeModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-900 border border-purple-500/30 rounded-2xl p-6 max-w-sm w-full">
+                        <h3 className="text-xl font-bold text-white mb-4">🎁 Regalar Artefacto</h3>
+                        <p className="text-purple-300 text-sm mb-4">Selecciona a quien quieres regalar este artefacto:</p>
+                        <select value={tradeTarget} onChange={e => setTradeTarget(e.target.value)}
+                            className="w-full bg-gray-800 border border-purple-500/30 text-white rounded-xl px-4 py-3 mb-4 text-sm">
+                            <option value="">Seleccionar companero...</option>
+                            {(students || []).filter(s => s.id !== currentUser.id).map(s => (
+                                <option key={s.id} value={s.id}>{s.nombre}</option>
+                            ))}
+                        </select>
+                        <div className="flex gap-3">
+                            <button onClick={() => { setShowTradeModal(false); setSelectedTradeArt(null); setTradeTarget(''); }}
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-xl text-sm font-semibold transition">
+                                Cancelar
+                            </button>
+                            <button onClick={handleTrade}
+                                disabled={!tradeTarget}
+                                className={`flex-1 py-2 rounded-xl text-sm font-semibold transition ${
+                                    tradeTarget ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                }`}>
+                                Regalar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
