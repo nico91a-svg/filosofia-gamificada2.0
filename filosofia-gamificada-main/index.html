@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filosofo en Formacion - Sistema Gamificado</title>
+
+    <!-- React + Babel + Tailwind -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebaseapps/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebaseapps/10.7.0/firebase-database.js"></script>
+
+    <style>
+        /* Animacion de carga */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+        /* Scrollbar custom */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <!-- Loading placeholder -->
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#312e81,#581c87,#831843)">
+            <div style="text-align:center;color:white">
+                <div style="font-size:4rem" class="animate-pulse-slow">🎓</div>
+                <h1 style="font-size:1.5rem;font-weight:bold;margin-top:1rem">Cargando sistema...</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== DATOS (JS plano, se cargan primero) ========== -->
+    <script src="js/config.js"></script>
+    <script src="js/data/niveles.js"></script>
+    <script src="js/data/habilidades.js"></script>
+    <script src="js/data/badges.js"></script>
+    <script src="js/data/artefactos.js"></script>
+    <script src="js/data/clases-filosoficas.js"></script>
+    <script src="js/data/tipos-actividad.js"></script>
+    <script src="js/data/unidades.js"></script>
+
+    <!-- ========== SERVICIOS ========== -->
+    <script src="js/services/database.js"></script>
+
+    <!-- ========== COMPONENTES REACT (JSX con Babel) ========== -->
+    <!-- Orden importa: compartidos primero, luego especificos, luego App -->
+    <script type="text/babel" src="js/components/shared/Icons.jsx"></script>
+    <script type="text/babel" src="js/components/shared/RadarChart.jsx"></script>
+    <script type="text/babel" src="js/components/shared/Modals.jsx"></script>
+    <script type="text/babel" src="js/components/LoginScreen.jsx"></script>
+    <script type="text/babel" src="js/components/profesor/GestionUnidades.jsx"></script>
+    <script type="text/babel" src="js/components/profesor/RegistroMasivo.jsx"></script>
+    <script type="text/babel" src="js/components/profesor/ProfesorDashboard.jsx"></script>
+    <script type="text/babel" src="js/components/estudiante/EstudianteDashboard.jsx"></script>
+    <script type="text/babel" src="js/components/App.jsx"></script>
+
+    <!-- ========== INICIALIZACIÓN ========== -->
+    <script type="text/babel">
+        // Esperar a que todos los scripts se carguen
+        const checkAndRender = () => {
+            if (window.FilosofoApp) {
+                ReactDOM.render(
+                    React.createElement(window.FilosofoApp),
+                    document.getElementById('root')
+                );
+            } else {
+                setTimeout(checkAndRender, 100);
+            }
+        };
+        // Dar tiempo a Babel para transpilar todos los scripts
+        setTimeout(checkAndRender, 500);
+    </script>
+</body>
+</html>
