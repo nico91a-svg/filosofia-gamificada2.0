@@ -3,16 +3,31 @@ const { useState, useEffect } = React;
 
 // Modal para agregar estudiante
 window.AddStudentModal = ({ onClose, onAdd }) => {
-    const [formData, setFormData] = useState({ nombre: '', clase: '', password: '' });
+    const [formData, setFormData] = useState({
+        nombreSocial: '', nombreLegal: '', genero: '', clase: '', password: ''
+    });
     const clases = window.CLASES_FILOSOFICAS;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
             <div className="bg-white rounded-lg p-5 sm:p-6 max-w-md w-full my-4">
                 <h3 className="text-xl font-bold mb-4">Agregar Nuevo Estudiante</h3>
-                <input type="text" placeholder="Nombre completo" value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p className="text-blue-700 text-xs">El <strong>nombre social</strong> es el que aparecera visible en la plataforma. El nombre legal se guarda solo como referencia interna.</p>
+                </div>
+                <input type="text" placeholder="Nombre social (como quiere ser llamado/a)" value={formData.nombreSocial}
+                    onChange={(e) => setFormData({ ...formData, nombreSocial: e.target.value })}
                     className="w-full px-4 py-2 border rounded-lg mb-3" />
+                <input type="text" placeholder="Nombre legal / dado por sus padres" value={formData.nombreLegal}
+                    onChange={(e) => setFormData({ ...formData, nombreLegal: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg mb-3" />
+                <select value={formData.genero} onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg mb-3">
+                    <option value="">Seleccionar genero</option>
+                    <option value="femenino">👩 Femenino</option>
+                    <option value="masculino">👨 Masculino</option>
+                    <option value="no-binario">🧑 No binario</option>
+                </select>
                 <select value={formData.clase} onChange={(e) => setFormData({ ...formData, clase: e.target.value })}
                     className="w-full px-4 py-2 border rounded-lg mb-3">
                     <option value="">Seleccionar clase</option>
@@ -23,8 +38,16 @@ window.AddStudentModal = ({ onClose, onAdd }) => {
                     className="w-full px-4 py-2 border rounded-lg mb-4" />
                 <div className="flex gap-2">
                     <button onClick={() => {
-                        if (formData.nombre && formData.clase && formData.password) { onAdd(formData); }
-                        else { alert('Por favor completa todos los campos'); }
+                        if (formData.nombreSocial && formData.genero && formData.clase && formData.password) {
+                            onAdd({
+                                nombre: formData.nombreSocial,
+                                nombreSocial: formData.nombreSocial,
+                                nombreLegal: formData.nombreLegal || formData.nombreSocial,
+                                genero: formData.genero,
+                                clase: formData.clase,
+                                password: formData.password
+                            });
+                        } else { alert('Por favor completa nombre social, genero, clase y contraseña'); }
                     }} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Agregar</button>
                     <button onClick={onClose} className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">Cancelar</button>
                 </div>
@@ -46,7 +69,7 @@ window.EditStudentModal = ({ student, onClose, onAddXP, onAddHabilidadPoints, on
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white rounded-lg p-6 max-w-md w-full my-8">
-                <h3 className="text-xl font-bold mb-4">Editar: {student.nombre}</h3>
+                <h3 className="text-xl font-bold mb-4">Editar: {student.nombreSocial || student.nombre}</h3>
                 <div className="mb-4">
                     <label className="block text-sm font-semibold mb-2">Agregar XP</label>
                     <div className="flex gap-2">
@@ -117,7 +140,7 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
                 <select value={formData.studentId} onChange={(e) => setFormData({ ...formData, studentId: Number(e.target.value) })}
                     className="w-full px-4 py-2 border rounded-lg mb-3">
                     <option value="">Seleccionar estudiante</option>
-                    {students.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                    {students.map(s => <option key={s.id} value={s.id}>{s.nombreSocial || s.nombre}</option>)}
                 </select>
                 <div className="grid grid-cols-2 gap-2 mb-3">
                     <select value={formData.unidadId} onChange={(e) => setFormData({ ...formData, unidadId: e.target.value, claseNum: 1 })}
@@ -195,9 +218,19 @@ window.StudentDetailModal = ({ student, activities, onClose }) => {
             <div className="bg-white rounded-2xl p-8 max-w-4xl w-full my-8">
                 <div className="flex justify-between items-start mb-6">
                     <div>
-                        <h2 className="text-3xl font-bold text-gray-800">{student.nombre}</h2>
-                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-bold mt-2 ${clase?.color}`}>
-                            <span className="text-lg">{clase?.emoji}</span> {clase?.nombre}
+                        <h2 className="text-3xl font-bold text-gray-800">{student.nombreSocial || student.nombre}</h2>
+                        {student.nombreLegal && student.nombreLegal !== (student.nombreSocial || student.nombre) && (
+                            <p className="text-gray-400 text-sm mt-0.5">Nombre legal: {student.nombreLegal}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-bold ${clase?.color}`}>
+                                <span className="text-lg">{clase?.emoji}</span> {clase?.nombre}
+                            </div>
+                            {student.genero && (
+                                <span className="px-3 py-2 bg-gray-100 rounded-full text-sm">
+                                    {student.genero === 'femenino' ? '👩' : student.genero === 'masculino' ? '👨' : '🧑'} {student.genero}
+                                </span>
+                            )}
                         </div>
                     </div>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl font-bold">x</button>

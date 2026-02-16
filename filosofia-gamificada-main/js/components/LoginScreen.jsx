@@ -27,7 +27,7 @@ window.LoginScreen = ({ onLogin }) => {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <input type="text" placeholder={type === 'profesor' ? 'Usuario' : 'Nombre completo'}
+                        <input type="text" placeholder={type === 'profesor' ? 'Usuario' : 'Tu nombre social'}
                             value={username} onChange={(e) => setUsername(e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
                         <input type="password" placeholder="Contraseña"

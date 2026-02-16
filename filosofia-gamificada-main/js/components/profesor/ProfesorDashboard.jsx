@@ -44,7 +44,10 @@ window.ProfesorDashboard = function ProfesorDashboard({
     function addStudent(data) {
         var newStudent = {
             id: Date.now(),
-            nombre: data.nombre,
+            nombre: data.nombreSocial || data.nombre,
+            nombreSocial: data.nombreSocial || data.nombre,
+            nombreLegal: data.nombreLegal || data.nombre,
+            genero: data.genero || 'no-binario',
             clase: data.clase,
             password: data.password,
             xp: 0,
@@ -568,12 +571,22 @@ window.ProfesorDashboard = function ProfesorDashboard({
                                                         {index + 1}
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-gray-800">{student.nombre}</div>
-                                                        {clase && (
-                                                            <div className={"inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-white text-xs font-semibold mt-1 " + clase.color}>
-                                                                {clase.emoji} {clase.nombre}
-                                                            </div>
+                                                        <div className="font-bold text-gray-800">{student.nombreSocial || student.nombre}</div>
+                                                        {student.nombreLegal && student.nombreLegal !== (student.nombreSocial || student.nombre) && (
+                                                            <div className="text-gray-400 text-xs">Legal: {student.nombreLegal}</div>
                                                         )}
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            {clase && (
+                                                                <div className={"inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-white text-xs font-semibold " + clase.color}>
+                                                                    {clase.emoji} {clase.nombre}
+                                                                </div>
+                                                            )}
+                                                            {student.genero && (
+                                                                <span className="text-xs text-gray-400">
+                                                                    {student.genero === 'femenino' ? '👩' : student.genero === 'masculino' ? '👨' : '🧑'}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -775,7 +788,7 @@ window.ProfesorDashboard = function ProfesorDashboard({
                                     return (
                                         <div key={student.id} className="bg-white rounded-xl shadow p-5">
                                             <div className="flex items-center justify-between mb-3">
-                                                <div className="font-bold text-gray-800">{student.nombre}</div>
+                                                <div className="font-bold text-gray-800">{student.nombreSocial || student.nombre}</div>
                                                 <div className="flex gap-2">
                                                     <button onClick={function() { setSelectedArtefactoStudent(student); setShowGrantArtefacto(true); }}
                                                         className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold transition">
@@ -825,7 +838,7 @@ window.ProfesorDashboard = function ProfesorDashboard({
                         <div className="bg-white rounded-xl shadow p-6">
                             {(function() {
                                 var ranked = [].concat(students)
-                                    .map(function(s) { return { nombre: s.nombre, total: (s.artefactos || []).length }; })
+                                    .map(function(s) { return { nombre: s.nombreSocial || s.nombre, total: (s.artefactos || []).length }; })
                                     .sort(function(a, b) { return b.total - a.total; })
                                     .filter(function(s) { return s.total > 0; });
                                 if (ranked.length === 0) {
@@ -1095,7 +1108,7 @@ function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
                             className="w-full px-4 py-2 border rounded-lg mb-4">
                             <option value="">Seleccionar estudiante</option>
                             {otherStudents.map(function(s) {
-                                return <option key={s.id} value={s.id}>{s.nombre}</option>;
+                                return <option key={s.id} value={s.id}>{s.nombreSocial || s.nombre}</option>;
                             })}
                         </select>
                         <button onClick={function() {

@@ -25,6 +25,9 @@ window.FilosofoApp = () => {
                     // Asegurar que cada estudiante tenga vocabularioDescubierto
                     const normalized = studentsArray.map(s => ({
                         ...s,
+                        nombreSocial: s.nombreSocial || s.nombre,
+                        nombreLegal: s.nombreLegal || s.nombre,
+                        genero: s.genero || 'no-binario',
                         vocabularioDescubierto: s.vocabularioDescubierto || [],
                         inventarioArtefactos: s.inventarioArtefactos || [],
                         badges: s.badges || ['iniciado'],
@@ -100,7 +103,8 @@ window.FilosofoApp = () => {
             setLoginType('profesor');
         } else if (type === 'estudiante') {
             const student = students.find(s =>
-                s.nombre.toLowerCase() === username.toLowerCase() && s.password === password
+                ((s.nombreSocial || s.nombre).toLowerCase() === username.toLowerCase() ||
+                 s.nombre.toLowerCase() === username.toLowerCase()) && s.password === password
             );
             if (student) {
                 setCurrentUser({ tipo: 'estudiante', ...student });
@@ -144,6 +148,9 @@ window.FilosofoApp = () => {
                     if (data.students) {
                         const normalized = (Array.isArray(data.students) ? data.students : Object.values(data.students)).map(s => ({
                             ...s,
+                            nombreSocial: s.nombreSocial || s.nombre,
+                            nombreLegal: s.nombreLegal || s.nombre,
+                            genero: s.genero || 'no-binario',
                             vocabularioDescubierto: s.vocabularioDescubierto || [],
                             inventarioArtefactos: s.inventarioArtefactos || [],
                             badges: s.badges || ['iniciado'],

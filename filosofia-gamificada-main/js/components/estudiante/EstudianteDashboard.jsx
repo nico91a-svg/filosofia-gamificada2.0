@@ -39,13 +39,28 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
         setExpandedUnidades(prev => ({ ...prev, [uid]: !prev[uid] }));
     };
 
-    // ---- Avatar evolutivo ----
-    const getAvatar = (nivelNum) => {
-        // Apariencia del avatar segun nivel
-        var avatares = [
-            { nivel: 1, emoji: '🧒', titulo: 'Aprendiz Curioso', accesorio: 'Toga sencilla', bg: 'from-gray-600 to-gray-700' },
-            { nivel: 2, emoji: '🧑‍🎓', titulo: 'Estudiante Pensador', accesorio: 'Toga + Pergamino', bg: 'from-blue-600 to-blue-700' },
-            { nivel: 3, emoji: '🧑‍🏫', titulo: 'Discipulo Reflexivo', accesorio: 'Toga + Libro abierto', bg: 'from-indigo-600 to-indigo-700' },
+    // ---- Avatar evolutivo (sensible al genero) ----
+    const genero = currentUser.genero || 'no-binario';
+
+    const getAvatar = (nivelNum, generoOverride) => {
+        var g = generoOverride || genero;
+        // Avatares por genero: femenino, masculino, no-binario
+        var avataresFemenino = [
+            { nivel: 1, emoji: '👧', titulo: 'Aprendiz Curiosa', accesorio: 'Toga sencilla', bg: 'from-gray-600 to-gray-700' },
+            { nivel: 2, emoji: '👩‍🎓', titulo: 'Estudiante Pensadora', accesorio: 'Toga + Pergamino', bg: 'from-blue-600 to-blue-700' },
+            { nivel: 3, emoji: '👩‍🏫', titulo: 'Discipula Reflexiva', accesorio: 'Toga + Libro abierto', bg: 'from-indigo-600 to-indigo-700' },
+            { nivel: 4, emoji: '🧐', titulo: 'Buscadora de Verdad', accesorio: 'Toga + Lupa dorada', bg: 'from-purple-600 to-purple-700' },
+            { nivel: 5, emoji: '🦉', titulo: 'Sabia en Formacion', accesorio: 'Toga + Buho de Atenea', bg: 'from-violet-600 to-violet-700' },
+            { nivel: 6, emoji: '⚗️', titulo: 'Alquimista de Ideas', accesorio: 'Toga + Alambique mistico', bg: 'from-fuchsia-600 to-fuchsia-700' },
+            { nivel: 7, emoji: '🏛️', titulo: 'Guardiana del Liceo', accesorio: 'Toga dorada + Columnas', bg: 'from-amber-600 to-amber-700' },
+            { nivel: 8, emoji: '🔮', titulo: 'Oracula del Saber', accesorio: 'Toga purpura + Orbe', bg: 'from-pink-600 to-pink-700' },
+            { nivel: 9, emoji: '👑', titulo: 'Maestra Filosofa', accesorio: 'Corona de laurel + Cetro', bg: 'from-yellow-600 to-yellow-700' },
+            { nivel: 10, emoji: '🌟', titulo: 'Filosofa Legendaria', accesorio: 'Aura dorada + Estrella', bg: 'from-yellow-500 to-amber-500' }
+        ];
+        var avataresMasculino = [
+            { nivel: 1, emoji: '👦', titulo: 'Aprendiz Curioso', accesorio: 'Toga sencilla', bg: 'from-gray-600 to-gray-700' },
+            { nivel: 2, emoji: '👨‍🎓', titulo: 'Estudiante Pensador', accesorio: 'Toga + Pergamino', bg: 'from-blue-600 to-blue-700' },
+            { nivel: 3, emoji: '👨‍🏫', titulo: 'Discipulo Reflexivo', accesorio: 'Toga + Libro abierto', bg: 'from-indigo-600 to-indigo-700' },
             { nivel: 4, emoji: '🤓', titulo: 'Buscador de Verdad', accesorio: 'Toga + Lupa dorada', bg: 'from-purple-600 to-purple-700' },
             { nivel: 5, emoji: '🦉', titulo: 'Sabio en Formacion', accesorio: 'Toga + Buho de Atenea', bg: 'from-violet-600 to-violet-700' },
             { nivel: 6, emoji: '⚗️', titulo: 'Alquimista de Ideas', accesorio: 'Toga + Alambique mistico', bg: 'from-fuchsia-600 to-fuchsia-700' },
@@ -54,6 +69,21 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
             { nivel: 9, emoji: '👑', titulo: 'Maestro Filosofo', accesorio: 'Corona de laurel + Cetro', bg: 'from-yellow-600 to-yellow-700' },
             { nivel: 10, emoji: '🌟', titulo: 'Filosofo Legendario', accesorio: 'Aura dorada + Estrella', bg: 'from-yellow-500 to-amber-500' }
         ];
+        var avataresNeutro = [
+            { nivel: 1, emoji: '🧒', titulo: 'Aprendiz Curiose', accesorio: 'Toga sencilla', bg: 'from-gray-600 to-gray-700' },
+            { nivel: 2, emoji: '🧑‍🎓', titulo: 'Estudiante Pensadore', accesorio: 'Toga + Pergamino', bg: 'from-blue-600 to-blue-700' },
+            { nivel: 3, emoji: '🧑‍🏫', titulo: 'Discipule Reflexive', accesorio: 'Toga + Libro abierto', bg: 'from-indigo-600 to-indigo-700' },
+            { nivel: 4, emoji: '🧐', titulo: 'Buscadore de Verdad', accesorio: 'Toga + Lupa dorada', bg: 'from-purple-600 to-purple-700' },
+            { nivel: 5, emoji: '🦉', titulo: 'Sabie en Formacion', accesorio: 'Toga + Buho de Atenea', bg: 'from-violet-600 to-violet-700' },
+            { nivel: 6, emoji: '⚗️', titulo: 'Alquimista de Ideas', accesorio: 'Toga + Alambique mistico', bg: 'from-fuchsia-600 to-fuchsia-700' },
+            { nivel: 7, emoji: '🏛️', titulo: 'Guardiane del Liceo', accesorio: 'Toga dorada + Columnas', bg: 'from-amber-600 to-amber-700' },
+            { nivel: 8, emoji: '🔮', titulo: 'Oracule del Saber', accesorio: 'Toga purpura + Orbe', bg: 'from-pink-600 to-pink-700' },
+            { nivel: 9, emoji: '👑', titulo: 'Maestre Filosofe', accesorio: 'Corona de laurel + Cetro', bg: 'from-yellow-600 to-yellow-700' },
+            { nivel: 10, emoji: '🌟', titulo: 'Filosofe Legendarie', accesorio: 'Aura dorada + Estrella', bg: 'from-yellow-500 to-amber-500' }
+        ];
+
+        var avatares = g === 'femenino' ? avataresFemenino :
+                       g === 'masculino' ? avataresMasculino : avataresNeutro;
         return avatares.find(a => a.nivel === nivelNum) || avatares[0];
     };
 
@@ -266,7 +296,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                     <div className="text-7xl mb-2 drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>
                         {avatar.emoji}
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-1">{currentUser.nombre}</h2>
+                    <h2 className="text-3xl font-bold text-white mb-1">{currentUser.nombreSocial || currentUser.nombre}</h2>
                     <p className="text-white/80 text-sm font-semibold">{avatar.titulo}</p>
                     <div className="flex items-center justify-center gap-2 mt-2">
                         <span className={`inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${clase.color}`}>
@@ -571,7 +601,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                     <div className="space-y-3">
                         {top5.map((student, idx) => {
                             var sNivel = window.getNivel(student.xp || 0);
-                            var sAvatar = getAvatar(sNivel.nivel);
+                            var sAvatar = getAvatar(sNivel.nivel, student.genero);
                             var sClase = window.CLASES_FILOSOFICAS.find(c => c.id === student.clase);
                             var isMe = student.id === currentUser.id;
                             return (
@@ -585,7 +615,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className={`font-bold text-sm truncate ${isMe ? 'text-yellow-400' : 'text-white'}`}>
-                                                    {student.nombre} {isMe ? '(Tu)' : ''}
+                                                    {student.nombreSocial || student.nombre} {isMe ? '(Tu)' : ''}
                                                 </p>
                                                 {sClase && (
                                                     <span className={`text-xs px-2 py-0.5 rounded-full text-white ${sClase.color}`}>
@@ -614,7 +644,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                                     <span className="text-xl font-bold text-white/60">#{rankPosition}</span>
                                     <span className="text-2xl">{avatar.emoji}</span>
                                     <div className="flex-1">
-                                        <p className="font-bold text-sm text-yellow-400">{currentUser.nombre} (Tu)</p>
+                                        <p className="font-bold text-sm text-yellow-400">{currentUser.nombreSocial || currentUser.nombre} (Tu)</p>
                                         <p className="text-white/60 text-xs">Nv.{nivel.nivel} {nivel.titulo}</p>
                                     </div>
                                     <div className="text-right">
@@ -914,7 +944,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                                             <p className="text-purple-200 text-xs mb-1">{art.efecto}</p>
                                             <p className="text-xs">{rarezaLabel}</p>
                                             {fromStudent && (
-                                                <p className="text-purple-400 text-xs mt-1">🎁 Regalo de {fromStudent.nombre}</p>
+                                                <p className="text-purple-400 text-xs mt-1">🎁 Regalo de {fromStudent.nombreSocial || fromStudent.nombre}</p>
                                             )}
                                         </div>
                                     </div>
@@ -978,7 +1008,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                     <div className="flex items-center gap-2 min-w-0">
                         <span className="text-xl sm:text-2xl">{avatar.emoji}</span>
                         <div className="min-w-0">
-                            <h1 className="text-white font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombre}</h1>
+                            <h1 className="text-white font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombreSocial || currentUser.nombre}</h1>
                             <p className="text-purple-300 text-xs hidden sm:block">Nv.{nivel.nivel} {avatar.titulo}</p>
                         </div>
                     </div>
@@ -1051,7 +1081,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                             className="w-full bg-gray-800 border border-purple-500/30 text-white rounded-xl px-4 py-3 mb-4 text-sm">
                             <option value="">Seleccionar companero...</option>
                             {(students || []).filter(s => s.id !== currentUser.id).map(s => (
-                                <option key={s.id} value={s.id}>{s.nombre}</option>
+                                <option key={s.id} value={s.id}>{s.nombreSocial || s.nombre}</option>
                             ))}
                         </select>
                         <div className="flex gap-3">
