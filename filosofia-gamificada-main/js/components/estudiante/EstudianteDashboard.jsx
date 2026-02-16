@@ -1,6 +1,6 @@
 // Dashboard del Estudiante - Vista gamificada completa
 // Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
-window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onLogout, setStudents }) => {
+window.EstudianteDashboard = ({ currentUser, students, activities, unidades, currentUnidad, currentClase, onLogout, setStudents }) => {
     const { useState } = React;
     const [activeTab, setActiveTab] = useState('perfil');
     const [expandedUnidades, setExpandedUnidades] = useState({});
@@ -86,6 +86,74 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
         return window.TIPOS_ACTIVIDAD.find(t => t.id === tipoId) || { nombre: tipoId, icon: '📋' };
     };
 
+    // ---- Progreso global del curso ----
+    const cursoUnidadObj = unidadesData.find(u => u.id === currentUnidad) || unidadesData[0];
+    const cursoClaseObj = cursoUnidadObj ? cursoUnidadObj.clases.find(c => c.num === currentClase) : null;
+    const totalClasesCurso = unidadesData.reduce((sum, u) => sum + u.clases.length, 0);
+    const clasesAvanzadas = (function() {
+        var count = 0;
+        var unidadIdx = unidadesData.findIndex(u => u.id === currentUnidad);
+        for (var i = 0; i < unidadIdx; i++) {
+            count += unidadesData[i].clases.length;
+        }
+        count += (currentClase || 1);
+        return count;
+    })();
+    const progresoCurso = totalClasesCurso > 0 ? Math.round((clasesAvanzadas / totalClasesCurso) * 100) : 0;
+
+    // ---- Misiones semanales (generadas dinamicamente) ----
+    const getMisiones = () => {
+        var misiones = [];
+        // Mision 1: Participar en actividades esta semana
+        var hoy = new Date();
+        var inicioSemana = new Date(hoy);
+        inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+        inicioSemana.setHours(0, 0, 0, 0);
+        var actsSemana = myActivities.filter(a => {
+            var fecha = a.date ? new Date(a.date) : a.fecha ? new Date(a.fecha) : null;
+            return fecha && fecha >= inicioSemana;
+        });
+
+        misiones.push({
+            id: 'm1', emoji: '⚡', nombre: 'Participante Activo',
+            descripcion: 'Completa 3 actividades esta semana',
+            progreso: Math.min(actsSemana.length, 3), meta: 3,
+            recompensa: '+15 XP bonus'
+        });
+
+        // Mision 2: Variedad de actividades
+        var tiposSemana = new Set(actsSemana.map(a => a.tipo));
+        misiones.push({
+            id: 'm2', emoji: '🎨', nombre: 'Explorador de Saberes',
+            descripcion: 'Realiza 2 tipos diferentes de actividad esta semana',
+            progreso: Math.min(tiposSemana.size, 2), meta: 2,
+            recompensa: '+10 XP bonus'
+        });
+
+        // Mision 3: Vocabulario
+        var vocabMeta = 3;
+        misiones.push({
+            id: 'm3', emoji: '📚', nombre: 'Cazador de Palabras',
+            descripcion: 'Descubre ' + vocabMeta + ' terminos de vocabulario',
+            progreso: Math.min(vocabDescubierto.length, vocabMeta), meta: vocabMeta,
+            recompensa: 'Badge especial'
+        });
+
+        // Mision 4: Obtener nivel excepcional
+        var excepSemana = actsSemana.filter(a => a.nivel === 'excepcional').length;
+        misiones.push({
+            id: 'm4', emoji: '🌟', nombre: 'Excelencia Filosofica',
+            descripcion: 'Logra 1 actividad con nivel excepcional esta semana',
+            progreso: Math.min(excepSemana, 1), meta: 1,
+            recompensa: '+20 XP bonus'
+        });
+
+        return misiones;
+    };
+
+    const misiones = getMisiones();
+    const misionesCompletadas = misiones.filter(m => m.progreso >= m.meta).length;
+
     // ---- Intercambio de artefactos ----
     const handleTrade = () => {
         if (!selectedTradeArt || !tradeTarget || !setStudents) return;
@@ -123,6 +191,74 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
     // ============================================================
     const renderPerfil = () => (
         <div className="space-y-6">
+            {/* Progreso Global del Curso */}
+            {cursoUnidadObj && (
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-cyan-400/30">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl">{cursoUnidadObj.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-cyan-300 text-xs font-semibold">CLASE ACTUAL DEL CURSO</p>
+                            <p className="text-white font-bold text-sm truncate">{cursoUnidadObj.id} - Clase {currentClase}: {cursoClaseObj ? cursoClaseObj.titulo : ''}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                            <p className="text-cyan-400 font-bold text-lg">{progresoCurso}%</p>
+                            <p className="text-purple-300 text-xs">del curso</p>
+                        </div>
+                    </div>
+                    <div className="w-full bg-purple-900/50 rounded-full h-2.5">
+                        <div className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2.5 rounded-full transition-all duration-700"
+                            style={{ width: progresoCurso + '%' }}></div>
+                    </div>
+                </div>
+            )}
+
+            {/* Misiones Semanales */}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-bold flex items-center gap-2">
+                        <span className="text-xl">🎯</span> Misiones de la Semana
+                    </h3>
+                    <span className="bg-yellow-500/20 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full">
+                        {misionesCompletadas}/{misiones.length} completadas
+                    </span>
+                </div>
+                <div className="space-y-3">
+                    {misiones.map(mision => {
+                        var completada = mision.progreso >= mision.meta;
+                        var pctMision = Math.min((mision.progreso / mision.meta) * 100, 100);
+                        return (
+                            <div key={mision.id}
+                                className={`rounded-xl p-3 border transition-all ${
+                                    completada
+                                        ? 'bg-green-500/15 border-green-400/30'
+                                        : 'bg-white/5 border-white/10'
+                                }`}>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{completada ? '✅' : mision.emoji}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`font-semibold text-sm ${completada ? 'text-green-400' : 'text-white'}`}>
+                                            {mision.nombre}
+                                        </p>
+                                        <p className="text-purple-300 text-xs">{mision.descripcion}</p>
+                                        <div className="flex items-center gap-2 mt-1.5">
+                                            <div className="flex-1 bg-purple-900/50 rounded-full h-2">
+                                                <div className={`h-2 rounded-full transition-all duration-500 ${
+                                                    completada ? 'bg-green-400' : 'bg-yellow-400'
+                                                }`} style={{ width: pctMision + '%' }}></div>
+                                            </div>
+                                            <span className="text-xs text-purple-300 shrink-0">{mision.progreso}/{mision.meta}</span>
+                                        </div>
+                                    </div>
+                                    <span className="bg-white/10 text-purple-300 text-xs px-2 py-1 rounded-lg shrink-0 hidden sm:block">
+                                        {mision.recompensa}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
             {/* Avatar Card */}
             <div className={`bg-gradient-to-br ${avatar.bg} rounded-2xl p-6 text-center border border-white/20 relative overflow-hidden`}>
                 <div className="absolute inset-0 bg-white/5"></div>
@@ -188,7 +324,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
             {/* Radar de habilidades */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
                 <h3 className="text-lg font-bold text-white mb-4 text-center">Perfil de Habilidades</h3>
-                <window.RadarChart student={currentUser} />
+                <window.RadarChart student={currentUser} darkMode={true} />
             </div>
 
             {/* Grid de habilidades */}
@@ -320,8 +456,8 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                                 </div>
                             </div>
 
-                            {/* Camino de clases (nodos) */}
-                            <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-2">
+                            {/* Camino de clases (nodos) - scroll horizontal en mobile */}
+                            <div className="flex items-center gap-0.5 sm:gap-1 mb-4 overflow-x-auto pb-2 -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                                 {unidad.clases.map((cl, ci) => {
                                     var hasActivity = myActivities.some(a => a.unidadId === unidad.id && a.claseNum === cl.num);
                                     var isNextClass = isCurrent && !hasActivity && (ci === 0 || unidad.clases.slice(0, ci).every(prev =>
@@ -329,21 +465,21 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                                     ));
                                     return (
                                         <React.Fragment key={ci}>
-                                            <div className={`flex flex-col items-center min-w-[52px] transition-all`}
+                                            <div className={`flex flex-col items-center min-w-[40px] sm:min-w-[52px] transition-all`}
                                                 title={cl.titulo}>
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all ${
+                                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-lg border-2 transition-all ${
                                                     hasActivity ? `${terreno.path} border-white text-white shadow-lg` :
                                                     isNextClass ? 'bg-yellow-500/30 border-yellow-400 animate-pulse' :
                                                     'bg-gray-700/50 border-gray-600 opacity-50'
                                                 }`}>
                                                     {hasActivity ? cl.emoji : isNextClass ? '👣' : (ci + 1)}
                                                 </div>
-                                                <span className={`text-xs mt-1 text-center leading-tight max-w-[52px] ${hasActivity ? 'text-white' : 'text-gray-400'}`}>
-                                                    {hasActivity ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'Clase ' + cl.num}
+                                                <span className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-center leading-tight max-w-[40px] sm:max-w-[52px] ${hasActivity ? 'text-white' : 'text-gray-400'}`}>
+                                                    {hasActivity ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'C' + cl.num}
                                                 </span>
                                             </div>
                                             {ci < unidad.clases.length - 1 && (
-                                                <div className={`w-4 h-0.5 mt-[-16px] ${hasActivity ? terreno.path : 'bg-gray-600'}`}></div>
+                                                <div className={`w-2 sm:w-4 h-0.5 mt-[-12px] sm:mt-[-16px] shrink-0 ${hasActivity ? terreno.path : 'bg-gray-600'}`}></div>
                                             )}
                                         </React.Fragment>
                                     );
@@ -662,22 +798,53 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                     {myActivities.length === 0 ? (
                         <p className="text-purple-300 text-center text-sm">No tienes actividades registradas aun.</p>
                     ) : (
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                        <div className="space-y-2 max-h-[500px] overflow-y-auto">
                             {myActivities.slice(0, 20).map((act, i) => {
                                 var tipoInfo = getActividadTipo(act.tipo);
                                 var unidad = unidadesData.find(u => u.id === act.unidadId);
+                                var habsGanadas = act.habilidades || (window.RUBRICS_HABILIDADES[act.tipo] || {});
                                 return (
-                                    <div key={i} className="flex items-center gap-3 bg-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors">
-                                        <span className="text-2xl">{tipoInfo.icon}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-white text-sm font-semibold truncate">{act.nombre || act.notas || tipoInfo.nombre}</p>
-                                            <p className="text-purple-300 text-xs">
-                                                {unidad ? unidad.emoji + ' ' + unidad.nombre : ''}{(act.date || act.fecha) ? ' - ' + new Date(act.date || act.fecha).toLocaleDateString() : ''}
-                                            </p>
+                                    <div key={i} className="bg-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-2xl">{tipoInfo.icon}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-white text-sm font-semibold truncate">{tipoInfo.nombre}</p>
+                                                <p className="text-purple-300 text-xs">
+                                                    {unidad ? unidad.emoji + ' ' + unidad.nombre : ''}{(act.date || act.fecha) ? ' - ' + new Date(act.date || act.fecha).toLocaleDateString() : ''}
+                                                </p>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <span className="bg-yellow-500/20 text-yellow-400 text-sm font-bold px-2 py-1 rounded-lg">
+                                                    +{act.xp || 0} XP
+                                                </span>
+                                                <p className="text-purple-400 text-xs mt-1 capitalize">{act.nivel || ''}</p>
+                                            </div>
                                         </div>
-                                        <span className="bg-yellow-500/20 text-yellow-400 text-sm font-bold px-2 py-1 rounded-lg">
-                                            +{act.xp || 0} XP
-                                        </span>
+                                        {/* Habilidades ganadas */}
+                                        {Object.keys(habsGanadas).length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-2 ml-10">
+                                                {Object.entries(habsGanadas).map(([habId, pts]) => {
+                                                    var hab = window.HABILIDADES.find(h => h.id === habId);
+                                                    if (!hab || pts <= 0) return null;
+                                                    return (
+                                                        <span key={habId} className="bg-white/10 text-purple-200 text-xs px-2 py-0.5 rounded-full">
+                                                            {hab.emoji} +{pts}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {/* Comentario del profesor */}
+                                        {act.comentario && (
+                                            <div className="mt-2 ml-10 bg-blue-500/10 border border-blue-400/20 rounded-lg p-2.5">
+                                                <p className="text-blue-300 text-xs font-semibold mb-0.5">💬 Comentario del profesor:</p>
+                                                <p className="text-blue-200 text-xs leading-relaxed">{act.comentario}</p>
+                                            </div>
+                                        )}
+                                        {/* Notas */}
+                                        {act.notas && !act.comentario && (
+                                            <p className="text-purple-400 text-xs mt-1.5 ml-10 italic">{act.notas}</p>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -807,25 +974,25 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
         <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
             {/* Header */}
             <header className="bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
-                <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="text-2xl">{avatar.emoji}</span>
-                        <div>
-                            <h1 className="text-white font-bold text-lg leading-tight">{currentUser.nombre}</h1>
-                            <p className="text-purple-300 text-xs">Nv.{nivel.nivel} {avatar.titulo}</p>
+                <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl sm:text-2xl">{avatar.emoji}</span>
+                        <div className="min-w-0">
+                            <h1 className="text-white font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombre}</h1>
+                            <p className="text-purple-300 text-xs hidden sm:block">Nv.{nivel.nivel} {avatar.titulo}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <span className="bg-yellow-500/20 text-yellow-400 text-sm font-bold px-3 py-1 rounded-full">
+                    <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                        <span className="bg-yellow-500/20 text-yellow-400 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
                             {currentUser.xp || 0} XP
                         </span>
-                        <span className="bg-purple-500/20 text-purple-300 text-sm font-bold px-3 py-1 rounded-full">
+                        <span className="bg-purple-500/20 text-purple-300 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
                             #{rankPosition}
                         </span>
                         <button onClick={onLogout}
-                            className="text-purple-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                            className="text-purple-300 hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-white/10"
                             title="Cerrar sesion">
-                            <window.Icons.LogOut size={20} />
+                            <window.Icons.LogOut size={18} />
                         </button>
                     </div>
                 </div>
@@ -854,19 +1021,20 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, onL
                 </main>
             </div>
 
-            {/* Bottom tab bar (mobile) */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-xl border-t border-white/10 z-50">
-                <div className="flex justify-around py-2">
+            {/* Bottom tab bar (mobile) - safe area + compact */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-white/10 z-50"
+                style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+                <div className="flex justify-around py-1.5 px-1">
                     {tabs.map(tab => (
                         <button key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-all ${
+                            className={`flex flex-col items-center gap-0 px-1.5 py-1 rounded-lg transition-all min-w-0 ${
                                 activeTab === tab.id ? 'text-white' : 'text-purple-400'
                             }`}>
-                            <span className={`text-lg ${activeTab === tab.id ? 'scale-110' : ''} transition-transform`}>{tab.emoji}</span>
-                            <span className="text-xs font-medium">{tab.label}</span>
+                            <span className={`text-base ${activeTab === tab.id ? 'scale-110' : ''} transition-transform`}>{tab.emoji}</span>
+                            <span className="text-[10px] font-medium leading-tight truncate max-w-[48px]">{tab.label}</span>
                             {activeTab === tab.id && (
-                                <div className="w-1 h-1 rounded-full bg-yellow-400 mt-0.5"></div>
+                                <div className="w-1 h-1 rounded-full bg-yellow-400"></div>
                             )}
                         </button>
                     ))}

@@ -7,8 +7,8 @@ window.AddStudentModal = ({ onClose, onAdd }) => {
     const clases = window.CLASES_FILOSOFICAS;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-white rounded-lg p-5 sm:p-6 max-w-md w-full my-4">
                 <h3 className="text-xl font-bold mb-4">Agregar Nuevo Estudiante</h3>
                 <input type="text" placeholder="Nombre completo" value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
@@ -97,7 +97,7 @@ window.EditStudentModal = ({ student, onClose, onAddXP, onAddHabilidadPoints, on
 // Modal para registrar actividad individual
 window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
     const [formData, setFormData] = useState({
-        studentId: '', tipo: '', nivel: 'competente', xp: 0, notas: '', unidadId: 'U1', claseNum: 1
+        studentId: '', tipo: '', nivel: 'competente', xp: 0, notas: '', comentario: '', unidadId: 'U1', claseNum: 1
     });
     const tiposActividad = window.TIPOS_ACTIVIDAD;
     const rubrics = window.RUBRICS_XP;
@@ -144,11 +144,31 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
                     <option value="excepcional">Excepcional</option>
                 </select>
                 <div className="bg-purple-50 rounded-lg p-4 mb-3">
-                    <div className="text-sm text-gray-600 mb-1">XP a otorgar:</div>
-                    <div className="text-2xl font-bold text-purple-600">{formData.xp} XP</div>
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-gray-600">XP a otorgar:</span>
+                        <span className="text-2xl font-bold text-purple-600">{formData.xp} XP</span>
+                    </div>
+                    {formData.tipo && window.RUBRICS_HABILIDADES[formData.tipo] && (
+                        <div className="mt-2 pt-2 border-t border-purple-200">
+                            <div className="text-xs text-gray-500 mb-1.5">Habilidades que mejora:</div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {Object.entries(window.RUBRICS_HABILIDADES[formData.tipo]).map(([habId, pts]) => {
+                                    var hab = window.HABILIDADES.find(h => h.id === habId);
+                                    if (!hab) return null;
+                                    return (
+                                        <span key={habId} className="inline-flex items-center gap-1 bg-white rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm border">
+                                            {hab.emoji} {hab.shortName} <span className="text-purple-600">+{pts}</span>
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <textarea value={formData.notas} onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                    placeholder="Notas adicionales (opcional)" className="w-full px-4 py-2 border rounded-lg mb-4 h-20" />
+                    placeholder="Notas adicionales (opcional)" className="w-full px-4 py-2 border rounded-lg mb-3 h-20" />
+                <textarea value={formData.comentario || ''} onChange={(e) => setFormData({ ...formData, comentario: e.target.value })}
+                    placeholder="💬 Comentario/feedback para el estudiante (opcional)" className="w-full px-4 py-2 border rounded-lg mb-4 h-16 bg-blue-50 border-blue-200 placeholder-blue-400" />
                 <div className="flex gap-2">
                     <button onClick={() => {
                         if (formData.studentId && formData.tipo) {

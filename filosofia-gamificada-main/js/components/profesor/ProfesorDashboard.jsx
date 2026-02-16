@@ -210,6 +210,7 @@ window.ProfesorDashboard = function ProfesorDashboard({
             nivel: data.nivel,
             xp: data.xp,
             notas: data.notas || '',
+            comentario: data.comentario || '',
             unidadId: data.unidadId || currentUnidad,
             claseNum: data.claseNum || currentClase,
             date: new Date().toISOString(),
