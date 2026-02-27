@@ -12,8 +12,10 @@ window.BADGES = [
     { id: 'vocabulario_u2', nombre: 'Léxico U2', icon: '📖', descripcion: 'Completó el vocabulario de la Unidad 2' },
     { id: 'vocabulario_u3', nombre: 'Léxico U3', icon: '📕', descripcion: 'Completó el vocabulario de la Unidad 3' },
     { id: 'ensayista', nombre: 'Ensayista', icon: '✍️', descripcion: 'Completó su primer ensayo filosófico' },
-    { id: 'investigador', nombre: 'Investigador', icon: '🔬', descripcion: 'Completó un proyecto de investigación' },
-    { id: 'filosofo_aplicado', nombre: 'Filósofo Aplicado', icon: '🚀', descripcion: 'Completó el proyecto ABP' },
+    { id: 'ontologo', nombre: 'Pensador Ontológico', icon: '🌍', descripcion: 'Completó el ensayo ontológico de la Unidad 2' },
+    { id: 'investigador', nombre: 'Investigador Epistémico', icon: '🔬', descripcion: 'Completó la prueba de contenidos epistemológicos' },
+    { id: 'vocabulario_u4', nombre: 'Léxico U4', icon: '📗', descripcion: 'Completó el vocabulario de la Unidad 4' },
+    { id: 'debatiente', nombre: 'Debatiente Filosófico', icon: '⚔️', descripcion: 'Participó en el debate filosófico evaluado' },
     { id: 'nivel5', nombre: 'Pensador Crítico', icon: '🧠', descripcion: 'Alcanzó el nivel 5' },
     { id: 'nivel10', nombre: 'Filósofo en Formación', icon: '🎓', descripcion: 'Alcanzó el nivel máximo' }
 ];

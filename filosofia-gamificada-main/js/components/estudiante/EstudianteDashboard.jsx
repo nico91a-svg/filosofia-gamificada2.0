@@ -7,6 +7,8 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
     const [showTradeModal, setShowTradeModal] = useState(false);
     const [selectedTradeArt, setSelectedTradeArt] = useState(null);
     const [tradeTarget, setTradeTarget] = useState('');
+    const [showUseConfirm, setShowUseConfirm] = useState(false);
+    const [selectedUseArt, setSelectedUseArt] = useState(null);
 
     // ---- Datos derivados ----
     const nivel = window.getNivel(currentUser.xp || 0);
@@ -214,6 +216,23 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
         setShowTradeModal(false);
         setSelectedTradeArt(null);
         setTradeTarget('');
+    };
+
+    // ---- Usar artefacto ----
+    const handleUseArtefacto = () => {
+        if (selectedUseArt === null || !setStudents) return;
+        setStudents(prev => prev.map(s => {
+            if (s.id !== currentUser.id) return s;
+            var arts = (s.artefactos || []).map((art, i) => {
+                if (i === selectedUseArt && !art.usado) {
+                    return { ...art, usado: true, fechaUso: new Date().toISOString() };
+                }
+                return art;
+            });
+            return { ...s, artefactos: arts };
+        }));
+        setShowUseConfirm(false);
+        setSelectedUseArt(null);
     };
 
     // ============================================================
@@ -948,12 +967,20 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                                             )}
                                         </div>
                                     </div>
-                                    {/* Boton de regalar (solo si no usado y hay setStudents) */}
-                                    {!art.usado && setStudents && otherStudents.length > 0 && (
-                                        <button onClick={() => { setSelectedTradeArt(art._idx); setShowTradeModal(true); }}
-                                            className="mt-3 w-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 text-purple-300 hover:text-white py-2 rounded-xl text-xs font-semibold transition-all">
-                                            🎁 Regalar a un companero
-                                        </button>
+                                    {/* Botones de usar y regalar (solo si no usado y hay setStudents) */}
+                                    {!art.usado && setStudents && (
+                                        <div className="flex gap-2 mt-3">
+                                            <button onClick={() => { setSelectedUseArt(art._idx); setShowUseConfirm(true); }}
+                                                className="flex-1 bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 text-green-300 hover:text-white py-2 rounded-xl text-xs font-semibold transition-all">
+                                                ✨ Usar
+                                            </button>
+                                            {otherStudents.length > 0 && (
+                                                <button onClick={() => { setSelectedTradeArt(art._idx); setShowTradeModal(true); }}
+                                                    className="flex-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 text-purple-300 hover:text-white py-2 rounded-xl text-xs font-semibold transition-all">
+                                                    🎁 Regalar
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             );
@@ -1070,6 +1097,37 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                     ))}
                 </div>
             </nav>
+
+            {/* Modal de confirmacion de uso de artefacto */}
+            {showUseConfirm && selectedUseArt !== null && (() => {
+                var inventario = currentUser.artefactos || [];
+                var artInv = inventario[selectedUseArt];
+                var artDef = artInv ? window.ARTEFACTOS.find(a => a.id === (artInv.id || artInv)) : null;
+                return (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-gray-900 border border-green-500/30 rounded-2xl p-6 max-w-sm w-full text-center">
+                            {artDef && (
+                                <>
+                                    <div className="text-5xl mb-3">{artDef.emoji}</div>
+                                    <h3 className="text-xl font-bold text-white mb-2">Usar {artDef.nombre}</h3>
+                                    <p className="text-green-300 text-sm mb-1">Efecto: {artDef.efecto}</p>
+                                    <p className="text-yellow-400 text-xs mb-4">Una vez usado, no se puede recuperar. Tu profesor aplicara el efecto.</p>
+                                </>
+                            )}
+                            <div className="flex gap-3">
+                                <button onClick={() => { setShowUseConfirm(false); setSelectedUseArt(null); }}
+                                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-xl text-sm font-semibold transition">
+                                    Cancelar
+                                </button>
+                                <button onClick={handleUseArtefacto}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl text-sm font-semibold transition">
+                                    ✨ Confirmar Uso
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Modal de intercambio de artefactos */}
             {showTradeModal && (
