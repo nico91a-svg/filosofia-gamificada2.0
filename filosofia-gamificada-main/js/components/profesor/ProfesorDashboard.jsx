@@ -158,9 +158,9 @@ window.ProfesorDashboard = function ProfesorDashboard({
             newBadges.push('investigador');
         }
 
-        // Badge: filosofo_aplicado - completo un proyecto ABP
-        if (activityType === 'proyecto' && !currentBadges.includes('filosofo_aplicado')) {
-            newBadges.push('filosofo_aplicado');
+        // Badge: debatiente - completo un debate filosófico
+        if (activityType === 'debate' && !currentBadges.includes('debatiente')) {
+            newBadges.push('debatiente');
         }
 
         // Badge: original - completo un experimento mental

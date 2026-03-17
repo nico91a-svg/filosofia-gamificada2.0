@@ -34,6 +34,9 @@ window.FilosofoApp = () => {
                         habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
                     }));
                     setStudents(normalized);
+                } else if (window.DEFAULT_STUDENTS_3B) {
+                    // Cargar estudiantes por defecto si no hay datos guardados
+                    setStudents(window.DEFAULT_STUDENTS_3B);
                 }
 
                 // Intentar cargar actividades

@@ -11,7 +11,7 @@ window.TIPOS_ACTIVIDAD = [
     { id: 'bitacora', nombre: 'Bitácora Filosófica', icon: '📓' },
     { id: 'presentacion', nombre: 'Presentación Oral', icon: '🎤' },
     { id: 'investigacion', nombre: 'Investigación', icon: '🔬' },
-    { id: 'proyecto', nombre: 'Proyecto ABP', icon: '🚀' }
+    { id: 'proyecto', nombre: 'Proyecto Filosófico', icon: '🚀' }
 ];
 
 // XP por tipo de actividad y nivel de desempeño
