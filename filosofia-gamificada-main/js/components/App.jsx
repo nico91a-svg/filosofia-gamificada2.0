@@ -21,19 +21,23 @@ window.FilosofoApp = () => {
                     // Convertir de objeto Firebase a array si es necesario
                     const studentsArray = Array.isArray(savedStudents)
                         ? savedStudents.filter(Boolean)
-                        : Object.values(savedStudents);
-                    // Asegurar que cada estudiante tenga vocabularioDescubierto
-                    const normalized = studentsArray.map(s => ({
-                        ...s,
-                        nombreSocial: s.nombreSocial || s.nombre,
-                        nombreLegal: s.nombreLegal || s.nombre,
-                        genero: s.genero || 'no-binario',
-                        vocabularioDescubierto: s.vocabularioDescubierto || [],
-                        inventarioArtefactos: s.inventarioArtefactos || [],
-                        badges: s.badges || ['iniciado'],
-                        habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
-                    }));
-                    setStudents(normalized);
+                        : Object.values(savedStudents).filter(Boolean);
+                    if (studentsArray.length > 0) {
+                        // Asegurar que cada estudiante tenga vocabularioDescubierto
+                        const normalized = studentsArray.map(s => ({
+                            ...s,
+                            nombreSocial: s.nombreSocial || s.nombre,
+                            nombreLegal: s.nombreLegal || s.nombre,
+                            genero: s.genero || 'no-binario',
+                            vocabularioDescubierto: s.vocabularioDescubierto || [],
+                            inventarioArtefactos: s.inventarioArtefactos || [],
+                            badges: s.badges || ['iniciado'],
+                            habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
+                        }));
+                        setStudents(normalized);
+                    } else if (window.DEFAULT_STUDENTS_3B) {
+                        setStudents(window.DEFAULT_STUDENTS_3B);
+                    }
                 } else if (window.DEFAULT_STUDENTS_3B) {
                     // Cargar estudiantes por defecto si no hay datos guardados
                     setStudents(window.DEFAULT_STUDENTS_3B);
