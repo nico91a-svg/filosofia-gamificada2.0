@@ -738,14 +738,9 @@ window.ProfesorDashboard = function ProfesorDashboard({
                     window.RegistroMasivo
                         ? <window.RegistroMasivo
                             students={students}
-                            activities={activities}
-                            setActivities={setActivities}
-                            addXP={addXP}
-                            addHabilidadPoints={addHabilidadPoints}
+                            setStudents={setStudents}
                             addActivity={addActivity}
                             unidades={unidades}
-                            currentUnidad={currentUnidad}
-                            currentClase={currentClase}
                           />
                         : <div className="bg-white rounded-xl shadow p-12 text-center text-gray-400">
                             <div className="text-5xl mb-4">📋</div>

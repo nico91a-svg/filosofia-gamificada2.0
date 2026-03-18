@@ -1,5 +1,5 @@
 // Registro masivo de actividades
-window.RegistroMasivo = ({ students, unidades, onRegisterBatch }) => {
+window.RegistroMasivo = ({ students, unidades, addActivity, setStudents }) => {
     const { useState, useEffect } = React;
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [tipo, setTipo] = useState('');
@@ -11,6 +11,7 @@ window.RegistroMasivo = ({ students, unidades, onRegisterBatch }) => {
     const [nivelesIndividuales, setNivelesIndividuales] = useState({});
     const [vocabularioTerminos, setVocabularioTerminos] = useState([]);
     const [registroExitoso, setRegistroExitoso] = useState(false);
+    const [registroCount, setRegistroCount] = useState(0);
 
     const tiposActividad = window.TIPOS_ACTIVIDAD;
     const rubrics = window.RUBRICS_XP;
@@ -36,10 +37,12 @@ window.RegistroMasivo = ({ students, unidades, onRegisterBatch }) => {
             return;
         }
 
-        const batch = selectedStudents.map(studentId => {
+        const registrados = selectedStudents.length;
+
+        selectedStudents.forEach(studentId => {
             const studentNivel = nivelIndividual ? (nivelesIndividuales[studentId] || nivel) : nivel;
             const xp = rubrics[tipo]?.[studentNivel] || 0;
-            return {
+            addActivity({
                 studentId,
                 tipo,
                 nivel: studentNivel,
@@ -47,13 +50,23 @@ window.RegistroMasivo = ({ students, unidades, onRegisterBatch }) => {
                 unidadId,
                 claseNum,
                 notas,
-                habilidades: window.RUBRICS_HABILIDADES[tipo] || {},
-                vocabularioTerminos
-            };
+                habilidades: window.RUBRICS_HABILIDADES[tipo] || {}
+            });
         });
 
-        onRegisterBatch(batch);
+        // Otorgar vocabulario si se seleccionaron terminos
+        if (vocabularioTerminos.length > 0 && setStudents) {
+            setStudents(prev => prev.map(s => {
+                if (!selectedStudents.includes(s.id)) return s;
+                var vocab = s.vocabularioDescubierto || [];
+                var nuevos = vocabularioTerminos.filter(t => !vocab.includes(t));
+                if (nuevos.length === 0) return s;
+                return { ...s, vocabularioDescubierto: vocab.concat(nuevos) };
+            }));
+        }
+
         setRegistroExitoso(true);
+        setRegistroCount(registrados);
         setTimeout(() => setRegistroExitoso(false), 3000);
         setSelectedStudents([]);
         setTipo('');
@@ -68,7 +81,7 @@ window.RegistroMasivo = ({ students, unidades, onRegisterBatch }) => {
 
             {registroExitoso && (
                 <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                    Actividades registradas exitosamente para {selectedStudents.length || 'los'} estudiantes seleccionados.
+                    Actividades registradas exitosamente para {registroCount} estudiante{registroCount !== 1 ? 's' : ''}.
                 </div>
             )}
 
