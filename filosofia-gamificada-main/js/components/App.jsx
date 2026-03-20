@@ -11,100 +11,123 @@ window.FilosofoApp = () => {
     const [currentClase, setCurrentClase] = useState(1);
     const [loading, setLoading] = useState(true);
 
-    // Cargar datos al iniciar
+    // Flag para evitar guardar datos que acabamos de recibir de Firebase
+    const [syncingFromFirebase, setSyncingFromFirebase] = useState(false);
+
+    // Normalizar datos de estudiante
+    const normalizeStudent = (s) => ({
+        ...s,
+        nombreSocial: s.nombreSocial || s.nombre,
+        nombreLegal: s.nombreLegal || s.nombre,
+        genero: s.genero || 'no-binario',
+        vocabularioDescubierto: s.vocabularioDescubierto || [],
+        inventarioArtefactos: s.inventarioArtefactos || [],
+        badges: s.badges || ['iniciado'],
+        habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
+    });
+
+    // Convertir snapshot Firebase a array
+    const toArray = (data) => {
+        if (!data) return [];
+        return (Array.isArray(data) ? data : Object.values(data)).filter(Boolean);
+    };
+
+    // Cargar datos con listeners en tiempo real
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                // Intentar cargar estudiantes
-                const savedStudents = await window.DatabaseService.loadOnce('students');
-                const defaults = window.DEFAULT_STUDENTS_3B || [];
-                var useDefaults = false;
+        const isFirebase = window.DatabaseService.isFirebaseConnected();
+        console.log('Firebase conectado:', isFirebase);
 
-                if (savedStudents) {
-                    const studentsArray = Array.isArray(savedStudents)
-                        ? savedStudents.filter(Boolean)
-                        : Object.values(savedStudents).filter(Boolean);
-                    if (studentsArray.length > 0) {
-                        // Si Firebase tiene menos estudiantes que los defaults,
-                        // son datos obsoletos de prueba - usar defaults
-                        if (defaults.length > 0 && studentsArray.length < defaults.length) {
-                            useDefaults = true;
-                        } else {
-                            const normalized = studentsArray.map(s => ({
-                                ...s,
-                                nombreSocial: s.nombreSocial || s.nombre,
-                                nombreLegal: s.nombreLegal || s.nombre,
-                                genero: s.genero || 'no-binario',
-                                vocabularioDescubierto: s.vocabularioDescubierto || [],
-                                inventarioArtefactos: s.inventarioArtefactos || [],
-                                badges: s.badges || ['iniciado'],
-                                habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
-                            }));
-                            setStudents(normalized);
-                        }
-                    } else {
-                        useDefaults = true;
-                    }
+        if (isFirebase) {
+            // ---- MODO FIREBASE: listeners en tiempo real ----
+            // Estudiantes
+            window.DatabaseService.load('students', (data) => {
+                const arr = toArray(data);
+                if (arr.length > 0) {
+                    setSyncingFromFirebase(true);
+                    setStudents(arr.map(normalizeStudent));
+                    setTimeout(() => setSyncingFromFirebase(false), 500);
                 } else {
-                    useDefaults = true;
-                }
-
-                if (useDefaults && defaults.length > 0) {
-                    setStudents(defaults);
-                    // Guardar inmediatamente en Firebase para sincronizar todos los dispositivos
-                    window.DatabaseService.save('students', defaults);
-                }
-
-                // Intentar cargar actividades
-                const savedActivities = await window.DatabaseService.loadOnce('activities');
-                if (savedActivities) {
-                    const activitiesArray = Array.isArray(savedActivities)
-                        ? savedActivities.filter(Boolean)
-                        : Object.values(savedActivities);
-                    setActivities(activitiesArray);
-                }
-
-                // Intentar cargar unidades personalizadas
-                const savedUnidades = await window.DatabaseService.loadOnce('unidades');
-                if (savedUnidades) {
-                    const unidadesArray = Array.isArray(savedUnidades)
-                        ? savedUnidades.filter(Boolean)
-                        : Object.values(savedUnidades);
-                    if (unidadesArray.length > 0) {
-                        setUnidades(unidadesArray);
+                    // Firebase vacio: cargar defaults y guardar en Firebase
+                    const defaults = window.DEFAULT_STUDENTS_3B || [];
+                    if (defaults.length > 0) {
+                        setStudents(defaults);
+                        window.DatabaseService.save('students', defaults);
                     }
                 }
+                setLoading(false);
+            });
 
-                // Cargar posición actual
-                const savedPosition = await window.DatabaseService.loadOnce('position');
-                if (savedPosition) {
-                    if (savedPosition.unidad) setCurrentUnidad(savedPosition.unidad);
-                    if (savedPosition.clase) setCurrentClase(savedPosition.clase);
+            // Actividades
+            window.DatabaseService.load('activities', (data) => {
+                const arr = toArray(data);
+                setSyncingFromFirebase(true);
+                setActivities(arr);
+                setTimeout(() => setSyncingFromFirebase(false), 500);
+            });
+
+            // Posicion actual
+            window.DatabaseService.load('position', (data) => {
+                if (data) {
+                    if (data.unidad) setCurrentUnidad(data.unidad);
+                    if (data.clase) setCurrentClase(data.clase);
                 }
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-            }
-            setLoading(false);
-        };
+            });
 
-        loadData();
+            // Unidades personalizadas
+            window.DatabaseService.load('unidades', (data) => {
+                const arr = toArray(data);
+                if (arr.length > 0) {
+                    setSyncingFromFirebase(true);
+                    setUnidades(arr);
+                    setTimeout(() => setSyncingFromFirebase(false), 500);
+                }
+            });
+        } else {
+            // ---- MODO OFFLINE: localStorage ----
+            const loadOffline = async () => {
+                try {
+                    const savedStudents = await window.DatabaseService.loadOnce('students');
+                    const arr = toArray(savedStudents);
+                    if (arr.length > 0) {
+                        setStudents(arr.map(normalizeStudent));
+                    } else {
+                        const defaults = window.DEFAULT_STUDENTS_3B || [];
+                        if (defaults.length > 0) setStudents(defaults);
+                    }
+
+                    const savedActs = await window.DatabaseService.loadOnce('activities');
+                    const actsArr = toArray(savedActs);
+                    if (actsArr.length > 0) setActivities(actsArr);
+
+                    const savedPos = await window.DatabaseService.loadOnce('position');
+                    if (savedPos) {
+                        if (savedPos.unidad) setCurrentUnidad(savedPos.unidad);
+                        if (savedPos.clase) setCurrentClase(savedPos.clase);
+                    }
+                } catch (error) {
+                    console.error('Error cargando datos offline:', error);
+                }
+                setLoading(false);
+            };
+            loadOffline();
+        }
     }, []);
 
-    // Guardar datos cuando cambien
+    // Guardar datos cuando cambien (solo si NO viene de Firebase sync)
     useEffect(() => {
-        if (!loading && students.length > 0) {
+        if (!loading && !syncingFromFirebase && students.length > 0) {
             window.DatabaseService.save('students', students);
         }
     }, [students]);
 
     useEffect(() => {
-        if (!loading && activities.length > 0) {
+        if (!loading && !syncingFromFirebase) {
             window.DatabaseService.save('activities', activities);
         }
     }, [activities]);
 
     useEffect(() => {
-        if (!loading) {
+        if (!loading && !syncingFromFirebase) {
             window.DatabaseService.save('unidades', unidades);
         }
     }, [unidades]);
