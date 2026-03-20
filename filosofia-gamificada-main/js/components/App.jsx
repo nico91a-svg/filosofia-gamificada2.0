@@ -37,19 +37,36 @@ window.FilosofoApp = () => {
         const isFirebase = window.DatabaseService.isFirebaseConnected();
         console.log('Firebase conectado:', isFirebase);
 
+        // Timeout de seguridad: si en 8 segundos no carga, usar datos locales
+        const safetyTimeout = setTimeout(() => {
+            if (loading) {
+                console.warn('Timeout de carga. Usando datos locales.');
+                const defaults = window.DEFAULT_STUDENTS_3B || [];
+                if (defaults.length > 0) setStudents(defaults);
+                setLoading(false);
+            }
+        }, 8000);
+
         if (isFirebase) {
             // ---- MODO FIREBASE: listeners en tiempo real ----
             // Estudiantes
             window.DatabaseService.load('students', (data) => {
+                clearTimeout(safetyTimeout);
                 const arr = toArray(data);
-                if (arr.length > 0) {
+                const defaults = window.DEFAULT_STUDENTS_3B || [];
+
+                // Verificar si Firebase tiene los datos correctos del III-B
+                const hasValidData = arr.length >= defaults.length &&
+                    arr.some(s => s.password && s.password.endsWith('2026'));
+
+                if (arr.length > 0 && hasValidData) {
                     setSyncingFromFirebase(true);
                     setStudents(arr.map(normalizeStudent));
                     setTimeout(() => setSyncingFromFirebase(false), 500);
                 } else {
-                    // Firebase vacio: cargar defaults y guardar en Firebase
-                    const defaults = window.DEFAULT_STUDENTS_3B || [];
+                    // Firebase vacio o con datos incorrectos: subir los 35 estudiantes
                     if (defaults.length > 0) {
+                        console.log('Sincronizando ' + defaults.length + ' estudiantes a Firebase...');
                         setStudents(defaults);
                         window.DatabaseService.save('students', defaults);
                     }
@@ -84,6 +101,7 @@ window.FilosofoApp = () => {
             });
         } else {
             // ---- MODO OFFLINE: localStorage ----
+            clearTimeout(safetyTimeout);
             const loadOffline = async () => {
                 try {
                     const savedStudents = await window.DatabaseService.loadOnce('students');
@@ -111,6 +129,8 @@ window.FilosofoApp = () => {
             };
             loadOffline();
         }
+
+        return () => clearTimeout(safetyTimeout);
     }, []);
 
     // Guardar datos cuando cambien (solo si NO viene de Firebase sync)
