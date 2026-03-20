@@ -17,30 +17,42 @@ window.FilosofoApp = () => {
             try {
                 // Intentar cargar estudiantes
                 const savedStudents = await window.DatabaseService.loadOnce('students');
+                const defaults = window.DEFAULT_STUDENTS_3B || [];
+                var useDefaults = false;
+
                 if (savedStudents) {
-                    // Convertir de objeto Firebase a array si es necesario
                     const studentsArray = Array.isArray(savedStudents)
                         ? savedStudents.filter(Boolean)
                         : Object.values(savedStudents).filter(Boolean);
                     if (studentsArray.length > 0) {
-                        // Asegurar que cada estudiante tenga vocabularioDescubierto
-                        const normalized = studentsArray.map(s => ({
-                            ...s,
-                            nombreSocial: s.nombreSocial || s.nombre,
-                            nombreLegal: s.nombreLegal || s.nombre,
-                            genero: s.genero || 'no-binario',
-                            vocabularioDescubierto: s.vocabularioDescubierto || [],
-                            inventarioArtefactos: s.inventarioArtefactos || [],
-                            badges: s.badges || ['iniciado'],
-                            habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
-                        }));
-                        setStudents(normalized);
-                    } else if (window.DEFAULT_STUDENTS_3B) {
-                        setStudents(window.DEFAULT_STUDENTS_3B);
+                        // Si Firebase tiene menos estudiantes que los defaults,
+                        // son datos obsoletos de prueba - usar defaults
+                        if (defaults.length > 0 && studentsArray.length < defaults.length) {
+                            useDefaults = true;
+                        } else {
+                            const normalized = studentsArray.map(s => ({
+                                ...s,
+                                nombreSocial: s.nombreSocial || s.nombre,
+                                nombreLegal: s.nombreLegal || s.nombre,
+                                genero: s.genero || 'no-binario',
+                                vocabularioDescubierto: s.vocabularioDescubierto || [],
+                                inventarioArtefactos: s.inventarioArtefactos || [],
+                                badges: s.badges || ['iniciado'],
+                                habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
+                            }));
+                            setStudents(normalized);
+                        }
+                    } else {
+                        useDefaults = true;
                     }
-                } else if (window.DEFAULT_STUDENTS_3B) {
-                    // Cargar estudiantes por defecto si no hay datos guardados
-                    setStudents(window.DEFAULT_STUDENTS_3B);
+                } else {
+                    useDefaults = true;
+                }
+
+                if (useDefaults && defaults.length > 0) {
+                    setStudents(defaults);
+                    // Guardar inmediatamente en Firebase para sincronizar todos los dispositivos
+                    window.DatabaseService.save('students', defaults);
                 }
 
                 // Intentar cargar actividades
