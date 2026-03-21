@@ -1,6 +1,6 @@
 // Componente principal de la aplicación
 window.FilosofoApp = () => {
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     const [currentUser, setCurrentUser] = useState(null);
     const [loginType, setLoginType] = useState(null);
@@ -11,8 +11,20 @@ window.FilosofoApp = () => {
     const [currentClase, setCurrentClase] = useState(1);
     const [loading, setLoading] = useState(true);
 
-    // Flag para evitar guardar datos que acabamos de recibir de Firebase
-    const [syncingFromFirebase, setSyncingFromFirebase] = useState(false);
+    // Refs para rastrear que datos ya fueron cargados de Firebase
+    // Esto evita guardar arrays vacios antes de que Firebase responda
+    const dataLoadedRef = useRef({
+        students: false,
+        activities: false,
+        unidades: false,
+        position: false
+    });
+    // Ref para evitar guardar datos que acabamos de recibir de Firebase
+    const syncingRef = useRef({
+        students: false,
+        activities: false,
+        unidades: false
+    });
 
     // Normalizar datos de estudiante
     const normalizeStudent = (s) => ({
@@ -32,26 +44,35 @@ window.FilosofoApp = () => {
         return (Array.isArray(data) ? data : Object.values(data)).filter(Boolean);
     };
 
+    // Funcion helper para marcar datos como cargados y verificar si ya cargo todo
+    const checkAllLoaded = () => {
+        const d = dataLoadedRef.current;
+        if (d.students && d.activities) {
+            setLoading(false);
+        }
+    };
+
     // Cargar datos con listeners en tiempo real
     useEffect(() => {
         const isFirebase = window.DatabaseService.isFirebaseConnected();
         console.log('Firebase conectado:', isFirebase);
 
-        // Timeout de seguridad: si en 8 segundos no carga, usar datos locales
+        // Timeout de seguridad: si en 10 segundos no carga, usar datos locales
         const safetyTimeout = setTimeout(() => {
             if (loading) {
                 console.warn('Timeout de carga. Usando datos locales.');
                 const defaults = window.DEFAULT_STUDENTS_3B || [];
                 if (defaults.length > 0) setStudents(defaults);
+                dataLoadedRef.current.students = true;
+                dataLoadedRef.current.activities = true;
                 setLoading(false);
             }
-        }, 8000);
+        }, 10000);
 
         if (isFirebase) {
             // ---- MODO FIREBASE: listeners en tiempo real ----
             // Estudiantes
             window.DatabaseService.load('students', (data) => {
-                clearTimeout(safetyTimeout);
                 const arr = toArray(data);
                 const defaults = window.DEFAULT_STUDENTS_3B || [];
 
@@ -60,26 +81,32 @@ window.FilosofoApp = () => {
                     arr.some(s => s.password && s.password.endsWith('2026'));
 
                 if (arr.length > 0 && hasValidData) {
-                    setSyncingFromFirebase(true);
+                    syncingRef.current.students = true;
                     setStudents(arr.map(normalizeStudent));
-                    setTimeout(() => setSyncingFromFirebase(false), 500);
-                } else {
+                    setTimeout(() => { syncingRef.current.students = false; }, 800);
+                } else if (!dataLoadedRef.current.students) {
                     // Firebase vacio o con datos incorrectos: subir los 35 estudiantes
                     if (defaults.length > 0) {
                         console.log('Sincronizando ' + defaults.length + ' estudiantes a Firebase...');
                         setStudents(defaults);
-                        window.DatabaseService.save('students', defaults);
+                        window.DatabaseService.save('students', defaults)
+                            .then(() => console.log('Estudiantes guardados en Firebase'))
+                            .catch(err => console.error('Error guardando estudiantes:', err));
                     }
                 }
-                setLoading(false);
+                dataLoadedRef.current.students = true;
+                clearTimeout(safetyTimeout);
+                checkAllLoaded();
             });
 
             // Actividades
             window.DatabaseService.load('activities', (data) => {
                 const arr = toArray(data);
-                setSyncingFromFirebase(true);
+                syncingRef.current.activities = true;
                 setActivities(arr);
-                setTimeout(() => setSyncingFromFirebase(false), 500);
+                setTimeout(() => { syncingRef.current.activities = false; }, 800);
+                dataLoadedRef.current.activities = true;
+                checkAllLoaded();
             });
 
             // Posicion actual
@@ -88,16 +115,18 @@ window.FilosofoApp = () => {
                     if (data.unidad) setCurrentUnidad(data.unidad);
                     if (data.clase) setCurrentClase(data.clase);
                 }
+                dataLoadedRef.current.position = true;
             });
 
             // Unidades personalizadas
             window.DatabaseService.load('unidades', (data) => {
                 const arr = toArray(data);
                 if (arr.length > 0) {
-                    setSyncingFromFirebase(true);
+                    syncingRef.current.unidades = true;
                     setUnidades(arr);
-                    setTimeout(() => setSyncingFromFirebase(false), 500);
+                    setTimeout(() => { syncingRef.current.unidades = false; }, 800);
                 }
+                dataLoadedRef.current.unidades = true;
             });
         } else {
             // ---- MODO OFFLINE: localStorage ----
@@ -125,6 +154,10 @@ window.FilosofoApp = () => {
                 } catch (error) {
                     console.error('Error cargando datos offline:', error);
                 }
+                dataLoadedRef.current.students = true;
+                dataLoadedRef.current.activities = true;
+                dataLoadedRef.current.unidades = true;
+                dataLoadedRef.current.position = true;
                 setLoading(false);
             };
             loadOffline();
@@ -133,30 +166,38 @@ window.FilosofoApp = () => {
         return () => clearTimeout(safetyTimeout);
     }, []);
 
-    // Guardar datos cuando cambien (solo si NO viene de Firebase sync)
+    // Guardar datos cuando cambien (solo si ya fueron cargados Y no viene de Firebase sync)
     useEffect(() => {
-        if (!loading && !syncingFromFirebase && students.length > 0) {
-            window.DatabaseService.save('students', students);
+        if (!loading && dataLoadedRef.current.students && !syncingRef.current.students && students.length > 0) {
+            console.log('Guardando ' + students.length + ' estudiantes en Firebase...');
+            window.DatabaseService.save('students', students)
+                .then(() => console.log('Estudiantes guardados OK'))
+                .catch(err => console.error('ERROR guardando estudiantes:', err));
         }
-    }, [students]);
+    }, [students, loading]);
 
     useEffect(() => {
-        if (!loading && !syncingFromFirebase) {
-            window.DatabaseService.save('activities', activities);
+        if (!loading && dataLoadedRef.current.activities && !syncingRef.current.activities) {
+            console.log('Guardando ' + activities.length + ' actividades en Firebase...');
+            window.DatabaseService.save('activities', activities)
+                .then(() => console.log('Actividades guardadas OK'))
+                .catch(err => console.error('ERROR guardando actividades:', err));
         }
-    }, [activities]);
+    }, [activities, loading]);
 
     useEffect(() => {
-        if (!loading && !syncingFromFirebase) {
-            window.DatabaseService.save('unidades', unidades);
+        if (!loading && dataLoadedRef.current.unidades && !syncingRef.current.unidades && unidades.length > 0) {
+            window.DatabaseService.save('unidades', unidades)
+                .catch(err => console.error('ERROR guardando unidades:', err));
         }
-    }, [unidades]);
+    }, [unidades, loading]);
 
     useEffect(() => {
-        if (!loading) {
-            window.DatabaseService.save('position', { unidad: currentUnidad, clase: currentClase });
+        if (!loading && dataLoadedRef.current.position) {
+            window.DatabaseService.save('position', { unidad: currentUnidad, clase: currentClase })
+                .catch(err => console.error('ERROR guardando posicion:', err));
         }
-    }, [currentUnidad, currentClase]);
+    }, [currentUnidad, currentClase, loading]);
 
     // Login
     const handleLogin = (type, username, password) => {

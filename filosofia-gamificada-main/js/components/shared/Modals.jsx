@@ -123,8 +123,16 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
         studentId: '', tipo: '', nivel: 'competente', xp: 0, notas: '', comentario: '', unidadId: 'U1', claseNum: 1
     });
     const tiposActividad = window.TIPOS_ACTIVIDAD;
+    const categorias = window.CATEGORIAS_ACTIVIDAD || [];
     const rubrics = window.RUBRICS_XP;
     const currentUnidad = unidades.find(u => u.id === formData.unidadId);
+
+    // Obtener categoria del tipo seleccionado
+    const tipoSeleccionado = tiposActividad.find(t => t.id === formData.tipo);
+    const categoriaActual = tipoSeleccionado ? (categorias.find(c => c.id === tipoSeleccionado.categoria) || null) : null;
+
+    // Info de cofre
+    const cofreInfo = formData.tipo ? window.getCofre(formData.tipo, formData.nivel) : null;
 
     useEffect(() => {
         if (formData.tipo && formData.nivel) {
@@ -154,11 +162,36 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
                         ))}
                     </select>
                 </div>
+                {/* Tipo de actividad agrupado por categoria */}
                 <select value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg mb-3">
+                    className="w-full px-4 py-2 border rounded-lg mb-2">
                     <option value="">Tipo de actividad</option>
-                    {tiposActividad.map(t => <option key={t.id} value={t.id}>{t.icon} {t.nombre}</option>)}
+                    {categorias.map(cat => (
+                        <optgroup key={cat.id} label={cat.emoji + ' ' + cat.nombre}>
+                            {tiposActividad.filter(t => t.categoria === cat.id).map(t =>
+                                <option key={t.id} value={t.id}>{t.icon} {t.nombre}</option>
+                            )}
+                        </optgroup>
+                    ))}
                 </select>
+                {/* Indicador de categoria y cofre */}
+                {categoriaActual && (
+                    <div className="flex items-center gap-2 mb-3 text-xs">
+                        <span className={`px-2 py-1 rounded-full font-semibold ${
+                            categoriaActual.id === 'cotidiana' ? 'bg-gray-100 text-gray-600' :
+                            categoriaActual.id === 'proceso' ? 'bg-amber-100 text-amber-700' :
+                            'bg-blue-100 text-blue-700'
+                        }`}>{categoriaActual.emoji} {categoriaActual.nombre}</span>
+                        {cofreInfo && (
+                            <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
+                                {window.COFRES[cofreInfo].emoji} Da {window.COFRES[cofreInfo].nombre}
+                            </span>
+                        )}
+                        {!cofreInfo && formData.tipo && (
+                            <span className="text-gray-400">Sin cofre</span>
+                        )}
+                    </div>
+                )}
                 <select value={formData.nivel} onChange={(e) => setFormData({ ...formData, nivel: e.target.value })}
                     className="w-full px-4 py-2 border rounded-lg mb-3">
                     <option value="basico">Basico</option>
@@ -191,11 +224,15 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
                 <textarea value={formData.notas} onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                     placeholder="Notas adicionales (opcional)" className="w-full px-4 py-2 border rounded-lg mb-3 h-20" />
                 <textarea value={formData.comentario || ''} onChange={(e) => setFormData({ ...formData, comentario: e.target.value })}
-                    placeholder="💬 Comentario/feedback para el estudiante (opcional)" className="w-full px-4 py-2 border rounded-lg mb-4 h-16 bg-blue-50 border-blue-200 placeholder-blue-400" />
+                    placeholder="Comentario/feedback para el estudiante (opcional)" className="w-full px-4 py-2 border rounded-lg mb-4 h-16 bg-blue-50 border-blue-200 placeholder-blue-400" />
                 <div className="flex gap-2">
                     <button onClick={() => {
                         if (formData.studentId && formData.tipo) {
-                            onAdd({ ...formData, habilidades: window.RUBRICS_HABILIDADES[formData.tipo] || {} });
+                            onAdd({
+                                ...formData,
+                                categoria: tipoSeleccionado ? tipoSeleccionado.categoria : 'cotidiana',
+                                habilidades: window.RUBRICS_HABILIDADES[formData.tipo] || {}
+                            });
                         } else { alert('Por favor completa estudiante y tipo de actividad'); }
                     }} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-bold">Registrar</button>
                     <button onClick={onClose} className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">Cancelar</button>

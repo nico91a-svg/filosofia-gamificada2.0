@@ -14,9 +14,13 @@ window.RegistroMasivo = ({ students, unidades, addActivity, setStudents, activit
     const [registroCount, setRegistroCount] = useState(0);
 
     const tiposActividad = window.TIPOS_ACTIVIDAD;
+    const categorias = window.CATEGORIAS_ACTIVIDAD || [];
     const rubrics = window.RUBRICS_XP;
     const currentUnidad = unidades.find(u => u.id === unidadId);
     const xpBase = rubrics[tipo]?.[nivel] || 0;
+    const tipoSeleccionado = tiposActividad.find(t => t.id === tipo);
+    const categoriaActual = tipoSeleccionado ? (categorias.find(c => c.id === tipoSeleccionado.categoria) || null) : null;
+    const cofreInfo = tipo ? window.getCofre(tipo, nivel) : null;
 
     const toggleStudent = (id) => {
         setSelectedStudents(prev =>
@@ -45,6 +49,7 @@ window.RegistroMasivo = ({ students, unidades, addActivity, setStudents, activit
             addActivity({
                 studentId,
                 tipo,
+                categoria: tipoSeleccionado ? tipoSeleccionado.categoria : 'cotidiana',
                 nivel: studentNivel,
                 xp,
                 unidadId,
@@ -110,7 +115,13 @@ window.RegistroMasivo = ({ students, unidades, addActivity, setStudents, activit
                         <select value={tipo} onChange={(e) => setTipo(e.target.value)}
                             className="w-full px-4 py-2 border rounded-lg">
                             <option value="">Seleccionar...</option>
-                            {tiposActividad.map(t => <option key={t.id} value={t.id}>{t.icon} {t.nombre}</option>)}
+                            {categorias.map(cat => (
+                                <optgroup key={cat.id} label={cat.emoji + ' ' + cat.nombre}>
+                                    {tiposActividad.filter(t => t.categoria === cat.id).map(t =>
+                                        <option key={t.id} value={t.id}>{t.icon} {t.nombre}</option>
+                                    )}
+                                </optgroup>
+                            ))}
                         </select>
                     </div>
                     <div>
@@ -135,8 +146,26 @@ window.RegistroMasivo = ({ students, unidades, addActivity, setStudents, activit
                 </div>
                 {tipo && !nivelIndividual && (
                     <div className="mt-4 bg-purple-50 rounded-lg p-4">
-                        <span className="text-sm text-gray-600">XP por estudiante: </span>
-                        <span className="text-2xl font-bold text-purple-600">{xpBase} XP</span>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <span className="text-sm text-gray-600">XP por estudiante: </span>
+                                <span className="text-2xl font-bold text-purple-600">{xpBase} XP</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {categoriaActual && (
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                        categoriaActual.id === 'cotidiana' ? 'bg-gray-200 text-gray-600' :
+                                        categoriaActual.id === 'proceso' ? 'bg-amber-100 text-amber-700' :
+                                        'bg-blue-100 text-blue-700'
+                                    }`}>{categoriaActual.emoji} {categoriaActual.nombre}</span>
+                                )}
+                                {cofreInfo && (
+                                    <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+                                        {window.COFRES[cofreInfo].emoji} {window.COFRES[cofreInfo].nombre}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
                 <textarea value={notas} onChange={(e) => setNotas(e.target.value)}

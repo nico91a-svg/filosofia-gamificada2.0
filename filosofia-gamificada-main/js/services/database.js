@@ -17,7 +17,17 @@
         save: function(path, data) {
             try {
                 if (db) {
-                    return db.ref(path).set(data);
+                    return db.ref(path).set(data).then(function() {
+                        // Tambien guardar en localStorage como respaldo
+                        try {
+                            localStorage.setItem('filosofo_' + path.replace(/\//g, '_'), JSON.stringify(data));
+                        } catch(e) { /* localStorage lleno, no critico */ }
+                    }).catch(function(error) {
+                        console.error("Firebase RECHAZO escritura en '" + path + "':", error);
+                        // Guardar en localStorage como fallback
+                        localStorage.setItem('filosofo_' + path.replace(/\//g, '_'), JSON.stringify(data));
+                        return Promise.reject(error);
+                    });
                 } else {
                     localStorage.setItem('filosofo_' + path.replace(/\//g, '_'), JSON.stringify(data));
                     return Promise.resolve();

@@ -43,15 +43,20 @@ window.COFRES = {
     oro:    { nombre: 'Cofre de Oro',     emoji: '🥇', probabilidades: { comun: 30, raro: 35, epico: 25, legendario: 10 } }
 };
 
-// Actividades que otorgan cofre (proceso y evaluacion, NO participacion)
-window.ACTIVIDADES_CON_COFRE = ['ensayo', 'proyecto', 'investigacion', 'presentacion', 'debate', 'bitacora', 'mapa', 'experimento'];
-
-// Determinar tipo de cofre segun actividad y nivel
+// Determinar tipo de cofre segun categoria y nivel de la actividad
+// - cotidiana: no da cofre
+// - proceso: da cofre bronce
+// - evaluacion: da cofre plata (basico/competente) u oro (avanzado/excepcional)
 window.getCofre = function(tipo, nivel) {
-    if (!window.ACTIVIDADES_CON_COFRE.includes(tipo)) return null;
-    if (nivel === 'avanzado' || nivel === 'excepcional') return 'oro';
-    if (nivel === 'basico' || nivel === 'competente') return 'plata';
-    return 'bronce';
+    var tipoObj = (window.TIPOS_ACTIVIDAD || []).find(function(t) { return t.id === tipo; });
+    var cat = tipoObj ? tipoObj.categoria : 'cotidiana';
+    if (cat === 'cotidiana') return null;
+    if (cat === 'proceso') return 'bronce';
+    if (cat === 'evaluacion') {
+        if (nivel === 'avanzado' || nivel === 'excepcional') return 'oro';
+        return 'plata';
+    }
+    return null;
 };
 
 // Sortear artefacto de un cofre

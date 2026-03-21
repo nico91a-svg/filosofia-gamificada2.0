@@ -21,24 +21,8 @@ window.ProfesorDashboard = function ProfesorDashboard({
     const [showGiftArtefacto, setShowGiftArtefacto] = useState(false);
     const [selectedArtefactoStudent, setSelectedArtefactoStudent] = useState(null);
 
-    // ---- Guardar datos cuando cambian ----
-    useEffect(function() {
-        if (students && students.length >= 0) {
-            window.DatabaseService.save('students', students);
-        }
-    }, [students]);
-
-    useEffect(function() {
-        if (activities && activities.length >= 0) {
-            window.DatabaseService.save('activities', activities);
-        }
-    }, [activities]);
-
-    useEffect(function() {
-        if (unidades && unidades.length > 0) {
-            window.DatabaseService.save('unidades', unidades);
-        }
-    }, [unidades]);
+    // NOTA: La persistencia a Firebase la maneja App.jsx.
+    // NO duplicar useEffects de guardado aqui para evitar race conditions.
 
     // ---- Funciones de estudiantes ----
     function addStudent(data) {
@@ -227,6 +211,7 @@ window.ProfesorDashboard = function ProfesorDashboard({
             id: Date.now(),
             studentId: data.studentId,
             tipo: data.tipo,
+            categoria: data.categoria || 'cotidiana',
             nivel: data.nivel,
             xp: xpFinal,
             notas: notasExtra,
