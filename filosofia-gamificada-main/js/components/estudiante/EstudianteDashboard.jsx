@@ -95,6 +95,11 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
 
     const avatar = getAvatar(nivel.nivel);
 
+    // ---- Contar cofres pendientes ----
+    const pendingChests = (currentUser.artefactos || []).filter(
+        a => typeof a === 'object' && a.id && a.id.startsWith('cofre_')
+    ).length;
+
     // ---- Tabs config ----
     const tabs = [
         { id: 'perfil', label: 'Mi Perfil', emoji: '👤' },
@@ -102,7 +107,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
         { id: 'ranking', label: 'Ranking', emoji: '🏆' },
         { id: 'vocabulario', label: 'Vocabulario', emoji: '📚' },
         { id: 'actividades', label: 'Actividades', emoji: '⚡' },
-        { id: 'artefactos', label: 'Artefactos', emoji: '🏺' }
+        { id: 'artefactos', label: pendingChests > 0 ? 'Artefactos (' + pendingChests + ')' : 'Artefactos', emoji: pendingChests > 0 ? '🎁' : '🏺', badge: pendingChests }
     ];
 
     // ---- Helpers ----
@@ -455,15 +460,12 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
     // TAB: MAPA DE AVENTURA
     // ============================================================
     const renderMapa = () => {
-        var currentUnidadIdx = 0;
-        unidadesData.forEach((u, idx) => {
-            var clasesConActividad = u.clases.filter(c =>
-                myActivities.some(a => a.unidadId === u.id && a.claseNum === c.num)
-            ).length;
-            if (clasesConActividad >= u.clases.length && idx < unidadesData.length - 1) {
-                currentUnidadIdx = idx + 1;
-            }
-        });
+        // Usar TODAS las actividades del curso para determinar progreso global
+        var allActivities = activities || [];
+
+        // Determinar la unidad actual basada en currentUnidad (posicion global del profesor)
+        var globalUnidadIdx = unidadesData.findIndex(u => u.id === currentUnidad);
+        if (globalUnidadIdx < 0) globalUnidadIdx = 0;
 
         // Colores de terreno por unidad
         var terrenos = [
@@ -489,13 +491,23 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                 {/* Mapa por unidades */}
                 {unidadesData.map((unidad, idx) => {
                     var terreno = terrenos[idx] || terrenos[0];
-                    var clasesConActividad = unidad.clases.filter(c =>
+                    // Clases alcanzadas: usar posicion global del profesor
+                    var clasesAlcanzadas = 0;
+                    if (idx < globalUnidadIdx) {
+                        // Unidad pasada: todas las clases alcanzadas
+                        clasesAlcanzadas = unidad.clases.length;
+                    } else if (idx === globalUnidadIdx) {
+                        // Unidad actual: hasta currentClase
+                        clasesAlcanzadas = currentClase || 1;
+                    }
+                    // Clases donde YO participe (para destacar)
+                    var misClasesConActividad = unidad.clases.filter(c =>
                         myActivities.some(a => a.unidadId === unidad.id && a.claseNum === c.num)
                     ).length;
-                    var progClases = unidad.clases.length > 0 ? Math.round((clasesConActividad / unidad.clases.length) * 100) : 0;
-                    var isPast = idx < currentUnidadIdx;
-                    var isCurrent = idx === currentUnidadIdx;
-                    var isFuture = idx > currentUnidadIdx;
+                    var progClases = unidad.clases.length > 0 ? Math.round((clasesAlcanzadas / unidad.clases.length) * 100) : 0;
+                    var isPast = idx < globalUnidadIdx;
+                    var isCurrent = idx === globalUnidadIdx;
+                    var isFuture = idx > globalUnidadIdx;
 
                     var vocabTotal = (unidad.vocabulario || []).length;
                     var vocabFound = vocabTotal > 0 ? (unidad.vocabulario || []).filter(v => vocabDescubierto.includes(v.termino)).length : 0;
@@ -536,27 +548,32 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                             {/* Camino de clases (nodos) - scroll horizontal en mobile */}
                             <div className="flex items-center gap-0.5 sm:gap-1 mb-4 overflow-x-auto pb-2 -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                                 {unidad.clases.map((cl, ci) => {
-                                    var hasActivity = myActivities.some(a => a.unidadId === unidad.id && a.claseNum === cl.num);
-                                    var isNextClass = isCurrent && !hasActivity && (ci === 0 || unidad.clases.slice(0, ci).every(prev =>
-                                        myActivities.some(a => a.unidadId === unidad.id && a.claseNum === prev.num)
-                                    ));
+                                    var claseAlcanzada = cl.num <= clasesAlcanzadas;
+                                    var participoYo = myActivities.some(a => a.unidadId === unidad.id && a.claseNum === cl.num);
+                                    var esClaseActual = isCurrent && cl.num === (currentClase || 1);
                                     return (
                                         <React.Fragment key={ci}>
                                             <div className={`flex flex-col items-center min-w-[40px] sm:min-w-[52px] transition-all`}
                                                 title={cl.titulo}>
                                                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-lg border-2 transition-all ${
-                                                    hasActivity ? `${terreno.path} border-white text-white shadow-lg` :
-                                                    isNextClass ? 'bg-yellow-500/30 border-yellow-400 animate-pulse' :
+                                                    participoYo ? `${terreno.path} border-white text-white shadow-lg` :
+                                                    claseAlcanzada ? `${terreno.path}/60 border-white/50 text-white/70` :
+                                                    esClaseActual ? 'bg-yellow-500/30 border-yellow-400 animate-pulse' :
                                                     'bg-gray-700/50 border-gray-600 opacity-50'
                                                 }`}>
-                                                    {hasActivity ? cl.emoji : isNextClass ? '👣' : (ci + 1)}
+                                                    {participoYo ? cl.emoji : claseAlcanzada ? '✓' : esClaseActual ? '👣' : (ci + 1)}
                                                 </div>
-                                                <span className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-center leading-tight max-w-[40px] sm:max-w-[52px] ${hasActivity ? 'text-white' : 'text-gray-400'}`}>
-                                                    {hasActivity ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'C' + cl.num}
+                                                <span className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-center leading-tight max-w-[40px] sm:max-w-[52px] ${
+                                                    participoYo ? 'text-white' : claseAlcanzada ? 'text-white/60' : 'text-gray-400'
+                                                }`}>
+                                                    {claseAlcanzada || participoYo ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'C' + cl.num}
                                                 </span>
+                                                {claseAlcanzada && !participoYo && (
+                                                    <span className="text-[8px] text-yellow-300/70 mt-0.5">sin actividad</span>
+                                                )}
                                             </div>
                                             {ci < unidad.clases.length - 1 && (
-                                                <div className={`w-2 sm:w-4 h-0.5 mt-[-12px] sm:mt-[-16px] shrink-0 ${hasActivity ? terreno.path : 'bg-gray-600'}`}></div>
+                                                <div className={`w-2 sm:w-4 h-0.5 mt-[-12px] sm:mt-[-16px] shrink-0 ${claseAlcanzada || participoYo ? terreno.path : 'bg-gray-600'}`}></div>
                                             )}
                                         </React.Fragment>
                                     );
@@ -567,7 +584,10 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                             <div className="mb-2">
                                 <div className="flex justify-between text-sm mb-1">
                                     <span className="text-white/70">Progreso</span>
-                                    <span className="text-white font-bold">{clasesConActividad}/{unidad.clases.length} clases</span>
+                                    <span className="text-white font-bold">{clasesAlcanzadas}/{unidad.clases.length} clases</span>
+                                    {misClasesConActividad > 0 && misClasesConActividad < clasesAlcanzadas && (
+                                        <span className="text-yellow-300 text-xs">(participaste en {misClasesConActividad})</span>
+                                    )}
                                 </div>
                                 <div className="w-full bg-black/30 rounded-full h-3">
                                     <div className={`${terreno.path} h-3 rounded-full transition-all duration-700`}
@@ -1132,13 +1152,16 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                     {tabs.map(tab => (
                         <button key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-3 rounded-xl text-left text-sm font-semibold transition-all ${
+                            className={`flex items-center gap-2 px-4 py-3 rounded-xl text-left text-sm font-semibold transition-all relative ${
                                 activeTab === tab.id
                                     ? 'bg-white/20 text-white shadow-lg'
                                     : 'text-purple-300 hover:bg-white/10 hover:text-white'
                             }`}>
                             <span>{tab.emoji}</span>
                             <span>{tab.label}</span>
+                            {tab.badge > 0 && (
+                                <span className="absolute right-2 top-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold animate-pulse">{tab.badge}</span>
+                            )}
                         </button>
                     ))}
                 </nav>
@@ -1169,22 +1192,49 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                 </div>
             </nav>
 
-            {/* Modal apertura de cofre */}
+            {/* Modal apertura de cofre con animacion mejorada */}
             {showOpenChest && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 border border-yellow-500/30 rounded-2xl p-8 max-w-sm w-full text-center">
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-gradient-to-b from-gray-800 to-gray-900 border-2 border-yellow-500/50 rounded-2xl p-8 max-w-sm w-full text-center relative overflow-hidden">
+                        {/* Particulas de fondo */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                            {chestAnimating && [0,1,2,3,4,5,6,7].map(i => (
+                                <div key={i} className="absolute w-2 h-2 bg-yellow-400 rounded-full animate-ping"
+                                    style={{
+                                        left: (15 + i * 10) + '%',
+                                        top: (20 + (i % 3) * 25) + '%',
+                                        animationDelay: (i * 0.3) + 's',
+                                        animationDuration: '1.5s'
+                                    }}></div>
+                            ))}
+                            {!chestAnimating && chestResult && [0,1,2,3,4,5,6,7,8,9].map(i => (
+                                <div key={i} className="absolute text-lg animate-ping"
+                                    style={{
+                                        left: (5 + i * 9) + '%',
+                                        top: (10 + (i % 4) * 22) + '%',
+                                        animationDelay: (i * 0.2) + 's',
+                                        animationDuration: '2s'
+                                    }}>
+                                    {['✨','⭐','💫','🌟','✨'][i % 5]}
+                                </div>
+                            ))}
+                        </div>
                         {chestAnimating ? (
                             <>
-                                <div className="text-7xl mb-4 animate-bounce">{chestOpening ? (window.COFRES[chestOpening.tipo]?.emoji || '🎁') : '🎁'}</div>
-                                <h3 className="text-2xl font-bold text-yellow-300 mb-2">Abriendo cofre...</h3>
-                                <div className="w-full bg-gray-700 rounded-full h-2 mt-4">
-                                    <div className="bg-yellow-400 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                                <div className="text-8xl mb-4 animate-bounce" style={{animationDuration: '0.6s'}}>
+                                    {chestOpening ? (window.COFRES[chestOpening.tipo]?.emoji || '🎁') : '🎁'}
+                                </div>
+                                <h3 className="text-2xl font-bold text-yellow-300 mb-2 animate-pulse">Abriendo cofre...</h3>
+                                <p className="text-yellow-200/60 text-sm mb-3">Descubriendo artefacto misterioso</p>
+                                <div className="w-full bg-gray-700 rounded-full h-3 mt-4 overflow-hidden">
+                                    <div className="bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 h-3 rounded-full transition-all duration-[2000ms] ease-out"
+                                        style={{width: '100%'}}></div>
                                 </div>
                             </>
                         ) : chestResult ? (
                             <>
-                                <div className="text-7xl mb-4">{chestResult.emoji}</div>
-                                <h3 className="text-2xl font-bold text-white mb-2">{chestResult.nombre}</h3>
+                                <div className="text-8xl mb-4" style={{animation: 'pulse 1s ease-in-out infinite'}}>{chestResult.emoji}</div>
+                                <h3 className="text-2xl font-bold text-white mb-2">Obtuviste: {chestResult.nombre}</h3>
                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${
                                     chestResult.rareza === 'legendario' ? 'bg-yellow-500/30 text-yellow-300' :
                                     chestResult.rareza === 'epico' ? 'bg-purple-500/30 text-purple-300' :

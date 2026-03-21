@@ -245,6 +245,19 @@ window.ProfesorDashboard = function ProfesorDashboard({
             addArtefacto(data.studentId, 'cofre_' + tipoCofre);
         }
 
+        // --- AUTO-AVANCE DE CLASE: avanzar al maximo registrado ---
+        var actUnidad = data.unidadId || currentUnidad;
+        var actClase = data.claseNum || currentClase;
+        var unidadOrder = unidades.map(function(u) { return u.id; });
+        var actUnidadIdx = unidadOrder.indexOf(actUnidad);
+        var curUnidadIdx = unidadOrder.indexOf(currentUnidad);
+        if (actUnidadIdx > curUnidadIdx) {
+            setCurrentUnidad(actUnidad);
+            setCurrentClase(actClase);
+        } else if (actUnidadIdx === curUnidadIdx && actClase > currentClase) {
+            setCurrentClase(actClase);
+        }
+
         setShowAddActivity(false);
     }
 
