@@ -9,6 +9,10 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
     const [tradeTarget, setTradeTarget] = useState('');
     const [showUseConfirm, setShowUseConfirm] = useState(false);
     const [selectedUseArt, setSelectedUseArt] = useState(null);
+    const [showOpenChest, setShowOpenChest] = useState(false);
+    const [chestOpening, setChestOpening] = useState(null);
+    const [chestResult, setChestResult] = useState(null);
+    const [chestAnimating, setChestAnimating] = useState(false);
 
     // ---- Datos derivados ----
     const nivel = window.getNivel(currentUser.xp || 0);
@@ -233,6 +237,30 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
         }));
         setShowUseConfirm(false);
         setSelectedUseArt(null);
+    };
+
+    // ---- Abrir cofre ----
+    const handleOpenChest = (cofreIdx, cofreTipo) => {
+        setChestAnimating(true);
+        setChestOpening({ idx: cofreIdx, tipo: cofreTipo });
+        setShowOpenChest(true);
+        setTimeout(() => {
+            var resultado = window.abrirCofre(cofreTipo);
+            if (resultado && setStudents) {
+                setStudents(prev => prev.map(s => {
+                    if (s.id !== currentUser.id) return s;
+                    var arts = (s.artefactos || []).map((art, i) => {
+                        if (i === cofreIdx) {
+                            return { id: resultado.id, obtenido: new Date().toISOString(), usado: false, deCofre: cofreTipo };
+                        }
+                        return art;
+                    });
+                    return { ...s, artefactos: arts };
+                }));
+            }
+            setChestResult(resultado);
+            setChestAnimating(false);
+        }, 2000);
     };
 
     // ============================================================
@@ -914,9 +942,20 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
             var artefactoId = typeof item === 'string' ? item : (item.id || item.artefactoId);
             var usado = typeof item === 'object' ? (item.usado || false) : false;
             var regaladoPor = typeof item === 'object' ? (item.regaladoPor || null) : null;
+            // Cofres
+            if (artefactoId && artefactoId.startsWith('cofre_')) {
+                var tipoCofre = artefactoId.replace('cofre_', '');
+                var cofreDef = window.COFRES ? window.COFRES[tipoCofre] : null;
+                if (cofreDef) {
+                    return { id: artefactoId, nombre: cofreDef.nombre, emoji: cofreDef.emoji, rareza: tipoCofre, efecto: 'Contiene un artefacto misterioso', esCofre: true, tipoCofre: tipoCofre, _idx: idx, _originalId: artefactoId };
+                }
+            }
             var artefacto = window.ARTEFACTOS.find(a => a.id === artefactoId);
-            return artefacto ? { ...artefacto, usado, regaladoPor, _idx: idx } : null;
+            return artefacto ? { ...artefacto, usado, regaladoPor, _idx: idx, _originalId: artefactoId } : null;
         }).filter(Boolean);
+
+        var cofres = items.filter(item => item.esCofre);
+        var artefactosNormales = items.filter(item => !item.esCofre);
 
         var otherStudents = (students || []).filter(s => s.id !== currentUser.id);
 
@@ -925,25 +964,55 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 text-center">
                     <div className="text-4xl mb-2">🏺</div>
                     <h3 className="text-xl font-bold text-white">Inventario de Artefactos</h3>
-                    <p className="text-purple-300 text-sm">{items.length} artefacto{items.length !== 1 ? 's' : ''} en tu coleccion</p>
+                    <p className="text-purple-300 text-sm">{artefactosNormales.length} artefacto{artefactosNormales.length !== 1 ? 's' : ''} y {cofres.length} cofre{cofres.length !== 1 ? 's' : ''}</p>
                 </div>
 
-                {items.length === 0 ? (
+                {artefactosNormales.length === 0 && cofres.length === 0 ? (
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
                         <div className="text-5xl mb-3 opacity-50">🔮</div>
                         <p className="text-purple-300">No tienes artefactos aun.</p>
                         <p className="text-purple-400 text-sm mt-1">Completa actividades y logros para obtener artefactos filosoficos.</p>
                     </div>
                 ) : (
+                    <>
+                    {/* Cofres sin abrir */}
+                    {cofres.length > 0 && (
+                        <div className="mb-4">
+                            <h4 className="text-yellow-300 font-bold text-sm mb-2">🎁 Cofres sin abrir ({cofres.length})</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {cofres.map((cofre, i) => (
+                                    <div key={'cofre-' + i}
+                                        className="rounded-2xl p-4 border-2 border-yellow-400/50 bg-yellow-500/10">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-4xl">{cofre.emoji}</span>
+                                            <div className="flex-1">
+                                                <h4 className="text-white font-bold text-sm">{cofre.nombre}</h4>
+                                                <p className="text-yellow-200 text-xs">Contiene un artefacto misterioso</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => handleOpenChest(cofre._idx, cofre.tipoCofre)}
+                                            className="mt-3 w-full bg-yellow-500/30 hover:bg-yellow-500/50 border border-yellow-400/50 text-yellow-200 hover:text-white py-2 rounded-xl text-sm font-bold transition-all">
+                                            🔓 Abrir Cofre
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {artefactosNormales.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {items.map((art, i) => {
+                        {artefactosNormales.map((art, i) => {
                             var rarezaClasses = art.rareza === 'legendario'
                                 ? 'border-yellow-400/50 bg-yellow-500/10'
                                 : art.rareza === 'epico'
                                     ? 'border-purple-400/50 bg-purple-500/10'
-                                    : 'border-blue-400/50 bg-blue-500/10';
+                                    : art.rareza === 'raro'
+                                        ? 'border-blue-400/50 bg-blue-500/10'
+                                        : 'border-gray-400/50 bg-gray-500/10';
                             var rarezaLabel = art.rareza === 'legendario' ? '⭐ Legendario'
-                                : art.rareza === 'epico' ? '💜 Epico' : '💙 Raro';
+                                : art.rareza === 'epico' ? '💜 Epico'
+                                : art.rareza === 'raro' ? '💙 Raro'
+                                : '⚪ Comun';
                             var fromStudent = art.regaladoPor ? (students || []).find(s => s.id === art.regaladoPor) : null;
 
                             return (
@@ -986,6 +1055,8 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                             );
                         })}
                     </div>
+                    )}
+                    </>
                 )}
 
                 {/* Catalogo */}
@@ -1097,6 +1168,50 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                     ))}
                 </div>
             </nav>
+
+            {/* Modal apertura de cofre */}
+            {showOpenChest && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-900 border border-yellow-500/30 rounded-2xl p-8 max-w-sm w-full text-center">
+                        {chestAnimating ? (
+                            <>
+                                <div className="text-7xl mb-4 animate-bounce">{chestOpening ? (window.COFRES[chestOpening.tipo]?.emoji || '🎁') : '🎁'}</div>
+                                <h3 className="text-2xl font-bold text-yellow-300 mb-2">Abriendo cofre...</h3>
+                                <div className="w-full bg-gray-700 rounded-full h-2 mt-4">
+                                    <div className="bg-yellow-400 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                                </div>
+                            </>
+                        ) : chestResult ? (
+                            <>
+                                <div className="text-7xl mb-4">{chestResult.emoji}</div>
+                                <h3 className="text-2xl font-bold text-white mb-2">{chestResult.nombre}</h3>
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${
+                                    chestResult.rareza === 'legendario' ? 'bg-yellow-500/30 text-yellow-300' :
+                                    chestResult.rareza === 'epico' ? 'bg-purple-500/30 text-purple-300' :
+                                    chestResult.rareza === 'raro' ? 'bg-blue-500/30 text-blue-300' :
+                                    'bg-gray-500/30 text-gray-300'
+                                }`}>
+                                    {chestResult.rareza === 'legendario' ? '⭐ LEGENDARIO' :
+                                     chestResult.rareza === 'epico' ? '💜 EPICO' :
+                                     chestResult.rareza === 'raro' ? '💙 RARO' : '⚪ COMUN'}
+                                </span>
+                                <p className="text-purple-200 text-sm mb-4">{chestResult.efecto}</p>
+                                <button onClick={() => { setShowOpenChest(false); setChestResult(null); setChestOpening(null); }}
+                                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-xl font-bold transition">
+                                    Genial!
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-5xl mb-4">😕</div>
+                                <p className="text-gray-300">Error al abrir cofre</p>
+                                <button onClick={() => { setShowOpenChest(false); setChestResult(null); }}
+                                    className="mt-4 bg-gray-700 text-white py-2 px-6 rounded-xl">Cerrar</button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Modal de confirmacion de uso de artefacto */}
             {showUseConfirm && selectedUseArt !== null && (() => {

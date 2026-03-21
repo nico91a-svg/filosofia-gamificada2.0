@@ -206,13 +206,30 @@ window.ProfesorDashboard = function ProfesorDashboard({
     }
 
     function addActivity(data) {
+        var xpFinal = data.xp;
+        var notasExtra = data.notas || '';
+
+        // --- LIMITE PARTICIPACION: max 2 por dia ---
+        if (data.tipo === 'participacion') {
+            var hoy = new Date().toISOString().split('T')[0];
+            var participacionesHoy = activities.filter(function(a) {
+                return a.studentId === data.studentId &&
+                       a.tipo === 'participacion' &&
+                       a.date && a.date.split('T')[0] === hoy;
+            }).length;
+            if (participacionesHoy >= 2) {
+                xpFinal = 0;
+                notasExtra = (notasExtra ? notasExtra + ' | ' : '') + 'Limite diario alcanzado (2/2)';
+            }
+        }
+
         var newActivity = {
             id: Date.now(),
             studentId: data.studentId,
             tipo: data.tipo,
             nivel: data.nivel,
-            xp: data.xp,
-            notas: data.notas || '',
+            xp: xpFinal,
+            notas: notasExtra,
             comentario: data.comentario || '',
             unidadId: data.unidadId || currentUnidad,
             claseNum: data.claseNum || currentClase,
@@ -221,17 +238,28 @@ window.ProfesorDashboard = function ProfesorDashboard({
         };
         var updatedActivities = [newActivity].concat(activities);
         setActivities(function() { return updatedActivities; });
-        // Otorgar XP
-        addXP(data.studentId, data.xp);
-        // Otorgar puntos de habilidad
-        var habPoints = data.habilidades || {};
-        Object.keys(habPoints).forEach(function(habId) {
-            if (habPoints[habId] > 0) {
-                addHabilidadPoints(data.studentId, habId, habPoints[habId]);
-            }
-        });
+        // Otorgar XP (solo si hay)
+        if (xpFinal > 0) {
+            addXP(data.studentId, xpFinal);
+        }
+        // Otorgar puntos de habilidad (solo si hubo XP)
+        if (xpFinal > 0) {
+            var habPoints = data.habilidades || {};
+            Object.keys(habPoints).forEach(function(habId) {
+                if (habPoints[habId] > 0) {
+                    addHabilidadPoints(data.studentId, habId, habPoints[habId]);
+                }
+            });
+        }
         // Verificar y otorgar badges automaticos
         checkAndGrantBadges(data.studentId, data.tipo, updatedActivities);
+
+        // --- OTORGAR COFRE si la actividad lo merece ---
+        var tipoCofre = window.getCofre ? window.getCofre(data.tipo, data.nivel) : null;
+        if (tipoCofre) {
+            addArtefacto(data.studentId, 'cofre_' + tipoCofre);
+        }
+
         setShowAddActivity(false);
     }
 
@@ -741,6 +769,7 @@ window.ProfesorDashboard = function ProfesorDashboard({
                             setStudents={setStudents}
                             addActivity={addActivity}
                             unidades={unidades}
+                            activities={activities}
                           />
                         : <div className="bg-white rounded-xl shadow p-12 text-center text-gray-400">
                             <div className="text-5xl mb-4">📋</div>

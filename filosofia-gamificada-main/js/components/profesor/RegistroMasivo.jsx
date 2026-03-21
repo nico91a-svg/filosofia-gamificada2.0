@@ -1,5 +1,5 @@
 // Registro masivo de actividades
-window.RegistroMasivo = ({ students, unidades, addActivity, setStudents }) => {
+window.RegistroMasivo = ({ students, unidades, addActivity, setStudents, activities }) => {
     const { useState, useEffect } = React;
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [tipo, setTipo] = useState('');
@@ -201,6 +201,19 @@ window.RegistroMasivo = ({ students, unidades, addActivity, setStudents }) => {
                                                 {clase?.emoji} {clase?.nombre}
                                             </span>
                                             <span className="text-xs text-gray-500">{student.xp} XP</span>
+                                            {tipo === 'participacion' && (() => {
+                                                var hoy = new Date().toISOString().split('T')[0];
+                                                var count = (activities || []).filter(a =>
+                                                    a.studentId === student.id &&
+                                                    a.tipo === 'participacion' &&
+                                                    a.date && a.date.split('T')[0] === hoy
+                                                ).length;
+                                                return count >= 2 ? (
+                                                    <span className="text-xs text-amber-600 font-semibold ml-2">⚠️ {count}/2 hoy</span>
+                                                ) : count > 0 ? (
+                                                    <span className="text-xs text-gray-400 ml-2">{count}/2 hoy</span>
+                                                ) : null;
+                                            })()}
                                         </div>
                                     </div>
                                     {nivelIndividual && isSelected && (
