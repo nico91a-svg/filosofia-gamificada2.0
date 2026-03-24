@@ -243,7 +243,7 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
 };
 
 // Modal de detalle de estudiante - compacto para 100% zoom
-window.StudentDetailModal = ({ student, activities, onClose }) => {
+window.StudentDetailModal = ({ student, activities, onClose, onDeleteActivity }) => {
     const nivel = window.getNivel(student.xp);
     const clase = window.CLASES_FILOSOFICAS.find(c => c.id === student.clase);
     const studentActivities = activities.filter(a => a.studentId === student.id).slice(0, 10);
@@ -368,9 +368,17 @@ window.StudentDetailModal = ({ student, activities, onClose }) => {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right shrink-0 ml-2">
-                                                    <span className="text-xs font-bold text-purple-600">+{activity.xp} XP</span>
-                                                    <p className="text-[10px] text-gray-500 capitalize">{activity.nivel}</p>
+                                                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                                    <div className="text-right">
+                                                        <span className="text-xs font-bold text-purple-600">+{activity.xp} XP</span>
+                                                        <p className="text-[10px] text-gray-500 capitalize">{activity.nivel}</p>
+                                                    </div>
+                                                    {onDeleteActivity && (
+                                                        <button onClick={() => onDeleteActivity(activity.id)}
+                                                            className="text-gray-300 hover:text-red-500 transition-colors p-0.5" title="Eliminar actividad">
+                                                            🗑️
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         );

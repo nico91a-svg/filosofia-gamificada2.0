@@ -1182,6 +1182,28 @@ window.ProfesorDashboard = function ProfesorDashboard({
                     student={showStudentDetail}
                     activities={activities}
                     onClose={function() { setShowStudentDetail(null); }}
+                    onDeleteActivity={function(activityId) {
+                        var act = activities.find(function(a) { return a.id === activityId; });
+                        if (!act) return;
+                        if (!confirm('Eliminar esta actividad y restar ' + (act.xp || 0) + ' XP al estudiante?')) return;
+                        // Restar XP y habilidades al estudiante
+                        setStudents(function(prev) {
+                            return prev.map(function(s) {
+                                if (s.id !== act.studentId) return s;
+                                var newXP = Math.max(0, (s.xp || 0) - (act.xp || 0));
+                                var newHabs = Object.assign({}, s.habilidades || {});
+                                var habPoints = act.habilidades || (window.RUBRICS_HABILIDADES[act.tipo] || {});
+                                Object.keys(habPoints).forEach(function(habId) {
+                                    newHabs[habId] = Math.max(0, (newHabs[habId] || 0) - habPoints[habId]);
+                                });
+                                return Object.assign({}, s, { xp: newXP, habilidades: newHabs });
+                            });
+                        });
+                        // Eliminar la actividad
+                        setActivities(function(prev) {
+                            return prev.filter(function(a) { return a.id !== activityId; });
+                        });
+                    }}
                 />
             )}
 
