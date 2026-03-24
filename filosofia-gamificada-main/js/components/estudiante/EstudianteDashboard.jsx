@@ -107,7 +107,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
         { id: 'ranking', label: 'Ranking', emoji: '🏆' },
         { id: 'vocabulario', label: 'Vocabulario', emoji: '📚' },
         { id: 'actividades', label: 'Actividades', emoji: '⚡' },
-        { id: 'artefactos', label: pendingChests > 0 ? 'Artefactos (' + pendingChests + ')' : 'Artefactos', emoji: pendingChests > 0 ? '🎁' : '🏺', badge: pendingChests }
+        { id: 'artefactos', label: pendingChests > 0 ? 'Artefactos (' + pendingChests + ')' : 'Artefactos', emoji: pendingChests > 0 ? '📦' : '🏺', badge: pendingChests }
     ];
 
     // ---- Helpers ----
@@ -956,7 +956,7 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
     // TAB: ARTEFACTOS (con intercambio)
     // ============================================================
     const renderArtefactos = () => {
-        var inventario = currentUser.inventarioArtefactos || currentUser.artefactos || [];
+        var inventario = currentUser.artefactos || [];
 
         var items = inventario.map((item, idx) => {
             var artefactoId = typeof item === 'string' ? item : (item.id || item.artefactoId);

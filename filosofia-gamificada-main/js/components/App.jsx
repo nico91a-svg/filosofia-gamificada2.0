@@ -33,7 +33,7 @@ window.FilosofoApp = () => {
         nombreLegal: s.nombreLegal || s.nombre,
         genero: s.genero || 'no-binario',
         vocabularioDescubierto: s.vocabularioDescubierto || [],
-        inventarioArtefactos: s.inventarioArtefactos || [],
+        artefactos: s.artefactos || s.inventarioArtefactos || [],
         badges: s.badges || ['iniciado'],
         habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
     });
