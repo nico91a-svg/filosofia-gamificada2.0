@@ -142,57 +142,30 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
     })();
     const progresoCurso = totalClasesCurso > 0 ? Math.round((clasesAvanzadas / totalClasesCurso) * 100) : 0;
 
-    // ---- Misiones semanales (generadas dinamicamente) ----
-    const getMisiones = () => {
-        var misiones = [];
-        // Mision 1: Participar en actividades esta semana
-        var hoy = new Date();
-        var inicioSemana = new Date(hoy);
-        inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-        inicioSemana.setHours(0, 0, 0, 0);
-        var actsSemana = myActivities.filter(a => {
-            var fecha = a.date ? new Date(a.date) : a.fecha ? new Date(a.fecha) : null;
-            return fecha && fecha >= inicioSemana;
-        });
+    // ---- Misiones de clase (del sistema de misiones aleatorias) ----
+    const misionesDeClase = window.getMisionesDeClase ? window.getMisionesDeClase(currentUnidad, currentClase) : [];
+    const misionesCompletadasData = currentUser.misionesCompletadas || {};
 
-        misiones.push({
-            id: 'm1', emoji: '⚡', nombre: 'Participante Activo',
-            descripcion: 'Completa 3 actividades esta semana',
-            progreso: Math.min(actsSemana.length, 3), meta: 3,
-            recompensa: '+15 XP bonus'
-        });
-
-        // Mision 2: Variedad de actividades
-        var tiposSemana = new Set(actsSemana.map(a => a.tipo));
-        misiones.push({
-            id: 'm2', emoji: '🎨', nombre: 'Explorador de Saberes',
-            descripcion: 'Realiza 2 tipos diferentes de actividad esta semana',
-            progreso: Math.min(tiposSemana.size, 2), meta: 2,
-            recompensa: '+10 XP bonus'
-        });
-
-        // Mision 3: Vocabulario
-        var vocabMeta = 3;
-        misiones.push({
-            id: 'm3', emoji: '📚', nombre: 'Cazador de Palabras',
-            descripcion: 'Descubre ' + vocabMeta + ' terminos de vocabulario',
-            progreso: Math.min(vocabDescubierto.length, vocabMeta), meta: vocabMeta,
-            recompensa: 'Badge especial'
-        });
-
-        // Mision 4: Obtener nivel excepcional
-        var excepSemana = actsSemana.filter(a => a.nivel === 'excepcional').length;
-        misiones.push({
-            id: 'm4', emoji: '🌟', nombre: 'Excelencia Filosofica',
-            descripcion: 'Logra 1 actividad con nivel excepcional esta semana',
-            progreso: Math.min(excepSemana, 1), meta: 1,
-            recompensa: '+20 XP bonus'
-        });
-
-        return misiones;
-    };
-
-    const misiones = getMisiones();
+    const misiones = misionesDeClase.map(function(mDef) {
+        var claveClase = currentUnidad + '_C' + currentClase;
+        var completadaManual = misionesCompletadasData[claveClase] && misionesCompletadasData[claveClase][mDef.id];
+        var completadaAuto = false;
+        if (mDef.verificacion === 'auto' && mDef.autoCheck) {
+            completadaAuto = mDef.autoCheck(currentUser.id, activities || [], currentClase, currentUnidad, currentUser);
+        }
+        var completada = completadaManual || completadaAuto;
+        return {
+            id: mDef.id,
+            emoji: mDef.emoji,
+            nombre: mDef.nombre,
+            descripcion: mDef.descripcion,
+            tipo: mDef.tipo,
+            recompensa: '+' + mDef.recompensa.xp + ' XP',
+            progreso: completada ? 1 : 0,
+            meta: 1,
+            verificacion: mDef.verificacion
+        };
+    });
     const misionesCompletadas = misiones.filter(m => m.progreso >= m.meta).length;
 
     // ---- Intercambio de artefactos ----
@@ -294,11 +267,11 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                 </div>
             )}
 
-            {/* Misiones Semanales */}
+            {/* Misiones de Clase */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-white font-bold flex items-center gap-2">
-                        <span className="text-xl">🎯</span> Misiones de la Semana
+                        <span className="text-xl">🎯</span> Misiones de Clase
                     </h3>
                     <span className="bg-yellow-500/20 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full">
                         {misionesCompletadas}/{misiones.length} completadas
@@ -307,33 +280,43 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                 <div className="space-y-3">
                     {misiones.map(mision => {
                         var completada = mision.progreso >= mision.meta;
-                        var pctMision = Math.min((mision.progreso / mision.meta) * 100, 100);
+                        var esEntreClases = mision.tipo === 'entre-clases';
                         return (
                             <div key={mision.id}
                                 className={`rounded-xl p-3 border transition-all ${
                                     completada
                                         ? 'bg-green-500/15 border-green-400/30'
-                                        : 'bg-white/5 border-white/10'
+                                        : esEntreClases
+                                            ? 'bg-orange-500/10 border-orange-400/20'
+                                            : 'bg-white/5 border-white/10'
                                 }`}>
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{completada ? '✅' : mision.emoji}</span>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-semibold text-sm ${completada ? 'text-green-400' : 'text-white'}`}>
-                                            {mision.nombre}
-                                        </p>
-                                        <p className="text-purple-300 text-xs">{mision.descripcion}</p>
-                                        <div className="flex items-center gap-2 mt-1.5">
-                                            <div className="flex-1 bg-purple-900/50 rounded-full h-2">
-                                                <div className={`h-2 rounded-full transition-all duration-500 ${
-                                                    completada ? 'bg-green-400' : 'bg-yellow-400'
-                                                }`} style={{ width: pctMision + '%' }}></div>
-                                            </div>
-                                            <span className="text-xs text-purple-300 shrink-0">{mision.progreso}/{mision.meta}</span>
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <p className={`font-semibold text-sm ${completada ? 'text-green-400' : 'text-white'}`}>
+                                                {mision.nombre}
+                                            </p>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                                                esEntreClases
+                                                    ? 'bg-orange-500/20 text-orange-300'
+                                                    : 'bg-blue-500/20 text-blue-300'
+                                            }`}>
+                                                {esEntreClases ? '📋 Entre clases' : '🏫 En clase'}
+                                            </span>
                                         </div>
+                                        <p className="text-purple-300 text-xs">{mision.descripcion}</p>
+                                        {mision.verificacion === 'manual' && !completada && (
+                                            <p className="text-orange-300/70 text-xs mt-1 italic">El profesor verificara tu avance</p>
+                                        )}
                                     </div>
-                                    <span className="bg-white/10 text-purple-300 text-xs px-2 py-1 rounded-lg shrink-0 hidden sm:block">
-                                        {mision.recompensa}
-                                    </span>
+                                    <div className="flex flex-col items-center gap-1 shrink-0">
+                                        {completada ? (
+                                            <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-lg font-bold">Lograda</span>
+                                        ) : (
+                                            <span className="bg-white/10 text-purple-300 text-xs px-2 py-1 rounded-lg">{mision.recompensa}</span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );

@@ -34,6 +34,7 @@ window.FilosofoApp = () => {
         genero: s.genero || 'no-binario',
         vocabularioDescubierto: s.vocabularioDescubierto || [],
         artefactos: s.artefactos || s.inventarioArtefactos || [],
+        misionesCompletadas: s.misionesCompletadas || {},
         badges: s.badges || ['iniciado'],
         habilidades: s.habilidades || { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
     });

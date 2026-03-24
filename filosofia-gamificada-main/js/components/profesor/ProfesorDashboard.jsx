@@ -394,6 +394,67 @@ window.ProfesorDashboard = function ProfesorDashboard({
         }
     }
 
+    // ---- Misiones de clase ----
+    var misionesDeClase = window.getMisionesDeClase ? window.getMisionesDeClase(currentUnidad, currentClase) : [];
+
+    function toggleMisionEstudiante(studentId, misionId) {
+        var claveClase = currentUnidad + '_C' + currentClase;
+        setStudents(function(prev) {
+            return prev.map(function(s) {
+                if (s.id !== studentId) return s;
+                var mc = Object.assign({}, s.misionesCompletadas || {});
+                if (!mc[claveClase]) mc[claveClase] = {};
+                if (mc[claveClase][misionId]) {
+                    // Desmarcar
+                    delete mc[claveClase][misionId];
+                    // Restar XP de la mision
+                    var mDef = window.MISIONES_DB.find(function(m) { return m.id === misionId; });
+                    if (mDef && mDef.recompensa && mDef.recompensa.xp) {
+                        var newXP = Math.max(0, (s.xp || 0) - mDef.recompensa.xp);
+                        return Object.assign({}, s, { misionesCompletadas: mc, xp: newXP });
+                    }
+                } else {
+                    // Marcar completada
+                    mc[claveClase][misionId] = new Date().toISOString();
+                    // Otorgar XP de la mision
+                    var mDef2 = window.MISIONES_DB.find(function(m) { return m.id === misionId; });
+                    if (mDef2 && mDef2.recompensa && mDef2.recompensa.xp) {
+                        var newXP2 = (s.xp || 0) + mDef2.recompensa.xp;
+                        return Object.assign({}, s, { misionesCompletadas: mc, xp: newXP2 });
+                    }
+                }
+                return Object.assign({}, s, { misionesCompletadas: mc });
+            });
+        });
+    }
+
+    function toggleMisionTodos(misionId) {
+        var claveClase = currentUnidad + '_C' + currentClase;
+        // Si todos ya tienen la mision, desmarcar todos; si no, marcar todos
+        var todosCompletaron = students.every(function(s) {
+            return s.misionesCompletadas && s.misionesCompletadas[claveClase] && s.misionesCompletadas[claveClase][misionId];
+        });
+        var mDef = window.MISIONES_DB.find(function(m) { return m.id === misionId; });
+        var xpMision = mDef && mDef.recompensa ? mDef.recompensa.xp : 0;
+
+        setStudents(function(prev) {
+            return prev.map(function(s) {
+                var mc = Object.assign({}, s.misionesCompletadas || {});
+                if (!mc[claveClase]) mc[claveClase] = {};
+                var xpChange = 0;
+                if (todosCompletaron) {
+                    delete mc[claveClase][misionId];
+                    xpChange = -xpMision;
+                } else if (!mc[claveClase][misionId]) {
+                    mc[claveClase][misionId] = new Date().toISOString();
+                    xpChange = xpMision;
+                }
+                var newXP = Math.max(0, (s.xp || 0) + xpChange);
+                return Object.assign({}, s, { misionesCompletadas: mc, xp: newXP });
+            });
+        });
+    }
+
     // ---- Tabs config ----
     var tabs = [
         { id: 'dashboard', label: 'Dashboard', emoji: '📊' },
@@ -401,6 +462,7 @@ window.ProfesorDashboard = function ProfesorDashboard({
         { id: 'actividades', label: 'Actividades', emoji: '📝' },
         { id: 'unidades', label: 'Unidades', emoji: '📚' },
         { id: 'registro-masivo', label: 'Registro Masivo', emoji: '📋' },
+        { id: 'misiones', label: 'Misiones', emoji: '🎯' },
         { id: 'artefactos', label: 'Artefactos', emoji: '🏺' },
         { id: 'habilidades', label: 'Habilidades', emoji: '🎯' }
     ];
@@ -773,6 +835,119 @@ window.ProfesorDashboard = function ProfesorDashboard({
                             <div className="text-5xl mb-4">📋</div>
                             <p>Componente RegistroMasivo no disponible.</p>
                           </div>
+                )}
+
+                {/* ================ TAB: MISIONES ================ */}
+                {activeTab === 'misiones' && (
+                    <div>
+                        <div className="bg-white rounded-xl shadow-md p-4 mb-4">
+                            <h2 className="text-lg font-bold text-gray-800 mb-1">🎯 Misiones de Clase</h2>
+                            <p className="text-sm text-gray-500 mb-3">
+                                Clase actual: <span className="font-semibold">{currentUnidad} - Clase {currentClase}</span>
+                                {currentClaseObj && <span> ({currentClaseObj.titulo})</span>}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                Las misiones cambian aleatoriamente en cada clase. Marca las misiones que cada estudiante haya completado.
+                                Las misiones "auto" se detectan por actividades registradas. Las manuales debes marcarlas tu.
+                            </p>
+                        </div>
+
+                        {/* Misiones de esta clase */}
+                        {misionesDeClase.map(function(mision) {
+                            var claveClase = currentUnidad + '_C' + currentClase;
+                            var esManual = mision.verificacion === 'manual';
+                            var todosCompletaron = students.every(function(s) {
+                                if (!esManual && mision.autoCheck) {
+                                    return mision.autoCheck(s.id, activities, currentClase, currentUnidad, s);
+                                }
+                                return s.misionesCompletadas && s.misionesCompletadas[claveClase] && s.misionesCompletadas[claveClase][mision.id];
+                            });
+                            var completados = students.filter(function(s) {
+                                if (!esManual && mision.autoCheck) {
+                                    return mision.autoCheck(s.id, activities, currentClase, currentUnidad, s);
+                                }
+                                return s.misionesCompletadas && s.misionesCompletadas[claveClase] && s.misionesCompletadas[claveClase][mision.id];
+                            }).length;
+
+                            return (
+                                <div key={mision.id} className="bg-white rounded-xl shadow-md p-4 mb-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-3xl">{mision.emoji}</span>
+                                            <div>
+                                                <h3 className="font-bold text-gray-800">{mision.nombre}</h3>
+                                                <p className="text-xs text-gray-500">{mision.descripcion}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                                                        mision.tipo === 'entre-clases'
+                                                            ? 'bg-orange-100 text-orange-700'
+                                                            : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                        {mision.tipo === 'entre-clases' ? '📋 Entre clases' : '🏫 En clase'}
+                                                    </span>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                                        esManual ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                                    }`}>
+                                                        {esManual ? '✋ Manual' : '⚡ Automatica'}
+                                                    </span>
+                                                    <span className="text-xs text-purple-600 font-semibold">+{mision.recompensa.xp} XP</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-bold text-gray-700">{completados}/{students.length}</p>
+                                            <p className="text-xs text-gray-400">completaron</p>
+                                            {esManual && (
+                                                <button onClick={function() { toggleMisionTodos(mision.id); }}
+                                                    className={`mt-1 text-xs px-3 py-1 rounded-lg font-semibold transition-colors ${
+                                                        todosCompletaron
+                                                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                            : 'bg-green-100 text-green-600 hover:bg-green-200'
+                                                    }`}>
+                                                    {todosCompletaron ? 'Desmarcar todos' : 'Marcar todos'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Lista de estudiantes */}
+                                    <div className="border-t pt-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-[300px] overflow-y-auto">
+                                            {sortedStudents.map(function(student) {
+                                                var completadaManual = student.misionesCompletadas &&
+                                                    student.misionesCompletadas[claveClase] &&
+                                                    student.misionesCompletadas[claveClase][mision.id];
+                                                var completadaAuto = !esManual && mision.autoCheck &&
+                                                    mision.autoCheck(student.id, activities, currentClase, currentUnidad, student);
+                                                var completada = completadaManual || completadaAuto;
+
+                                                return (
+                                                    <button key={student.id}
+                                                        onClick={function() {
+                                                            if (esManual || !completadaAuto) {
+                                                                toggleMisionEstudiante(student.id, mision.id);
+                                                            }
+                                                        }}
+                                                        disabled={completadaAuto && !esManual}
+                                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-all ${
+                                                            completada
+                                                                ? 'bg-green-50 border border-green-300 text-green-800'
+                                                                : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'
+                                                        } ${completadaAuto && !esManual ? 'cursor-default' : 'cursor-pointer'}`}>
+                                                        <span className="text-lg">{completada ? '✅' : '⬜'}</span>
+                                                        <span className="truncate font-medium">{student.nombreSocial || student.nombre}</span>
+                                                        {completadaAuto && !esManual && (
+                                                            <span className="text-xs text-green-500 ml-auto">auto</span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 )}
 
                 {/* ================ TAB: ARTEFACTOS ================ */}
