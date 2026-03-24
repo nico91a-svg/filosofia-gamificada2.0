@@ -242,130 +242,168 @@ window.AddActivityModal = ({ students, onClose, onAdd, unidades }) => {
     );
 };
 
-// Modal de detalle de estudiante
+// Modal de detalle de estudiante - compacto para 100% zoom
 window.StudentDetailModal = ({ student, activities, onClose }) => {
     const nivel = window.getNivel(student.xp);
     const clase = window.CLASES_FILOSOFICAS.find(c => c.id === student.clase);
     const studentActivities = activities.filter(a => a.studentId === student.id).slice(0, 10);
     const badges = window.BADGES;
     const habilidades = window.HABILIDADES;
+    const [tab, setTab] = React.useState('resumen');
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl p-8 max-w-4xl w-full my-8">
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 className="text-3xl font-bold text-gray-800">{student.nombreSocial || student.nombre}</h2>
-                        {student.nombreLegal && student.nombreLegal !== (student.nombreSocial || student.nombre) && (
-                            <p className="text-gray-400 text-sm mt-0.5">Nombre legal: {student.nombreLegal}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-bold ${clase?.color}`}>
-                                <span className="text-lg">{clase?.emoji}</span> {clase?.nombre}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+            <div className="bg-white rounded-xl w-full max-w-lg max-h-[95vh] flex flex-col shadow-2xl">
+                {/* Header compacto */}
+                <div className="flex items-center justify-between p-4 border-b shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold shrink-0 ${clase?.color || 'bg-purple-600'}`}>
+                            {clase?.emoji || '🎓'}
+                        </div>
+                        <div className="min-w-0">
+                            <h2 className="text-lg font-bold text-gray-800 truncate">{student.nombreSocial || student.nombre}</h2>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                {student.nombreLegal && student.nombreLegal !== (student.nombreSocial || student.nombre) && (
+                                    <span className="truncate">{student.nombreLegal}</span>
+                                )}
+                                <span className="shrink-0">{student.genero === 'femenino' ? '👩' : student.genero === 'masculino' ? '👨' : '🧑'}</span>
                             </div>
-                            {student.genero && (
-                                <span className="px-3 py-2 bg-gray-100 rounded-full text-sm">
-                                    {student.genero === 'femenino' ? '👩' : student.genero === 'masculino' ? '👨' : '🧑'} {student.genero}
-                                </span>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-700 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 shrink-0 text-xl">✕</button>
+                </div>
+
+                {/* Stats bar */}
+                <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 border-b shrink-0">
+                    <div className="text-center">
+                        <div className="text-lg font-bold text-purple-600">Nv.{nivel.nivel}</div>
+                        <div className="text-[10px] text-gray-500">{nivel.titulo}</div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${Math.min(((student.xp - nivel.xp_min) / (nivel.xp_max - nivel.xp_min)) * 100, 100)}%` }}></div>
+                        </div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">{student.xp}/{nivel.xp_max} XP</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-lg font-bold text-blue-600">{student.badges.length}</div>
+                        <div className="text-[10px] text-gray-500">Badges</div>
+                        <div className="flex flex-wrap justify-center gap-0.5 mt-1">
+                            {student.badges.slice(0, 4).map(bid => {
+                                var b = badges.find(x => x.id === bid);
+                                return b ? <span key={bid} className="text-xs" title={b.nombre}>{b.icon}</span> : null;
+                            })}
+                            {student.badges.length > 4 && <span className="text-[10px] text-gray-400">+{student.badges.length - 4}</span>}
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-lg font-bold text-green-600">{studentActivities.length}</div>
+                        <div className="text-[10px] text-gray-500">Actividades</div>
+                        <div className="text-[10px] text-gray-400 mt-1">
+                            {studentActivities.reduce((s, a) => s + (a.xp || 0), 0)} XP total
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b shrink-0">
+                    {[
+                        { id: 'resumen', label: 'Habilidades', emoji: '🎯' },
+                        { id: 'actividades', label: 'Actividades', emoji: '📝' },
+                        { id: 'badges', label: 'Badges', emoji: '🏅' }
+                    ].map(t => (
+                        <button key={t.id} onClick={() => setTab(t.id)}
+                            className={`flex-1 py-2 text-xs font-semibold transition-colors ${
+                                tab === t.id ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' : 'text-gray-500 hover:text-gray-700'
+                            }`}>
+                            {t.emoji} {t.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Tab content - scrollable */}
+                <div className="flex-1 overflow-y-auto p-4">
+                    {tab === 'resumen' && (
+                        <div>
+                            {/* Radar chart compacto */}
+                            <div className="flex justify-center mb-3" style={{ maxHeight: '180px' }}>
+                                <div style={{ transform: 'scale(0.7)', transformOrigin: 'top center' }}>
+                                    <window.RadarChart student={student} />
+                                </div>
+                            </div>
+                            {/* Grid de habilidades compacto */}
+                            <div className="grid grid-cols-3 gap-2">
+                                {habilidades.map(hab => {
+                                    const puntos = student.habilidades[hab.id] || 0;
+                                    const nivelHab = window.getHabilidadNivel(puntos);
+                                    return (
+                                        <div key={hab.id} className="bg-gray-50 rounded-lg p-2 text-center">
+                                            <span className="text-lg">{hab.emoji}</span>
+                                            <p className="text-[10px] font-semibold text-gray-700 truncate">{hab.shortName || hab.nombre}</p>
+                                            <div className="flex justify-center gap-px mt-0.5">
+                                                {[1,2,3,4,5].map(star => (
+                                                    <span key={star} className={`text-[10px] ${star <= nivelHab ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
+                                                ))}
+                                            </div>
+                                            <p className="text-[10px] text-gray-500">{puntos}pts</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {tab === 'actividades' && (
+                        <div>
+                            {studentActivities.length > 0 ? (
+                                <div className="space-y-1.5">
+                                    {studentActivities.map(activity => {
+                                        const tipo = window.TIPOS_ACTIVIDAD.find(t => t.id === activity.tipo);
+                                        return (
+                                            <div key={activity.id} className="bg-gray-50 rounded-lg p-2.5 flex items-center justify-between">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className="text-lg shrink-0">{tipo?.icon || '📋'}</span>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-semibold text-gray-800 truncate">{tipo?.nombre || activity.tipo}</p>
+                                                        <p className="text-[10px] text-gray-500">
+                                                            {activity.unidadId} C{activity.claseNum} · {new Date(activity.date).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right shrink-0 ml-2">
+                                                    <span className="text-xs font-bold text-purple-600">+{activity.xp} XP</span>
+                                                    <p className="text-[10px] text-gray-500 capitalize">{activity.nivel}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-400 py-8 text-sm">No hay actividades registradas</div>
                             )}
                         </div>
-                    </div>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl font-bold">x</button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <window.Icons.Trophy className="text-purple-600" size={32} />
-                            <div>
-                                <div className="text-2xl font-bold text-gray-800">Nivel {nivel.nivel}</div>
-                                <div className="text-sm text-gray-600">{nivel.titulo}</div>
-                            </div>
-                        </div>
-                        <div className="w-full bg-gray-300 rounded-full h-4 mb-2">
-                            <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-4 rounded-full transition-all duration-500"
-                                style={{ width: `${Math.min(((student.xp - nivel.xp_min) / (nivel.xp_max - nivel.xp_min)) * 100, 100)}%` }}></div>
-                        </div>
-                        <div className="text-sm text-gray-600 text-center">{student.xp} / {nivel.xp_max} XP</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-xl p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <window.Icons.Award className="text-blue-600" size={32} />
-                            <div>
-                                <div className="text-2xl font-bold text-gray-800">{student.badges.length}</div>
-                                <div className="text-sm text-gray-600">Badges Desbloqueados</div>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
+                    )}
+
+                    {tab === 'badges' && (
+                        <div className="grid grid-cols-2 gap-2">
                             {student.badges.map(badgeId => {
                                 const badge = badges.find(b => b.id === badgeId);
                                 return badge ? (
-                                    <div key={badgeId} className="bg-white rounded-lg px-3 py-1 text-xs font-semibold shadow" title={badge.descripcion}>
-                                        {badge.icon} {badge.nombre}
+                                    <div key={badgeId} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                        <span className="text-2xl">{badge.icon}</span>
+                                        <p className="text-xs font-bold text-gray-800 mt-1">{badge.nombre}</p>
+                                        <p className="text-[10px] text-gray-500 mt-0.5">{badge.descripcion}</p>
                                     </div>
                                 ) : null;
                             })}
+                            {student.badges.length === 0 && (
+                                <div className="col-span-2 text-center text-gray-400 py-8 text-sm">Sin badges aun</div>
+                            )}
                         </div>
-                    </div>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Poligono de Habilidades</h3>
-                    <window.RadarChart student={student} />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
-                        {habilidades.map(hab => {
-                            const puntos = student.habilidades[hab.id] || 0;
-                            const nivelHab = window.getHabilidadNivel(puntos);
-                            return (
-                                <div key={hab.id} className="bg-white rounded-lg p-3 shadow">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-xl">{hab.emoji}</span>
-                                        <span className="font-semibold text-xs text-gray-700">{hab.nombre}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex gap-0.5">
-                                            {[1,2,3,4,5].map(star => (
-                                                <span key={star} className={`text-sm ${star <= nivelHab ? 'text-yellow-400' : 'text-gray-300'}`}>&#9733;</span>
-                                            ))}
-                                        </div>
-                                        <span className="text-xs text-gray-600">({puntos}p)</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">Historial de Actividades</h3>
-                    {studentActivities.length > 0 ? (
-                        <div className="space-y-2">
-                            {studentActivities.map(activity => {
-                                const tipo = window.TIPOS_ACTIVIDAD.find(t => t.id === activity.tipo);
-                                const unidad = window.UNIDADES_DEFAULT.find(u => u.id === activity.unidadId);
-                                return (
-                                    <div key={activity.id} className="bg-white rounded-lg p-3 flex justify-between items-center">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-2xl">{tipo?.icon}</span>
-                                            <div>
-                                                <div className="font-semibold text-sm text-gray-800">{tipo?.nombre}</div>
-                                                <div className="text-xs text-gray-600">
-                                                    {unidad ? unidad.emoji + ' ' + unidad.id : ''} {' '}
-                                                    {new Date(activity.date).toLocaleDateString()}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-bold text-purple-600">+{activity.xp} XP</div>
-                                            <div className="text-xs text-gray-600 capitalize">{activity.nivel}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="text-center text-gray-500 py-8">No hay actividades registradas aun</div>
                     )}
                 </div>
-                <div className="mt-6">
-                    <button onClick={onClose} className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg transition">Cerrar</button>
+
+                {/* Footer */}
+                <div className="p-3 border-t shrink-0">
+                    <button onClick={onClose} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg transition text-sm">Cerrar</button>
                 </div>
             </div>
         </div>
