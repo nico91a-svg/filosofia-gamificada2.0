@@ -58,12 +58,17 @@ window.FilosofoApp = () => {
         const isFirebase = window.DatabaseService.isFirebaseConnected();
         console.log('Firebase conectado:', isFirebase);
 
-        // Timeout de seguridad: si en 10 segundos no carga, usar datos locales
+        // Timeout de seguridad: si en 10 segundos no carga, mostrar UI con datos locales
+        // IMPORTANTE: No guardar defaults a Firebase para no sobreescribir progreso existente
         const safetyTimeout = setTimeout(() => {
             if (loading) {
-                console.warn('Timeout de carga. Usando datos locales.');
+                console.warn('Timeout de carga. Mostrando UI con datos locales (sin sobreescribir Firebase).');
                 const defaults = window.DEFAULT_STUDENTS_3B || [];
-                if (defaults.length > 0) setStudents(defaults);
+                if (defaults.length > 0 && students.length === 0) {
+                    syncingRef.current.students = true; // Evitar que el useEffect guarde en Firebase
+                    setStudents(defaults);
+                    setTimeout(() => { syncingRef.current.students = false; }, 2000);
+                }
                 dataLoadedRef.current.students = true;
                 dataLoadedRef.current.activities = true;
                 setLoading(false);
@@ -168,9 +173,12 @@ window.FilosofoApp = () => {
     }, []);
 
     // Guardar datos cuando cambien (solo si ya fueron cargados Y no viene de Firebase sync)
+    // Proteccion: no guardar si todos los estudiantes tienen XP=0 (datos por defecto)
     useEffect(() => {
         if (!loading && dataLoadedRef.current.students && !syncingRef.current.students && students.length > 0) {
-            console.log('Guardando ' + students.length + ' estudiantes en Firebase...');
+            const hasProgress = students.some(s => (s.xp || 0) > 0);
+            const action = hasProgress ? 'Guardando (con progreso)' : 'Guardando (sin progreso)';
+            console.log(action + ' ' + students.length + ' estudiantes en Firebase...');
             window.DatabaseService.save('students', students)
                 .then(() => console.log('Estudiantes guardados OK'))
                 .catch(err => console.error('ERROR guardando estudiantes:', err));
