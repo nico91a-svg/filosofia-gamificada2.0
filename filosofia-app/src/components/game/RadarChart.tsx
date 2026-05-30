@@ -74,7 +74,7 @@ export function RadarChart({ habilidades, size = 280, max = 100 }: Props) {
           );
         })}
         {/* datos */}
-        <Polygon points={dataPoints} fill="rgba(168,85,247,0.45)" stroke="#c084fc" strokeWidth={2} />
+        <Polygon points={dataPoints} fill="rgba(242,195,61,0.30)" stroke="#f2c33d" strokeWidth={2} />
         {HABILIDADES.map((h, i) => {
           const valor = Math.min(habilidades[h.id] ?? 0, max) / max;
           const p = point(i, radius * valor);
@@ -84,7 +84,7 @@ export function RadarChart({ habilidades, size = 280, max = 100 }: Props) {
       {/* leyenda */}
       <View className="mt-2 flex-row flex-wrap justify-center gap-x-3 gap-y-1">
         {HABILIDADES.map((h) => (
-          <Text key={h.id} className="text-xs text-purple-200">
+          <Text key={h.id} className="font-body text-[11px] text-parchment">
             {h.emoji} {h.shortName} {habilidades[h.id] ?? 0}
           </Text>
         ))}

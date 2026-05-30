@@ -1,5 +1,4 @@
-// Componente estrella: apertura de cofre con animación fluida (Reanimated)
-// + haptics. Reutiliza abrirCofre() / RAREZA_GLOW del dominio.
+// Apertura de cofre pixel-art con animación fluida (Reanimated) + haptics.
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -7,21 +6,24 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSequence,
   withSpring, withRepeat, runOnJS, Easing,
 } from 'react-native-reanimated';
-import { COFRES, RAREZA_GLOW, RAREZA_LABEL } from '../../domain';
+import { COFRES } from '../../domain';
 import type { Artefacto, TipoCofre } from '../../domain/types';
+import { PixelSprite } from '../pixel/PixelSprite';
+import { chestSprite, GEM_SPRITE, gemColor } from '../pixel/sprites';
+import { RAREZA_PIXEL } from '../../theme/pixel';
 
 type Fase = 'idle' | 'shake' | 'burst' | 'reveal';
 
 interface Props {
   tipoCofre: TipoCofre;
-  // Decide el premio fuera (idempotente) y lo revela aquí:
-  premioDecidido: Artefacto;
+  premioDecidido: Artefacto; // decidido fuera (idempotente)
   onClaim: (art: Artefacto) => void;
 }
 
 export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
   const [fase, setFase] = useState<Fase>('idle');
   const cofre = COFRES[tipoCofre];
+  const rar = RAREZA_PIXEL[premioDecidido.rareza];
 
   const rotation = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -34,7 +36,7 @@ export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
     if (fase === 'idle') {
       scale.value = withRepeat(
         withSequence(
-          withTiming(1.04, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1.05, { duration: 900, easing: Easing.inOut(Easing.ease) }),
           withTiming(1.0, { duration: 900, easing: Easing.inOut(Easing.ease) }),
         ),
         -1,
@@ -50,7 +52,7 @@ export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
       withTiming(1, { duration: 180, easing: Easing.out(Easing.quad) }),
       withTiming(0, { duration: 420 }),
     );
-    scale.value = withSequence(withTiming(1.25, { duration: 150 }), withSpring(1, { damping: 6 }));
+    scale.value = withSequence(withTiming(1.3, { duration: 150 }), withSpring(1, { damping: 6 }));
     setTimeout(() => {
       setFase('reveal');
       revealOpacity.value = withTiming(1, { duration: 300 });
@@ -71,46 +73,45 @@ export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
     );
   }, [fase, triggerBurst]);
 
-  const cofreStyle = useAnimatedStyle(() => ({
+  const chestStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { rotateZ: `${rotation.value}rad` }],
   }));
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glow.value,
-    transform: [{ scale: 1 + glow.value * 0.6 }],
+    transform: [{ scale: 1 + glow.value * 0.7 }],
   }));
   const burstStyle = useAnimatedStyle(() => ({
     opacity: burst.value,
-    transform: [{ scale: 0.5 + burst.value * 2 }],
+    transform: [{ scale: 0.5 + burst.value * 2.2 }],
   }));
   const revealStyle = useAnimatedStyle(() => ({
     opacity: revealOpacity.value,
     transform: [{ translateY: revealY.value }],
   }));
 
-  const rarezaColor = RAREZA_GLOW[premioDecidido.rareza];
-
   return (
     <View className="flex-1 items-center justify-center px-6">
+      {/* halo */}
       <Animated.View
         pointerEvents="none"
-        style={[glowStyle, { backgroundColor: rarezaColor }]}
-        className="absolute h-64 w-64 rounded-full opacity-60"
+        style={[glowStyle, { backgroundColor: rar.glow }]}
+        className="absolute h-56 w-56 rounded-full opacity-50"
       />
       {fase === 'burst' && (
         <Animated.View
           pointerEvents="none"
-          style={[burstStyle, { backgroundColor: rarezaColor }]}
-          className="absolute h-72 w-72 rounded-full"
+          style={[burstStyle, { backgroundColor: rar.glow }]}
+          className="absolute h-64 w-64 rounded-full"
         />
       )}
 
       {fase !== 'reveal' && (
-        <Pressable onPress={abrir} disabled={fase !== 'idle'} hitSlop={20}>
-          <Animated.View style={cofreStyle} className="items-center">
-            <Text style={{ fontSize: 120 }}>{cofre.emoji}</Text>
+        <Pressable onPress={abrir} disabled={fase !== 'idle'} hitSlop={24}>
+          <Animated.View style={chestStyle} className="items-center">
+            <PixelSprite sprite={chestSprite(tipoCofre)} size={180} />
             {fase === 'idle' && (
-              <Text className="mt-4 text-base font-bold text-amber-200">
-                Toca para abrir · {cofre.nombre}
+              <Text className="mt-4 font-body text-base text-gold-light">
+                TOCA PARA ABRIR · {cofre.nombre.toUpperCase()}
               </Text>
             )}
           </Animated.View>
@@ -119,21 +120,29 @@ export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
 
       {fase === 'reveal' && (
         <Animated.View style={revealStyle} className="items-center">
-          <Text style={{ fontSize: 96 }}>{premioDecidido.emoji}</Text>
-          <Text className="mt-3 text-2xl font-extrabold" style={{ color: rarezaColor }}>
+          <PixelSprite
+            sprite={GEM_SPRITE}
+            size={150}
+            tint={gemColor(premioDecidido.rareza)}
+            tintKey="c"
+          />
+          <Text className="mt-2 text-3xl">{premioDecidido.emoji}</Text>
+          <Text className="mt-2 font-pixel text-lg" style={{ color: rar.color }}>
             {premioDecidido.nombre}
           </Text>
-          <Text className="mt-1 text-sm uppercase tracking-widest text-white/70">
-            {RAREZA_LABEL[premioDecidido.rareza]}
+          <Text className="mt-2 font-body text-xs" style={{ color: rar.glow, letterSpacing: 2 }}>
+            ★ {rar.label} ★
           </Text>
-          <Text className="mt-2 text-center text-base text-purple-200">
+          <Text className="mt-2 max-w-[260px] text-center font-body text-sm text-parchment">
             {premioDecidido.efecto}
           </Text>
           <Pressable
             onPress={() => onClaim(premioDecidido)}
-            className="mt-8 rounded-2xl bg-amber-400 px-10 py-4 active:opacity-80"
+            className="mt-8 border-[3px] border-stone-dark bg-gold active:opacity-80"
           >
-            <Text className="text-lg font-bold text-amber-950">¡Reclamar!</Text>
+            <View className="border-2 border-t-gold-light border-l-gold-light border-b-gold-dark border-r-gold-dark px-10 py-3">
+              <Text className="font-body text-base text-[#3a2a06]">¡RECLAMAR!</Text>
+            </View>
           </Pressable>
         </Animated.View>
       )}

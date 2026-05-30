@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '../../src/components/ui/Screen';
 import { Button } from '../../src/components/ui/Button';
+import { PixelPanel } from '../../src/components/pixel/PixelPanel';
 import { useGameStore } from '../../src/store/useGameStore';
 import { HAS_FIREBASE } from '../../src/services/firebase';
 
@@ -30,54 +31,48 @@ export default function GMPanel() {
   };
 
   return (
-    <Screen>
-      <View className="mb-4 flex-row items-center">
-        <Text style={{ fontSize: 40 }}>🛡️</Text>
-        <View className="ml-3 flex-1">
-          <Text className="text-xl font-extrabold text-white">Panel del Game Master</Text>
-          <Text className="text-xs text-purple-300">
-            {HAS_FIREBASE ? '☁️ Sincronizado (Firebase)' : '📴 Modo local (este dispositivo)'}
-          </Text>
-        </View>
-      </View>
+    <Screen title="🛡 GAME MASTER">
+      <Text className="mb-4 font-body text-xs text-arcane">
+        {HAS_FIREBASE ? '☁ SINCRONIZADO (FIREBASE)' : '📴 MODO LOCAL (ESTE DISPOSITIVO)'}
+      </Text>
 
-      {/* Estadísticas */}
       <View className="flex-row gap-2">
-        <Stat label="Estudiantes" value={students.length} />
-        <Stat label="Actividades" value={activities.length} />
-        <Stat label="XP total" value={totalXP} />
+        <Stat label="HÉROES" value={students.length} />
+        <Stat label="HAZAÑAS" value={activities.length} />
+        <Stat label="XP TOTAL" value={totalXP} />
       </View>
 
-      {/* Control de posición de clase */}
-      <View className="mt-4 rounded-2xl bg-white/5 p-4">
-        <Text className="mb-2 font-bold text-white">📍 Posición actual</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {unidades.map((u: any) => (
-            <Pressable
-              key={u.id}
-              onPress={() => cambiarUnidad(u.id)}
-              className={`rounded-full px-3 py-2 ${position.unidad === u.id ? 'bg-amber-400' : 'bg-white/10'}`}
-            >
-              <Text className={position.unidad === u.id ? 'font-bold text-amber-950' : 'text-purple-200'}>
-                {u.emoji} {u.id}
-              </Text>
+      <View className="mt-4">
+        <PixelPanel tone="stone" rivets>
+          <Text className="mb-2 font-pixel text-xs text-gold">POSICIÓN DE CAMPAÑA</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {unidades.map((u: any) => (
+              <Pressable
+                key={u.id}
+                onPress={() => cambiarUnidad(u.id)}
+                className={`border-2 px-3 py-2 ${position.unidad === u.id ? 'border-gold bg-gold' : 'border-stone-dark bg-dungeon-950'}`}
+              >
+                <Text className={`font-body text-xs ${position.unidad === u.id ? 'text-[#3a2a06]' : 'text-arcane'}`}>
+                  {u.emoji} {u.id}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <View className="mt-3 flex-row items-center justify-between border-2 border-stone-dark bg-dungeon-950 p-2">
+            <Pressable onPress={() => cambiarClase(-1)} className="h-10 w-12 items-center justify-center bg-dungeon-700">
+              <Text className="font-pixel text-base text-parchment">-</Text>
             </Pressable>
-          ))}
-        </View>
-        <View className="mt-3 flex-row items-center justify-between rounded-xl bg-white/5 p-2">
-          <Pressable onPress={() => cambiarClase(-1)} className="h-10 w-12 items-center justify-center rounded-lg bg-white/10">
-            <Text className="text-xl text-white">−</Text>
-          </Pressable>
-          <Text className="font-bold text-white">Clase {position.clase} / {maxClase}</Text>
-          <Pressable onPress={() => cambiarClase(1)} className="h-10 w-12 items-center justify-center rounded-lg bg-white/10">
-            <Text className="text-xl text-white">+</Text>
-          </Pressable>
-        </View>
+            <Text className="font-body text-sm text-parchment">CLASE {position.clase} / {maxClase}</Text>
+            <Pressable onPress={() => cambiarClase(1)} className="h-10 w-12 items-center justify-center bg-dungeon-700">
+              <Text className="font-pixel text-base text-parchment">+</Text>
+            </Pressable>
+          </View>
+        </PixelPanel>
       </View>
 
       <View className="mt-4 gap-2">
-        <Button label="⚡ Registrar actividad" onPress={() => router.push('/(gm)/registro')} />
-        <Button label="👥 Gestionar estudiantes" variant="ghost" onPress={() => router.push('/(gm)/estudiantes')} />
+        <Button label="Registrar hazaña" onPress={() => router.push('/(gm)/registro')} />
+        <Button label="Gestionar héroes" variant="ghost" onPress={() => router.push('/(gm)/estudiantes')} />
         <Button label="Cerrar sesión" variant="ghost" onPress={salir} />
       </View>
     </Screen>
@@ -86,9 +81,9 @@ export default function GMPanel() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <View className="flex-1 items-center rounded-2xl bg-white/5 p-3">
-      <Text className="text-2xl font-extrabold text-amber-300">{value}</Text>
-      <Text className="text-xs text-purple-300">{label}</Text>
+    <View className="flex-1 items-center border-2 border-stone-dark bg-dungeon-800 p-3">
+      <Text className="font-pixel text-base text-gold">{value}</Text>
+      <Text className="mt-1 font-body text-[10px] text-arcane">{label}</Text>
     </View>
   );
 }

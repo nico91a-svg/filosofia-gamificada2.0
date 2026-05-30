@@ -16,30 +16,28 @@ export default function Actividades() {
     [activities, student?.id],
   );
 
-  const nombreTipo = (id: string) =>
-    TIPOS_ACTIVIDAD.find((t) => t.id === id)?.nombre ?? id;
+  const nombreTipo = (id: string) => TIPOS_ACTIVIDAD.find((t) => t.id === id)?.nombre ?? id;
   const iconoTipo = (id: string) => TIPOS_ACTIVIDAD.find((t) => t.id === id)?.icon ?? '⚡';
 
   return (
-    <Screen>
-      <Text className="mb-1 text-2xl font-extrabold text-white">⚡ Mis actividades</Text>
-      <Text className="mb-4 text-sm text-purple-300">{mias.length} registradas</Text>
+    <Screen title="◆ BITÁCORA">
+      <Text className="mb-4 font-body text-xs text-arcane">{mias.length} HAZAÑAS REGISTRADAS</Text>
 
       {mias.length === 0 ? (
-        <Text className="text-purple-300">
-          Aún no tienes actividades registradas. El Game Master las irá sumando en clase.
+        <Text className="font-body text-sm text-stone-light">
+          Aún no tienes hazañas. El Game Master las irá sumando en clase.
         </Text>
       ) : (
         mias.map((a) => (
-          <View key={a.id} className="mb-2 flex-row items-center rounded-2xl bg-white/5 p-3">
-            <Text style={{ fontSize: 24 }}>{iconoTipo(a.tipo)}</Text>
+          <View key={a.id} className="mb-2 flex-row items-center border-2 border-stone-dark bg-dungeon-800 p-3">
+            <Text style={{ fontSize: 22 }}>{iconoTipo(a.tipo)}</Text>
             <View className="ml-3 flex-1">
-              <Text className="font-bold text-white">{nombreTipo(a.tipo)}</Text>
-              <Text className="text-xs capitalize text-purple-300">
+              <Text className="font-body text-sm text-parchment">{nombreTipo(a.tipo)}</Text>
+              <Text className="font-body text-[11px] uppercase text-arcane">
                 {a.nivel} · {new Date(a.fecha).toLocaleDateString('es-CL')}
               </Text>
             </View>
-            <Text className="font-extrabold text-amber-300">+{a.xp} XP</Text>
+            <Text className="font-pixel text-[11px] text-gold">+{a.xp}</Text>
           </View>
         ))
       )}

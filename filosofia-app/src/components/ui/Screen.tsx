@@ -1,27 +1,41 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Contenedor base con fondo de marca y safe-area.
+// Contenedor base con fondo de mazmorra y cabecera pixel opcional.
 export function Screen({
   children,
   scroll = true,
+  title,
 }: {
   children: React.ReactNode;
   scroll?: boolean;
+  title?: string;
 }) {
+  const Header = title ? (
+    <View className="mb-4 border-b-2 border-stone-dark pb-2">
+      <Text className="font-pixel text-base text-gold" style={{ letterSpacing: 1 }}>
+        {title}
+      </Text>
+    </View>
+  ) : null;
+
   return (
-    <SafeAreaView className="flex-1 bg-[#1e1b4b]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-dungeon-950" edges={['top']}>
       {scroll ? (
         <ScrollView
           className="flex-1"
-          contentContainerClassName="px-4 pb-28 pt-2"
+          contentContainerClassName="px-4 pb-28 pt-3"
           keyboardShouldPersistTaps="handled"
         >
+          {Header}
           {children}
         </ScrollView>
       ) : (
-        <View className="flex-1 px-4 pt-2">{children}</View>
+        <View className="flex-1 px-4 pt-3">
+          {Header}
+          {children}
+        </View>
       )}
     </SafeAreaView>
   );

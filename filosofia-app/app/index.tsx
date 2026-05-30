@@ -9,10 +9,10 @@ export default function Index() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#1e1b4b]">
-        <Text style={{ fontSize: 56 }}>🎓</Text>
-        <ActivityIndicator color="#fbbf24" className="mt-4" />
-        <Text className="mt-3 text-purple-200">Cargando el sistema…</Text>
+      <View className="flex-1 items-center justify-center bg-dungeon-950">
+        <Text style={{ fontSize: 56 }}>🏛️</Text>
+        <ActivityIndicator color="#f2c33d" className="mt-4" />
+        <Text className="mt-3 font-body text-sm text-arcane">Cargando la mazmorra…</Text>
       </View>
     );
   }

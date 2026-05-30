@@ -7,9 +7,9 @@ import { getNivel } from '../../src/domain';
 import type { Genero } from '../../src/domain/types';
 
 const GENEROS: { id: Genero; label: string }[] = [
-  { id: 'femenino', label: 'Femenino' },
-  { id: 'masculino', label: 'Masculino' },
-  { id: 'no-binario', label: 'No binario' },
+  { id: 'femenino', label: 'F' },
+  { id: 'masculino', label: 'M' },
+  { id: 'no-binario', label: 'N-B' },
 ];
 
 export default function Estudiantes() {
@@ -34,17 +34,17 @@ export default function Estudiantes() {
   };
 
   const confirmarEliminar = (id: string, nombre: string) => {
-    Alert.alert('Eliminar estudiante', `¿Eliminar a ${nombre}? Se perderá su progreso.`, [
+    Alert.alert('Eliminar héroe', `¿Eliminar a ${nombre}? Se perderá su progreso.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => eliminar(id) },
     ]);
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#1e1b4b]" edges={['top']}>
-      <View className="flex-row items-center px-4 pt-2">
-        <Text className="flex-1 text-2xl font-extrabold text-white">👥 Estudiantes</Text>
-        <Text className="text-sm text-purple-300">{students.length}</Text>
+    <SafeAreaView className="flex-1 bg-dungeon-950" edges={['top']}>
+      <View className="flex-row items-center border-b-2 border-stone-dark px-4 pb-2 pt-3">
+        <Text className="flex-1 font-pixel text-base text-gold">👥 HÉROES</Text>
+        <Text className="font-body text-sm text-arcane">{students.length}</Text>
       </View>
 
       <FlatList
@@ -54,26 +54,26 @@ export default function Estudiantes() {
         renderItem={({ item }) => {
           const nivel = getNivel(item.xp ?? 0);
           return (
-            <View className="mb-2 flex-row items-center rounded-2xl bg-white/5 p-3">
+            <View className="mb-2 flex-row items-center border-2 border-stone-dark bg-dungeon-800 p-3">
               <View className="flex-1">
-                <Text className="font-bold text-white">{item.nombreSocial}</Text>
-                <Text className="text-xs text-purple-300">
-                  Nivel {nivel.nivel} · {item.xp ?? 0} XP · clave: {item.password}
+                <Text className="font-body text-sm text-parchment">{item.nombreSocial}</Text>
+                <Text className="font-body text-[11px] text-arcane">
+                  NV {nivel.nivel} · {item.xp ?? 0} XP · clave: {item.password}
                 </Text>
               </View>
               <Pressable
                 onPress={() => confirmarEliminar(item.id, item.nombreSocial)}
                 hitSlop={12}
-                className="h-10 w-10 items-center justify-center rounded-lg bg-rose-500/20"
+                className="h-10 w-10 items-center justify-center border-2 border-stone-dark bg-ruby/30"
               >
-                <Text className="text-rose-300">🗑️</Text>
+                <Text>🗑️</Text>
               </Pressable>
             </View>
           );
         }}
         ListEmptyComponent={
-          <Text className="mt-10 text-center text-purple-300">
-            No hay estudiantes. Toca + para inscribir al primero.
+          <Text className="mt-10 text-center font-body text-sm text-stone-light">
+            No hay héroes. Toca + para inscribir al primero.
           </Text>
         }
       />
@@ -81,52 +81,52 @@ export default function Estudiantes() {
       {/* FAB */}
       <Pressable
         onPress={() => setOpen(true)}
-        className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full bg-amber-400 active:opacity-80"
+        className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center border-[3px] border-stone-dark bg-gold active:opacity-80"
       >
-        <Text className="text-3xl text-amber-950">+</Text>
+        <Text className="font-pixel text-2xl text-[#3a2a06]">+</Text>
       </Pressable>
 
       {/* Formulario */}
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="rounded-t-3xl bg-[#26224d] p-5 pb-10">
-            <Text className="mb-4 text-xl font-extrabold text-white">Nuevo estudiante</Text>
+        <View className="flex-1 justify-end bg-black/70">
+          <View className="border-t-[3px] border-stone-dark bg-dungeon-800 p-5 pb-10">
+            <Text className="mb-4 font-pixel text-sm text-gold">NUEVO HÉROE</Text>
             <View className="gap-3">
               <TextInput
-                placeholder="Nombre de usuario (para login)"
-                placeholderTextColor="#a78bfa"
+                placeholder="NOMBRE DE USUARIO (LOGIN)"
+                placeholderTextColor="#6b5fa3"
                 autoCapitalize="none"
                 value={nombreSocial}
                 onChangeText={setNombreSocial}
-                className="rounded-2xl bg-white/10 px-4 py-4 text-white"
+                className="border-2 border-stone-dark bg-dungeon-950 px-3 py-3 font-body text-parchment"
               />
               <TextInput
-                placeholder="Nombre completo (opcional)"
-                placeholderTextColor="#a78bfa"
+                placeholder="NOMBRE COMPLETO (OPCIONAL)"
+                placeholderTextColor="#6b5fa3"
                 value={nombreLegal}
                 onChangeText={setNombreLegal}
-                className="rounded-2xl bg-white/10 px-4 py-4 text-white"
+                className="border-2 border-stone-dark bg-dungeon-950 px-3 py-3 font-body text-parchment"
               />
               <View className="flex-row gap-2">
                 {GENEROS.map((g) => (
                   <Pressable
                     key={g.id}
                     onPress={() => setGenero(g.id)}
-                    className={`flex-1 items-center rounded-xl py-3 ${genero === g.id ? 'bg-amber-400' : 'bg-white/10'}`}
+                    className={`flex-1 items-center border-2 py-3 ${genero === g.id ? 'border-gold bg-gold' : 'border-stone-dark bg-dungeon-950'}`}
                   >
-                    <Text className={genero === g.id ? 'font-bold text-amber-950' : 'text-purple-200'}>
+                    <Text className={`font-body text-xs ${genero === g.id ? 'text-[#3a2a06]' : 'text-arcane'}`}>
                       {g.label}
                     </Text>
                   </Pressable>
                 ))}
               </View>
               <TextInput
-                placeholder="Contraseña"
-                placeholderTextColor="#a78bfa"
+                placeholder="CONTRASEÑA"
+                placeholderTextColor="#6b5fa3"
                 autoCapitalize="none"
                 value={password}
                 onChangeText={setPassword}
-                className="rounded-2xl bg-white/10 px-4 py-4 text-white"
+                className="border-2 border-stone-dark bg-dungeon-950 px-3 py-3 font-body text-parchment"
               />
               <View className="mt-2 flex-row gap-2">
                 <View className="flex-1">

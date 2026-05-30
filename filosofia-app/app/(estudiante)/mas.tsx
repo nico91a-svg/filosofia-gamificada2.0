@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '../../src/components/ui/Screen';
 import { Button } from '../../src/components/ui/Button';
+import { PixelPanel } from '../../src/components/pixel/PixelPanel';
 import { useGameStore } from '../../src/store/useGameStore';
 
 export default function Mas() {
@@ -20,23 +21,21 @@ export default function Mas() {
   };
 
   const opciones = [
-    { emoji: '🏺', label: 'Artefactos y cofres', onPress: () => router.push('/(estudiante)/artefactos') },
-    { emoji: '📚', label: 'Vocabulario filosófico', onPress: () => setVocabUnidad(unidades[0]?.id ?? null) },
+    { emoji: '🏺', label: 'ARTEFACTOS Y COFRES', onPress: () => router.push('/(estudiante)/artefactos') },
+    { emoji: '📜', label: 'GRIMORIO (VOCABULARIO)', onPress: () => setVocabUnidad(unidades[0]?.id ?? null) },
   ];
 
   return (
-    <Screen>
-      <Text className="mb-4 text-2xl font-extrabold text-white">⋯ Más</Text>
-
+    <Screen title="◆ MOCHILA">
       {opciones.map((o) => (
-        <Pressable
-          key={o.label}
-          onPress={o.onPress}
-          className="mb-2 flex-row items-center rounded-2xl bg-white/5 p-4 active:opacity-80"
-        >
-          <Text style={{ fontSize: 24 }}>{o.emoji}</Text>
-          <Text className="ml-3 flex-1 font-bold text-white">{o.label}</Text>
-          <Text className="text-purple-300">›</Text>
+        <Pressable key={o.label} onPress={o.onPress} className="mb-2 active:opacity-80">
+          <PixelPanel tone="stone">
+            <View className="flex-row items-center">
+              <Text style={{ fontSize: 22 }}>{o.emoji}</Text>
+              <Text className="ml-3 flex-1 font-body text-sm text-parchment">{o.label}</Text>
+              <Text className="font-pixel text-gold">›</Text>
+            </View>
+          </PixelPanel>
         </Pressable>
       ))}
 
@@ -44,45 +43,44 @@ export default function Mas() {
         <Button label="Cerrar sesión" variant="ghost" onPress={salir} />
       </View>
 
-      {/* Vocabulario */}
+      {/* Grimorio de vocabulario */}
       <Modal visible={!!vocabUnidad} animationType="slide" onRequestClose={() => setVocabUnidad(null)}>
-        <View className="flex-1 bg-[#1e1b4b] pt-14">
-          <View className="flex-row items-center px-4 pb-3">
-            <Text className="flex-1 text-xl font-extrabold text-white">📚 Vocabulario</Text>
+        <View className="flex-1 bg-dungeon-950 pt-14">
+          <View className="flex-row items-center border-b-2 border-stone-dark px-4 pb-3">
+            <Text className="flex-1 font-pixel text-base text-gold">📜 GRIMORIO</Text>
             <Pressable onPress={() => setVocabUnidad(null)} hitSlop={16}>
-              <Text className="text-2xl text-purple-200">✕</Text>
+              <Text className="font-pixel text-lg text-parchment">✕</Text>
             </Pressable>
           </View>
-          {/* selector de unidad */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-12 px-4">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-14 px-4 py-2">
             {unidades.map((u: any) => (
               <Pressable
                 key={u.id}
                 onPress={() => setVocabUnidad(u.id)}
-                className={`mr-2 h-9 justify-center rounded-full px-4 ${vocabUnidad === u.id ? 'bg-amber-400' : 'bg-white/10'}`}
+                className={`mr-2 h-9 justify-center border-2 px-3 ${vocabUnidad === u.id ? 'border-gold bg-gold' : 'border-stone-dark bg-dungeon-800'}`}
               >
-                <Text className={vocabUnidad === u.id ? 'font-bold text-amber-950' : 'text-purple-200'}>
+                <Text className={`font-body text-xs ${vocabUnidad === u.id ? 'text-[#3a2a06]' : 'text-arcane'}`}>
                   {u.emoji} {u.id}
                 </Text>
               </Pressable>
             ))}
           </ScrollView>
-          <ScrollView className="flex-1 px-4 pt-3" contentContainerClassName="pb-10">
+          <ScrollView className="flex-1 px-4 pt-2" contentContainerClassName="pb-10">
             {(unidad?.vocabulario ?? []).map((v: any, i: number) => {
               const found = descubierto.includes(v.termino);
               return (
-                <View key={i} className="mb-2 rounded-2xl bg-white/5 p-4">
-                  <Text className="font-bold text-amber-300">
+                <View key={i} className="mb-2 border-2 border-stone-dark bg-dungeon-800 p-3">
+                  <Text className="font-body text-sm text-gold-light">
                     {found ? '🔓' : '🔒'} {v.termino}
                   </Text>
-                  <Text className="mt-1 text-sm text-purple-200">
+                  <Text className="mt-1 font-body text-xs text-parchment">
                     {found ? v.definicion : 'Término por descubrir en clase.'}
                   </Text>
                 </View>
               );
             })}
             {(unidad?.vocabulario ?? []).length === 0 && (
-              <Text className="text-purple-300">Sin vocabulario en esta unidad.</Text>
+              <Text className="font-body text-sm text-stone-light">Sin vocabulario en esta unidad.</Text>
             )}
           </ScrollView>
         </View>

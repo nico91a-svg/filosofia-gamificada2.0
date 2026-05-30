@@ -19,15 +19,16 @@ export default function EstudianteLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1a1838',
-          borderTopColor: 'rgba(255,255,255,0.08)',
-          height: 64,
+          backgroundColor: '#221a45',
+          borderTopWidth: 3,
+          borderTopColor: '#1c1538',
+          height: 66,
           paddingBottom: 8,
           paddingTop: 6,
         },
-        tabBarActiveTintColor: '#fbbf24',
-        tabBarInactiveTintColor: '#a78bfa',
-        tabBarLabelStyle: { fontSize: 11 },
+        tabBarActiveTintColor: '#f2c33d',
+        tabBarInactiveTintColor: '#6b5fa3',
+        tabBarLabelStyle: { fontFamily: 'Silkscreen_400Regular', fontSize: 9 },
       }}
     >
       <Tabs.Screen
