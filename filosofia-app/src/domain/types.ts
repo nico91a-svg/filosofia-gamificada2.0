@@ -71,6 +71,7 @@ export interface Estudiante {
   genero: Genero;
   clase: string;
   password: string;
+  avatar?: string; // id del avatar elegido (ver components/pixel/avatars.ts)
   xp: number;
   habilidades: Habilidades;
   badges: string[];

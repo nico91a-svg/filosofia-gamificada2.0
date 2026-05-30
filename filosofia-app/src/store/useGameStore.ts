@@ -6,6 +6,7 @@ import { DatabaseService } from '../services/database';
 import {
   registrarActividad, abrirCofre, getNivel, UNIDADES_DEFAULT,
 } from '../domain';
+import { DEFAULT_AVATAR } from '../components/pixel/avatars';
 import type {
   Estudiante, Actividad, Posicion, NivelDesempeno, Artefacto,
   ArtefactoInstancia, TipoCofre, Genero,
@@ -48,8 +49,11 @@ interface GameState {
   currentStudent: () => Estudiante | null;
 
   // GM: gestión de estudiantes
-  crearEstudiante: (data: { nombreSocial: string; nombreLegal?: string; genero: Genero; password: string }) => void;
+  crearEstudiante: (data: { nombreSocial: string; nombreLegal?: string; genero: Genero; password: string; avatar?: string }) => void;
   eliminarEstudiante: (id: string) => void;
+
+  // Estudiante: elegir avatar
+  setAvatar: (studentId: string, avatar: string) => void;
 
   // GM: registrar actividad (devuelve resultado para feedback/animación)
   registrar: (p: { studentId: string; tipo: string; nivel: NivelDesempeno }) =>
@@ -131,7 +135,7 @@ export const useGameStore = create<GameState>((set, getState) => ({
     return students.find((s) => s.id === sesion.id) ?? null;
   },
 
-  crearEstudiante: ({ nombreSocial, nombreLegal, genero, password }) => {
+  crearEstudiante: ({ nombreSocial, nombreLegal, genero, password, avatar }) => {
     const nuevo: Estudiante = {
       id: `s_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       nombre: nombreSocial,
@@ -140,6 +144,7 @@ export const useGameStore = create<GameState>((set, getState) => ({
       genero,
       clase: 'GM',
       password,
+      avatar: avatar || DEFAULT_AVATAR,
       xp: 0,
       habilidades: { H1: 0, H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 },
       badges: ['iniciado'],
@@ -155,6 +160,14 @@ export const useGameStore = create<GameState>((set, getState) => ({
 
   eliminarEstudiante: (id) => {
     const students = getState().students.filter((s) => s.id !== id);
+    set({ students });
+    saveStudents(students);
+  },
+
+  setAvatar: (studentId, avatar) => {
+    const students = getState().students.map((s) =>
+      s.id === studentId ? { ...s, avatar } : s,
+    );
     set({ students });
     saveStudents(students);
   },

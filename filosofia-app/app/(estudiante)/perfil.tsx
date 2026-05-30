@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '../../src/components/ui/Screen';
 import { XPBar } from '../../src/components/game/XPBar';
 import { RadarChart } from '../../src/components/game/RadarChart';
 import { PixelPanel } from '../../src/components/pixel/PixelPanel';
+import { PixelSprite } from '../../src/components/pixel/PixelSprite';
+import { AvatarPicker } from '../../src/components/pixel/AvatarPicker';
+import { getAvatarSprite, avatarNombre } from '../../src/components/pixel/avatars';
+import { Button } from '../../src/components/ui/Button';
 import { useGameStore } from '../../src/store/useGameStore';
 import { getNivel, BADGES } from '../../src/domain';
-import { NIVEL_TITULOS_EMOJI } from '../../src/theme/pixel';
 
 function contarCofres(artefactos: (string | { id: string })[] = []) {
   return artefactos.filter((a) => (typeof a === 'string' ? a : a?.id)?.startsWith('cofre_')).length;
@@ -15,6 +18,8 @@ function contarCofres(artefactos: (string | { id: string })[] = []) {
 
 export default function Perfil() {
   const student = useGameStore((s) => s.currentStudent());
+  const setAvatar = useGameStore((s) => s.setAvatar);
+  const [picker, setPicker] = useState(false);
   if (!student) return null;
 
   const nivel = getNivel(student.xp ?? 0);
@@ -26,12 +31,17 @@ export default function Perfil() {
       {/* Cabecera del héroe */}
       <PixelPanel tone="stone" rivets>
         <View className="flex-row items-center">
-          <View className="border-2 border-stone-dark bg-dungeon-950 p-1">
-            <Text style={{ fontSize: 40 }}>{NIVEL_TITULOS_EMOJI[nivel.nivel - 1] ?? '🗡️'}</Text>
-          </View>
+          <Pressable onPress={() => setPicker(true)} className="active:opacity-80">
+            <View className="border-2 border-stone-dark bg-dungeon-950">
+              <PixelSprite sprite={getAvatarSprite(student.avatar)} size={64} />
+            </View>
+            <Text className="mt-1 text-center font-body text-[9px] text-gold">CAMBIAR</Text>
+          </Pressable>
           <View className="ml-3 flex-1">
             <Text className="font-pixel text-sm text-parchment">{student.nombreSocial}</Text>
-            <Text className="mt-1 font-body text-xs text-arcane">{nivel.titulo}</Text>
+            <Text className="mt-1 font-body text-xs text-arcane">
+              {avatarNombre(student.avatar)} · {nivel.titulo}
+            </Text>
           </View>
         </View>
         <View className="mt-3">
@@ -79,6 +89,22 @@ export default function Perfil() {
           </View>
         </PixelPanel>
       </View>
+
+      {/* Selector de avatar */}
+      <Modal visible={picker} transparent animationType="slide" onRequestClose={() => setPicker(false)}>
+        <View className="flex-1 justify-end bg-black/70">
+          <View className="border-t-[3px] border-stone-dark bg-dungeon-800 p-5 pb-10">
+            <Text className="mb-4 text-center font-pixel text-sm text-gold">ELIGE TU HÉROE</Text>
+            <AvatarPicker
+              value={student.avatar}
+              onSelect={(id) => setAvatar(student.id, id)}
+            />
+            <View className="mt-5">
+              <Button label="Listo" onPress={() => setPicker(false)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }

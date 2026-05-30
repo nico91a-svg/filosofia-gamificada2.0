@@ -62,12 +62,32 @@ Login, Perfil, Aventura (mapa), Actividades (bitácora), Ranking (salón de hér
 Mochila/Grimorio, y todo el panel del Game Master (panel, héroes, registrar hazaña),
 además del modal de apertura de cofre.
 
+## 5.b Avatares de héroe (✅ implementado)
+
+![Avatares](./avatars-preview.png)
+
+4 personajes pixel **futuristas con pelo teñido** (neón) que el estudiante elige
+(`src/components/pixel/avatars.ts`):
+
+| ID | Nombre | Peinado | Pelo | Piel |
+|---|---|---|---|---|
+| `nova` | Nova | Cresta | Rosa neón | Clara |
+| `zeph` | Zeph | Flequillo | Cian eléctrico | Media |
+| `lux` | Lux | Melena | Violeta | Tostada |
+| `vex` | Vex | Undercut | Lima | Oscura |
+
+Construcción por capas: una **cara/cuello base** (traje con visera y trim de neón,
+ojos neón) + 4 **peinados** que se combinan; cada avatar redefine pelo, ojos, trim y
+tono de piel. Selección con `AvatarPicker` (en el perfil del estudiante y al crear
+héroe desde el GM). Aparece en perfil, ranking y lista de héroes. Persistido en
+`Estudiante.avatar`. Para añadir más: agrega un peinado y una entrada a `AVATARS`.
+
 ## 6. Próximos assets recomendados (para subir de nivel el acabado)
 
 Prioridad alta → baja. Tamaño objetivo entre paréntesis (se escalan nítidos):
 
-1. **Avatares de nivel ilustrados** (32×32) — 10 niveles, con variante de género.
-   Hoy se usan emojis como placeholder (`NIVEL_TITULOS_EMOJI`).
+1. ~~Avatares de héroe~~ ✅ hecho (ver 5.b). Posible extensión: accesorios
+   desbloqueables por nivel (casco, aura) superpuestos al avatar.
 2. **Cofre animado por frames** (lid abriéndose, 3-4 frames) para reemplazar el
    escalado actual en el reveal.
 3. **Owl/Lechuza de Atenea** como mascota guía (16×16) — ideal para tips/onboarding.

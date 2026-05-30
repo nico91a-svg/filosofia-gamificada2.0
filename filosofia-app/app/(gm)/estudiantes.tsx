@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/ui/Button';
+import { AvatarPicker } from '../../src/components/pixel/AvatarPicker';
+import { PixelSprite } from '../../src/components/pixel/PixelSprite';
+import { DEFAULT_AVATAR, getAvatarSprite } from '../../src/components/pixel/avatars';
 import { useGameStore } from '../../src/store/useGameStore';
 import { getNivel } from '../../src/domain';
 import type { Genero } from '../../src/domain/types';
@@ -22,14 +25,15 @@ export default function Estudiantes() {
   const [nombreLegal, setNombreLegal] = useState('');
   const [genero, setGenero] = useState<Genero>('no-binario');
   const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState<string>(DEFAULT_AVATAR);
 
   const guardar = () => {
     if (!nombreSocial.trim() || !password.trim()) {
       Alert.alert('Faltan datos', 'Nombre y contraseña son obligatorios.');
       return;
     }
-    crear({ nombreSocial: nombreSocial.trim(), nombreLegal: nombreLegal.trim(), genero, password: password.trim() });
-    setNombreSocial(''); setNombreLegal(''); setPassword(''); setGenero('no-binario');
+    crear({ nombreSocial: nombreSocial.trim(), nombreLegal: nombreLegal.trim(), genero, password: password.trim(), avatar });
+    setNombreSocial(''); setNombreLegal(''); setPassword(''); setGenero('no-binario'); setAvatar(DEFAULT_AVATAR);
     setOpen(false);
   };
 
@@ -55,6 +59,9 @@ export default function Estudiantes() {
           const nivel = getNivel(item.xp ?? 0);
           return (
             <View className="mb-2 flex-row items-center border-2 border-stone-dark bg-dungeon-800 p-3">
+              <View className="mr-2 border border-stone-dark bg-dungeon-950">
+                <PixelSprite sprite={getAvatarSprite(item.avatar)} size={34} />
+              </View>
               <View className="flex-1">
                 <Text className="font-body text-sm text-parchment">{item.nombreSocial}</Text>
                 <Text className="font-body text-[11px] text-arcane">
@@ -128,6 +135,8 @@ export default function Estudiantes() {
                 onChangeText={setPassword}
                 className="border-2 border-stone-dark bg-dungeon-950 px-3 py-3 font-body text-parchment"
               />
+              <Text className="font-body text-[11px] text-arcane">AVATAR</Text>
+              <AvatarPicker value={avatar} onSelect={setAvatar} size={56} />
               <View className="mt-2 flex-row gap-2">
                 <View className="flex-1">
                   <Button label="Cancelar" variant="ghost" onPress={() => setOpen(false)} />
