@@ -82,21 +82,33 @@ tono de piel. Selección con `AvatarPicker` (en el perfil del estudiante y al cr
 héroe desde el GM). Aparece en perfil, ranking y lista de héroes. Persistido en
 `Estudiante.avatar`. Para añadir más: agrega un peinado y una entrada a `AVATARS`.
 
-## 6. Próximos assets recomendados (para subir de nivel el acabado)
+## 5.c Piezas estéticas adicionales (✅ implementado)
 
-Prioridad alta → baja. Tamaño objetivo entre paréntesis (se escalan nítidos):
+![Extras](./extras-preview.png)
 
-1. ~~Avatares de héroe~~ ✅ hecho (ver 5.b). Posible extensión: accesorios
-   desbloqueables por nivel (casco, aura) superpuestos al avatar.
-2. **Cofre animado por frames** (lid abriéndose, 3-4 frames) para reemplazar el
-   escalado actual en el reveal.
-3. **Owl/Lechuza de Atenea** como mascota guía (16×16) — ideal para tips/onboarding.
-4. **Tile de fondo de mazmorra** (32×32, repetible) para dar textura a `Screen`.
-5. **Íconos pixel** de las 6 habilidades y de los tipos de actividad (16×16),
-   reemplazando emojis en radar y registro.
-6. **Splash e ícono de app** en estilo del cofre dorado.
+- **Cofre animado**: `chestSprite` (cerrado) → `chestOpenSprite` (tapa arriba +
+  resplandor) intercambiados por fase en `ChestOpening` (idle/shake → cerrado,
+  burst/reveal → abierto).
+- **Lechuza de Atenea** (`OWL_SPRITE`): mascota; aparece en el splash. Reutilizable
+  para tips/onboarding/estados vacíos.
+- **Marco y corona por nivel** (`HeroAvatar`): el avatar lleva un marco cuyo color
+  sube de tramo (piedra→bronce→plata→arcano→oro) y una **corona** desde el nivel 9.
+- **Tile de fondo** (`assets/tile-dungeon.png`, 32×32 seamless, running-bond) repetido
+  en `Screen` con `ImageBackground resizeMode="repeat"`.
+- **Ícono, adaptive-icon y splash** generados (`assets/icon.png`, etc.) y conectados
+  en `app.json`.
 
-> Pipeline: exporta cada sprite como PNG transparente a escala 1x (sin antialias) y
-> colócalo en `filosofia-app/assets/sprites/`. Para arte vectorizado-pixel se puede
-> seguir usando grillas en `sprites.ts`. Si se generan PNGs, se cargan con
-> `expo-asset` y se muestran con `<Image>` (RN) con `resizeMode="contain"`.
+Todos los PNG se generan con scripts sin dependencias:
+`node scripts/gen-assets.js` (assets de app) y los `scripts/preview-*.js` (previews).
+
+## 6. Próximos assets recomendados (opcionales, para más pulido)
+
+1. **Íconos pixel** de las 6 habilidades y de los 17 tipos de actividad (16×16),
+   reemplazando los emojis en el radar y el registro.
+2. **Cofre con más frames** (2-3 intermedios) para una apertura aún más suave.
+3. **Variantes de mascota** (lechuza guiñando / con birrete) para onboarding.
+4. **Accesorios extra de avatar** por logros (gafas de realidad aumentada, aura animada).
+
+> Pipeline: define la grilla en `sprites.ts`/`avatars.ts` (vectorial-pixel, escala
+> nítida en SVG) o, para fondos/íconos de app, genera un PNG con el rasterizador de
+> `scripts/`. Regenera previews con los `scripts/preview-*.js`.

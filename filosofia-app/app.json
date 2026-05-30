@@ -7,8 +7,10 @@
     "scheme": "filosofo",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
     "splash": {
-      "backgroundColor": "#312e81",
+      "image": "./assets/splash.png",
+      "backgroundColor": "#0e0b1e",
       "resizeMode": "contain"
     },
     "assetBundlePatterns": ["**/*"],
@@ -19,7 +21,8 @@
     "android": {
       "package": "cl.filosofia.gamificada",
       "adaptiveIcon": {
-        "backgroundColor": "#312e81"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0e0b1e"
       }
     },
     "web": {

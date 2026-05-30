@@ -9,7 +9,7 @@ import Animated, {
 import { COFRES } from '../../domain';
 import type { Artefacto, TipoCofre } from '../../domain/types';
 import { PixelSprite } from '../pixel/PixelSprite';
-import { chestSprite, GEM_SPRITE, gemColor } from '../pixel/sprites';
+import { chestSprite, chestOpenSprite, GEM_SPRITE, gemColor } from '../pixel/sprites';
 import { RAREZA_PIXEL } from '../../theme/pixel';
 
 type Fase = 'idle' | 'shake' | 'burst' | 'reveal';
@@ -108,7 +108,10 @@ export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
       {fase !== 'reveal' && (
         <Pressable onPress={abrir} disabled={fase !== 'idle'} hitSlop={24}>
           <Animated.View style={chestStyle} className="items-center">
-            <PixelSprite sprite={chestSprite(tipoCofre)} size={180} />
+            <PixelSprite
+              sprite={fase === 'burst' ? chestOpenSprite(tipoCofre) : chestSprite(tipoCofre)}
+              size={180}
+            />
             {fase === 'idle' && (
               <Text className="mt-4 font-body text-base text-gold-light">
                 TOCA PARA ABRIR · {cofre.nombre.toUpperCase()}
@@ -126,6 +129,9 @@ export function ChestOpening({ tipoCofre, premioDecidido, onClaim }: Props) {
             tint={gemColor(premioDecidido.rareza)}
             tintKey="c"
           />
+          <View className="-mt-2 opacity-90">
+            <PixelSprite sprite={chestOpenSprite(tipoCofre)} size={84} />
+          </View>
           <Text className="mt-2 text-3xl">{premioDecidido.emoji}</Text>
           <Text className="mt-2 font-pixel text-lg" style={{ color: rar.color }}>
             {premioDecidido.nombre}

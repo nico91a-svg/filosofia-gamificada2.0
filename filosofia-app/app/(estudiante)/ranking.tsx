@@ -3,8 +3,7 @@ import { View, Text, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGameStore } from '../../src/store/useGameStore';
 import { getNivel } from '../../src/domain';
-import { PixelSprite } from '../../src/components/pixel/PixelSprite';
-import { getAvatarSprite } from '../../src/components/pixel/avatars';
+import { HeroAvatar } from '../../src/components/pixel/HeroAvatar';
 
 export default function Ranking() {
   const students = useGameStore((s) => s.students);
@@ -34,9 +33,7 @@ export default function Ranking() {
               className={`mb-2 flex-row items-center border-2 p-3 ${yo ? 'border-gold bg-dungeon-700' : 'border-stone-dark bg-dungeon-800'}`}
             >
               <Text className="w-8 text-center font-pixel text-xs text-gold-light">{medalla(index)}</Text>
-              <View className="border border-stone-dark bg-dungeon-950">
-                <PixelSprite sprite={getAvatarSprite(item.avatar)} size={34} />
-              </View>
+              <HeroAvatar avatarId={item.avatar} nivel={nivel.nivel} size={34} />
               <View className="ml-2 flex-1">
                 <Text className="font-body text-sm text-parchment">{item.nombreSocial}</Text>
                 <Text className="font-body text-[11px] text-arcane">NV {nivel.nivel} · {nivel.titulo}</Text>

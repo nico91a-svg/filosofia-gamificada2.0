@@ -5,9 +5,9 @@ import { Screen } from '../../src/components/ui/Screen';
 import { XPBar } from '../../src/components/game/XPBar';
 import { RadarChart } from '../../src/components/game/RadarChart';
 import { PixelPanel } from '../../src/components/pixel/PixelPanel';
-import { PixelSprite } from '../../src/components/pixel/PixelSprite';
+import { HeroAvatar } from '../../src/components/pixel/HeroAvatar';
 import { AvatarPicker } from '../../src/components/pixel/AvatarPicker';
-import { getAvatarSprite, avatarNombre } from '../../src/components/pixel/avatars';
+import { avatarNombre } from '../../src/components/pixel/avatars';
 import { Button } from '../../src/components/ui/Button';
 import { useGameStore } from '../../src/store/useGameStore';
 import { getNivel, BADGES } from '../../src/domain';
@@ -31,10 +31,8 @@ export default function Perfil() {
       {/* Cabecera del héroe */}
       <PixelPanel tone="stone" rivets>
         <View className="flex-row items-center">
-          <Pressable onPress={() => setPicker(true)} className="active:opacity-80">
-            <View className="border-2 border-stone-dark bg-dungeon-950">
-              <PixelSprite sprite={getAvatarSprite(student.avatar)} size={64} />
-            </View>
+          <Pressable onPress={() => setPicker(true)} className="items-center active:opacity-80">
+            <HeroAvatar avatarId={student.avatar} nivel={nivel.nivel} size={64} />
             <Text className="mt-1 text-center font-body text-[9px] text-gold">CAMBIAR</Text>
           </Pressable>
           <View className="ml-3 flex-1">

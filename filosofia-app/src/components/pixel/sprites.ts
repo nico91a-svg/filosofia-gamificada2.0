@@ -27,22 +27,72 @@ const METAL: Record<TipoCofre, { g: string; G: string }> = {
   oro: { g: '#f2c33d', G: '#ffe79a' },
 };
 
-export function chestSprite(tipo: TipoCofre): SpriteDef {
+// Cofre ABIERTO (tapa levantada + resplandor interior) para el frame final.
+const CHEST_OPEN_GRID = [
+  '................',
+  '.Y............Y.',
+  '.oooooooooooooo.',
+  '.oWWWWWWWWWWWWo.',
+  '.oYYYYYYYYYYYYo.',
+  '.oYYYYYYYYYYYYo.',
+  '.owwGgwwwwgGwwo.',
+  '.owwGgwwwwgGwwo.',
+  '.owwGgwwwwgGwwo.',
+  '.owwGgwwwwgGwwo.',
+  '.owwGgwwwwgGwwo.',
+  '.owwGgwwwwgGwwo.',
+  '.oooooooooooooo.',
+  '..xxxxxxxxxxxx..',
+];
+
+function chestPalette(tipo: TipoCofre) {
   const m = METAL[tipo];
   return {
-    grid: CHEST_GRID,
-    palette: {
-      o: '#20140a', // contorno madera
-      h: '#c5904c', // madera clara
-      w: '#9c6b34', // madera media
-      g: m.g, // banda metálica
-      G: m.G, // banda metálica brillo
-      l: '#ece3c6', // placa cerradura
-      p: '#4a3a16', // ojo cerradura
-      x: '#0e0b1e', // sombra inferior
-    },
+    o: '#20140a', h: '#c5904c', w: '#9c6b34', g: m.g, G: m.G,
+    l: '#ece3c6', p: '#4a3a16', x: '#0e0b1e',
+    W: '#7a4f24', Y: '#fff3b0', // tapa interior + resplandor
   };
 }
+
+export function chestSprite(tipo: TipoCofre): SpriteDef {
+  return { grid: CHEST_GRID, palette: chestPalette(tipo) };
+}
+
+export function chestOpenSprite(tipo: TipoCofre): SpriteDef {
+  return { grid: CHEST_OPEN_GRID, palette: chestPalette(tipo) };
+}
+
+// ---------------- LECHUZA DE ATENEA (mascota / guía) ----------------
+export const OWL_SPRITE: SpriteDef = {
+  grid: [
+    '...o........o...',
+    '..oBo......oBo..',
+    '.oBBBBBBBBBBBBo.',
+    'oBBBBBBBBBBBBBBo',
+    'oBgggBBBBBBgggBo',
+    'oBgegBBBBBBgegBo',
+    'oBgpgBBBBBBgpgBo',
+    'oBgggBBkkBBgggBo',
+    'oBBBBBBkkBBBBBBo',
+    'oBffffffffffffBo',
+    'oBffFFffffFFffBo',
+    '.oBffffffffffBo.',
+    '.oBBffffffffBBo.',
+    '..oBBBBBBBBBBo..',
+    '...oBBBBBBBBo...',
+    '....kk..kk.....',
+  ],
+  palette: {
+    o: '#0b0a14', // contorno
+    B: '#6a5aa6', // plumas
+    f: '#cfc4ea', // pecho
+    F: '#9d8fd0', // patrón pecho
+    g: '#f2c33d', // anillo dorado del ojo
+    e: '#f5f0ff', // blanco del ojo
+    p: '#0b0a14', // pupila
+    k: '#f2a93d', // pico / patas
+  },
+};
 
 // ---------------- GEMA (artefactos / rareza) ----------------
 // 'c' es tintable según rareza; 'L' es el brillo.
@@ -94,6 +144,17 @@ export const CRYSTAL_SPRITE: SpriteDef = {
     c: '#5aa9f2',
     L: '#cfe8ff',
   },
+};
+
+// ---------------- CORONA (accesorio nivel alto) ----------------
+export const CROWN_SPRITE: SpriteDef = {
+  grid: [
+    '.g..g..g..g.',
+    '.gGgGgGgGGg.',
+    '.gggggggggg.',
+    '.grgggggrg..',
+  ],
+  palette: { g: '#f2c33d', G: '#ffe79a', r: '#e0506a' },
 };
 
 // ---------------- CORAZÓN ----------------
