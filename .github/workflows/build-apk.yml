@@ -1,0 +1,72 @@
+name: Build Android APK
+
+# Compila el APK instalable en los servidores de GitHub (que sí tienen acceso a
+# los repositorios de Android). No requiere cuenta de Expo ni Android Studio.
+# El APK queda como "Artifact" descargable al final de cada ejecución.
+
+on:
+  push:
+    branches: ["claude/web-to-mobile-app-3J0Il", "main"]
+    paths:
+      - "filosofia-app/**"
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Rama a compilar"
+        required: true
+        default: "claude/web-to-mobile-app-3J0Il"
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_GM_PASSWORD: filosofia2026
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: filosofia-app/package-lock.json
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        working-directory: filosofia-app
+        run: npm ci
+
+      - name: Generate native Android project (prebuild)
+        working-directory: filosofia-app
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build release APK
+        working-directory: filosofia-app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: |
+          cp filosofia-app/android/app/build/outputs/apk/release/app-release.apk \
+             filosofo-en-formacion.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: filosofo-en-formacion-apk
+          path: filosofo-en-formacion.apk
+          if-no-files-found: error
+          retention-days: 90
