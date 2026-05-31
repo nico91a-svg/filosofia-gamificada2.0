@@ -13,9 +13,11 @@ Expo Go, ni Android Studio, ni cuenta de Expo.**
 ## Paso 2 — Lanzar la compilación
 
 1. En la pestaña **Actions**, en la lista de la izquierda elige **"Build Android APK"**.
-2. Botón **"Run workflow"** (a la derecha) → selecciona la rama
-   **`claude/web-to-mobile-app-3J0Il`** → **"Run workflow"** (verde).
-3. Espera ~10–15 min (verás una bolita amarilla girando → luego un ✓ verde).
+2. Botón **"Run workflow"** (a la derecha).
+3. En el campo **"Rama a compilar"** deja el valor por defecto
+   **`claude/web-to-mobile-app-3J0Il`** (es la rama que contiene la app).
+4. Pulsa **"Run workflow"** (verde).
+5. Espera ~10–15 min (verás una bolita amarilla girando → luego un ✓ verde).
 
 ## Paso 3 — Descargar el APK
 
