@@ -30,6 +30,8 @@ npx expo start         # escanea el QR con Expo Go
 Sin credenciales de Firebase, la app corre en **modo local** (AsyncStorage):
 todo se guarda solo en ese dispositivo. Perfecto para probar.
 
+> 📦 **¿Quieres un APK instalable** (sin Expo Go)? Sigue [`BUILD-APK.md`](./BUILD-APK.md).
+
 ## Conectar tu Firebase NUEVO (recomendado)
 
 1. Crea un proyecto en <https://console.firebase.google.com> (uno **nuevo**,
