@@ -4,6 +4,8 @@ import * as Haptics from 'expo-haptics';
 import { Screen } from '../../src/components/ui/Screen';
 import { Button } from '../../src/components/ui/Button';
 import { PixelPanel } from '../../src/components/pixel/PixelPanel';
+import { PixelSprite } from '../../src/components/pixel/PixelSprite';
+import { catIcon } from '../../src/components/pixel/icons';
 import { useGameStore } from '../../src/store/useGameStore';
 import {
   TIPOS_ACTIVIDAD, CATEGORIAS_ACTIVIDAD, COFRES, NIVELES_DESEMPENO, RUBRICS_XP,
@@ -64,9 +66,10 @@ export default function Registro() {
       <Text className="mb-2 font-pixel text-xs text-gold">2 · TIPO</Text>
       {CATEGORIAS_ACTIVIDAD.map((cat: any) => (
         <View key={cat.id} className="mb-3">
-          <Text className="mb-1 font-body text-[11px] uppercase text-arcane">
-            {cat.emoji} {cat.nombre}
-          </Text>
+          <View className="mb-1 flex-row items-center">
+            {catIcon(cat.id) && <PixelSprite sprite={catIcon(cat.id)!} size={18} />}
+            <Text className="ml-1 font-body text-[11px] uppercase text-arcane">{cat.nombre}</Text>
+          </View>
           <View className="flex-row flex-wrap gap-2">
             {TIPOS_ACTIVIDAD.filter((t) => t.categoria === cat.id).map((t) => (
               <Pressable

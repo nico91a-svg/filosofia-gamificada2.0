@@ -101,13 +101,28 @@ héroe desde el GM). Aparece en perfil, ranking y lista de héroes. Persistido e
 Todos los PNG se generan con scripts sin dependencias:
 `node scripts/gen-assets.js` (assets de app) y los `scripts/preview-*.js` (previews).
 
+## 5.d Íconos pixel (✅ implementado)
+
+![Íconos](./icons-preview.png)
+
+Definidos en `src/components/pixel/icons.json` (grilla + paleta, 16×16) y accesibles
+con `skillIcon(id)` / `catIcon(id)` (`icons.ts`).
+
+- **6 habilidades**: lupa (Análisis), cerebro (Crítico), balanza (Argumentación),
+  eslabón (Síntesis), bombilla (Creatividad), espejo (Reflexión) → en la **leyenda del radar**.
+- **3 categorías de actividad**: estrella (Cotidiana), carpeta (Proceso), portapapeles
+  con visto (Evaluación) → en los **encabezados del registro** del GM.
+
+Validados con `node scripts/preview-icons.js` (comprueba que cada ícono sea 16×16
+y genera la hoja de contacto).
+
 ## 6. Próximos assets recomendados (opcionales, para más pulido)
 
-1. **Íconos pixel** de las 6 habilidades y de los 17 tipos de actividad (16×16),
-   reemplazando los emojis en el radar y el registro.
+1. **Íconos individuales** para cada uno de los 17 tipos de actividad (hoy usan el
+   ícono de su categoría + emoji).
 2. **Cofre con más frames** (2-3 intermedios) para una apertura aún más suave.
 3. **Variantes de mascota** (lechuza guiñando / con birrete) para onboarding.
-4. **Accesorios extra de avatar** por logros (gafas de realidad aumentada, aura animada).
+4. **Accesorios extra de avatar** por logros (gafas AR, aura animada).
 
 > Pipeline: define la grilla en `sprites.ts`/`avatars.ts` (vectorial-pixel, escala
 > nítida en SVG) o, para fondos/íconos de app, genera un PNG con el rasterizador de

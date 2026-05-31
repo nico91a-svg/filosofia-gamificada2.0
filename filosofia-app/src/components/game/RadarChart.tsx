@@ -4,6 +4,8 @@ import { View, Text } from 'react-native';
 import Svg, { Polygon, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { HABILIDADES } from '../../domain';
 import type { Habilidades } from '../../domain/types';
+import { PixelSprite } from '../pixel/PixelSprite';
+import { skillIcon } from '../pixel/icons';
 
 interface Props {
   habilidades: Habilidades;
@@ -81,13 +83,19 @@ export function RadarChart({ habilidades, size = 280, max = 100 }: Props) {
           return <Circle key={h.id} cx={p.x} cy={p.y} r={3} fill={h.color} />;
         })}
       </Svg>
-      {/* leyenda */}
-      <View className="mt-2 flex-row flex-wrap justify-center gap-x-3 gap-y-1">
-        {HABILIDADES.map((h) => (
-          <Text key={h.id} className="font-body text-[11px] text-parchment">
-            {h.emoji} {h.shortName} {habilidades[h.id] ?? 0}
-          </Text>
-        ))}
+      {/* leyenda con íconos pixel */}
+      <View className="mt-3 flex-row flex-wrap justify-center gap-x-3 gap-y-2">
+        {HABILIDADES.map((h) => {
+          const icon = skillIcon(h.id);
+          return (
+            <View key={h.id} className="flex-row items-center">
+              {icon && <PixelSprite sprite={icon} size={18} />}
+              <Text className="ml-1 font-body text-[11px] text-parchment">
+                {h.shortName} {habilidades[h.id] ?? 0}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
   );
