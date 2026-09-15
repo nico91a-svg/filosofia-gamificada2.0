@@ -42,7 +42,24 @@ jobs:
           java-version: "17"
 
       - name: Setup Android SDK
+        # v3 por defecto ejecuta `sdkmanager tools`, paquete que ya no existe
+        # en el SDK moderno y hace fallar el step. Pasamos `packages: ""` para
+        # saltar el install por defecto y luego instalamos los paquetes que
+        # Expo prebuild + gradle realmente necesitan.
         uses: android-actions/setup-android@v3
+        with:
+          packages: ""
+
+      - name: Accept Android SDK licenses e install paquetes necesarios
+        run: |
+          set -e
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-34" \
+            "platforms;android-35" \
+            "build-tools;34.0.0" \
+            "build-tools;35.0.0" > /dev/null
 
       - name: Install dependencies
         working-directory: filosofia-app
