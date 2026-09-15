@@ -64,3 +64,39 @@ window.loadCursoSelection = function() {
     } catch (e) { /* ignore */ }
     return null;
 };
+
+// Reemplaza el registro global de cursos (usado cuando se carga la lista
+// personalizada desde Firebase). No pisamos el objeto para preservar la
+// referencia; usamos splice para mantener la misma identidad de array.
+window.setCursosRegistry = function(nuevos) {
+    if (!Array.isArray(nuevos) || nuevos.length === 0) return;
+    window.CURSOS.splice(0, window.CURSOS.length);
+    for (var i = 0; i < nuevos.length; i++) window.CURSOS.push(nuevos[i]);
+};
+
+// Template para crear un curso nuevo desde la UI.
+window.crearCursoTemplate = function(overrides) {
+    var timestamp = new Date();
+    var year = timestamp.getFullYear();
+    var id = 'curso-' + timestamp.getTime();
+    return Object.assign({
+        id: id,
+        nombre: 'Curso nuevo',
+        anio: year,
+        colegio: '',
+        emoji: '🎓',
+        gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+        accent: 'emerald',
+        activo: true,
+        esDefault: false,
+        defaultStudentsKey: null
+    }, overrides || {});
+};
+
+// Opciones de gradientes disponibles para el CursosPanel.
+window.CURSO_GRADIENT_OPCIONES = [
+    { id: 'from-indigo-500 via-violet-500 to-fuchsia-500', label: 'Violeta filosofico', preview: 'linear-gradient(90deg,#6366f1,#8b5cf6,#d946ef)' },
+    { id: 'from-emerald-500 via-teal-500 to-cyan-500',     label: 'Verde epistemico',   preview: 'linear-gradient(90deg,#10b981,#14b8a6,#06b6d4)' },
+    { id: 'from-amber-500 via-orange-500 to-rose-500',     label: 'Ambar retorico',     preview: 'linear-gradient(90deg,#f59e0b,#f97316,#f43f5e)' },
+    { id: 'from-sky-500 via-blue-500 to-indigo-500',       label: 'Azul dialogico',     preview: 'linear-gradient(90deg,#0ea5e9,#3b82f6,#6366f1)' }
+];

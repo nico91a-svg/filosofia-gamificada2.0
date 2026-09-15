@@ -3,10 +3,10 @@
 // onCursoChange(cursoId) se llama tan pronto el usuario elige un curso, para que
 // App.jsx empiece a cargar los datos del curso mientras el usuario completa el
 // resto del formulario (evita race condition al hacer login).
-window.LoginScreen = ({ onLogin, onCursoChange }) => {
+window.LoginScreen = ({ onLogin, onCursoChange, cursos: cursosProp }) => {
     const { useState, useMemo, useEffect } = React;
 
-    const cursos = window.CURSOS || [];
+    const cursos = cursosProp || window.CURSOS || [];
     const cursosActivos = useMemo(() => cursos.filter(function(c) { return c.activo !== false; }), [cursos]);
 
     // Si solo hay un curso activo, saltamos el selector.

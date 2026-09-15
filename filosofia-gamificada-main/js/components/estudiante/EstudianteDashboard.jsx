@@ -1,6 +1,6 @@
 // Dashboard del Estudiante - Vista gamificada completa
 // Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
-window.EstudianteDashboard = ({ currentUser, students, activities, unidades, currentUnidad, currentClase, onLogout, setStudents }) => {
+window.EstudianteDashboard = ({ currentUser, students, activities, unidades, currentUnidad, currentClase, onLogout, setStudents, curso }) => {
     const { useState } = React;
     const [activeTab, setActiveTab] = useState('perfil');
     const [expandedUnidades, setExpandedUnidades] = useState({});
@@ -1110,7 +1110,10 @@ window.EstudianteDashboard = ({ currentUser, students, activities, unidades, cur
                         <span className="text-xl sm:text-2xl">{avatar.emoji}</span>
                         <div className="min-w-0">
                             <h1 className="text-white font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombreSocial || currentUser.nombre}</h1>
-                            <p className="text-purple-300 text-xs hidden sm:block">Nv.{nivel.nivel} {avatar.titulo}</p>
+                            <p className="text-purple-300 text-xs hidden sm:block">
+                                Nv.{nivel.nivel} {avatar.titulo}
+                                {curso && <span className="ml-2 opacity-70">· {curso.emoji} {curso.nombre}</span>}
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">

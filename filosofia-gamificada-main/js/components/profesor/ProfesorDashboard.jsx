@@ -7,7 +7,8 @@ window.ProfesorDashboard = function ProfesorDashboard({
     unidades, setUnidades,
     currentUnidad, setCurrentUnidad,
     currentClase, setCurrentClase,
-    onLogout, onExportData, onImportData
+    onLogout, onExportData, onImportData,
+    curso, cursos, setCursos, currentCursoId, setCurrentCursoId
 }) {
     // ---- Estado interno ----
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -464,20 +465,85 @@ window.ProfesorDashboard = function ProfesorDashboard({
         { id: 'registro-masivo', label: 'Registro Masivo', emoji: '📋' },
         { id: 'misiones', label: 'Misiones', emoji: '🎯' },
         { id: 'artefactos', label: 'Artefactos', emoji: '🏺' },
-        { id: 'habilidades', label: 'Habilidades', emoji: '🎯' }
+        { id: 'habilidades', label: 'Habilidades', emoji: '🎯' },
+        { id: 'cursos', label: 'Cursos', emoji: '🏛️' }
     ];
+
+    // ---- Helpers de gestion de cursos ----
+    function addCurso() {
+        if (!setCursos) return;
+        var nuevo = window.crearCursoTemplate({ nombre: 'Curso ' + ((cursos || []).length + 1) });
+        setCursos([].concat(cursos || [], [nuevo]));
+    }
+    function duplicarCurso(idOrigen) {
+        if (!setCursos) return;
+        var origen = (cursos || []).find(function(c) { return c.id === idOrigen; });
+        if (!origen) return;
+        var copia = Object.assign({}, origen, {
+            id: 'curso-' + Date.now(),
+            nombre: origen.nombre + ' (copia)',
+            esDefault: false,
+            defaultStudentsKey: null
+        });
+        setCursos([].concat(cursos || [], [copia]));
+    }
+    function updateCurso(cursoId, updates) {
+        if (!setCursos) return;
+        setCursos((cursos || []).map(function(c) {
+            return c.id === cursoId ? Object.assign({}, c, updates) : c;
+        }));
+    }
+    function deleteCurso(cursoId) {
+        if (!setCursos) return;
+        var c = (cursos || []).find(function(x) { return x.id === cursoId; });
+        if (!c) return;
+        if (c.esDefault) { alert('No se puede eliminar el curso por defecto (III-B 2026).'); return; }
+        if (!confirm('Eliminar el curso "' + c.nombre + '"? Sus datos en Firebase (cursos/' + c.id + '/*) quedaran hasta que se limpien manualmente.')) return;
+        setCursos((cursos || []).filter(function(x) { return x.id !== cursoId; }));
+    }
 
     // ============================================================
     // RENDER
     // ============================================================
+    // Gradient del navbar segun el curso activo (fallback al violeta).
+    var navbarGradient = (curso && ({
+        'from-indigo-500 via-violet-500 to-fuchsia-500': 'linear-gradient(90deg,#4338ca,#7c3aed,#c026d3)',
+        'from-emerald-500 via-teal-500 to-cyan-500': 'linear-gradient(90deg,#047857,#0f766e,#0891b2)',
+        'from-amber-500 via-orange-500 to-rose-500': 'linear-gradient(90deg,#b45309,#c2410c,#be123c)',
+        'from-sky-500 via-blue-500 to-indigo-500': 'linear-gradient(90deg,#0369a1,#1d4ed8,#4338ca)'
+    })[curso.gradient]) || 'linear-gradient(90deg,#4338ca,#7c3aed)';
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* ---- NAVBAR ---- */}
-            <nav className="bg-gradient-to-r from-indigo-700 to-purple-700 text-white shadow-lg">
+            <nav className="text-white shadow-lg" style={{ background: navbarGradient }}>
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <h1 className="text-xl font-bold flex items-center gap-2">
-                        <span className="text-2xl">🏛️</span> Dashboard del Profesor
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">🏛️</span>
+                        <div>
+                            <h1 className="text-lg font-bold leading-tight">Dashboard del Profesor</h1>
+                            {curso && (
+                                <div className="text-xs text-white/80 flex items-center gap-1.5">
+                                    <span>{curso.emoji}</span>
+                                    <span>{curso.nombre}</span>
+                                    <span className="opacity-60">·</span>
+                                    <span>{curso.anio}</span>
+                                </div>
+                            )}
+                        </div>
+                        {cursos && cursos.length > 1 && setCurrentCursoId && (
+                            <select
+                                value={currentCursoId || ''}
+                                onChange={function(e) { setCurrentCursoId(e.target.value); }}
+                                className="ml-2 bg-white/15 hover:bg-white/25 border border-white/20 rounded-lg px-2 py-1 text-sm font-semibold cursor-pointer"
+                                title="Cambiar de curso"
+                            >
+                                {cursos.filter(function(c) { return c.activo !== false; }).map(function(c) {
+                                    return <option key={c.id} value={c.id} className="text-gray-800">{c.emoji} {c.nombre} ({c.anio})</option>;
+                                })}
+                            </select>
+                        )}
+                    </div>
                     <div className="flex items-center gap-3">
                         <button onClick={onImportData}
                             className="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg text-sm font-semibold transition">
@@ -1151,6 +1217,141 @@ window.ProfesorDashboard = function ProfesorDashboard({
                                     })}
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ================ TAB: CURSOS ================ */}
+                {activeTab === 'cursos' && (
+                    <div>
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800">Gestion de cursos</h2>
+                                <p className="text-sm text-gray-500 mt-1">Cada curso es una edicion independiente del juego. Sus datos se guardan por separado en Firebase.</p>
+                            </div>
+                            <button onClick={addCurso}
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg shadow transition">
+                                <window.Icons.Plus size={16} /> Nuevo curso
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {(cursos || []).map(function(c) {
+                                var gradientMap = {
+                                    'from-indigo-500 via-violet-500 to-fuchsia-500': 'linear-gradient(90deg,#6366f1,#8b5cf6,#d946ef)',
+                                    'from-emerald-500 via-teal-500 to-cyan-500':     'linear-gradient(90deg,#10b981,#14b8a6,#06b6d4)',
+                                    'from-amber-500 via-orange-500 to-rose-500':     'linear-gradient(90deg,#f59e0b,#f97316,#f43f5e)',
+                                    'from-sky-500 via-blue-500 to-indigo-500':       'linear-gradient(90deg,#0ea5e9,#3b82f6,#6366f1)'
+                                };
+                                var bg = gradientMap[c.gradient] || gradientMap['from-indigo-500 via-violet-500 to-fuchsia-500'];
+                                return (
+                                    <div key={c.id} className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+                                        <div className="h-3" style={{ background: bg }}></div>
+                                        <div className="p-5">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 rounded-xl grid place-items-center text-2xl shadow" style={{ background: bg }}>
+                                                        <span>{c.emoji}</span>
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-gray-800">{c.nombre}</div>
+                                                        <div className="text-xs text-gray-500">ID: <code className="bg-gray-100 px-1.5 rounded">{c.id}</code></div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    {c.id === currentCursoId && (
+                                                        <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-1 rounded">ACTIVO</span>
+                                                    )}
+                                                    {c.esDefault && (
+                                                        <span className="text-xs bg-gray-100 text-gray-600 font-semibold px-2 py-1 rounded" title="Curso legacy con paths planos en Firebase">DEFAULT</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                                <div>
+                                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Nombre</label>
+                                                    <input type="text" value={c.nombre}
+                                                        onChange={function(e) { updateCurso(c.id, { nombre: e.target.value }); }}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Año</label>
+                                                    <input type="number" value={c.anio}
+                                                        onChange={function(e) { updateCurso(c.id, { anio: parseInt(e.target.value, 10) || c.anio }); }}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Colegio</label>
+                                                    <input type="text" value={c.colegio || ''}
+                                                        onChange={function(e) { updateCurso(c.id, { colegio: e.target.value }); }}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Emoji</label>
+                                                    <input type="text" value={c.emoji || '🎓'} maxLength="4"
+                                                        onChange={function(e) { updateCurso(c.id, { emoji: e.target.value }); }}
+                                                        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-3">
+                                                <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Paleta</label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {window.CURSO_GRADIENT_OPCIONES.map(function(g) {
+                                                        var isSel = c.gradient === g.id;
+                                                        return (
+                                                            <button key={g.id}
+                                                                onClick={function() { updateCurso(c.id, { gradient: g.id }); }}
+                                                                title={g.label}
+                                                                className={"h-8 w-14 rounded-md transition " + (isSel ? 'ring-2 ring-indigo-600 ring-offset-2' : 'hover:scale-105')}
+                                                                style={{ background: g.preview }}
+                                                            ></button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                                    <input type="checkbox" checked={c.activo !== false}
+                                                        onChange={function(e) { updateCurso(c.id, { activo: e.target.checked }); }} />
+                                                    Visible en el login
+                                                </label>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-2 pt-3 border-t">
+                                                {c.id !== currentCursoId && setCurrentCursoId && (
+                                                    <button onClick={function() { setCurrentCursoId(c.id); }}
+                                                        className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-1.5 rounded-lg transition">
+                                                        Activar
+                                                    </button>
+                                                )}
+                                                <button onClick={function() { duplicarCurso(c.id); }}
+                                                    className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold px-3 py-1.5 rounded-lg transition">
+                                                    Duplicar
+                                                </button>
+                                                {!c.esDefault && (
+                                                    <button onClick={function() { deleteCurso(c.id); }}
+                                                        className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-3 py-1.5 rounded-lg transition ml-auto flex items-center gap-1">
+                                                        <window.Icons.Trash2 size={12} /> Eliminar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="mt-6 bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-900">
+                            <div className="font-semibold mb-1">💡 Como usar cursos</div>
+                            <ul className="list-disc pl-5 space-y-1 text-indigo-800">
+                                <li>Cada curso guarda estudiantes, actividades, unidades y posicion de clase por separado en Firebase.</li>
+                                <li>Al crear un curso nuevo su lista de estudiantes empieza vacia — usa <strong>Registro Masivo</strong> para cargarlos, o importa un JSON.</li>
+                                <li>El curso <strong>III Medio B 2026</strong> es el original y usa los paths antiguos de Firebase (retrocompatible).</li>
+                                <li>Los estudiantes ven todos los cursos "visibles en el login" y eligen el suyo al entrar.</li>
+                            </ul>
                         </div>
                     </div>
                 )}

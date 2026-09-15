@@ -2,12 +2,49 @@
 window.FilosofoApp = () => {
     const { useState, useEffect, useRef } = React;
 
+    // Registro global de cursos (editable desde el dashboard del profesor).
+    // Se inicializa con el array de cursos.js; si Firebase tiene una version
+    // guardada en `cursos_registro`, se sobreescribe al montar.
+    const [cursos, setCursosState] = useState(function() { return [].concat(window.CURSOS || []); });
+
     // Curso activo (edicion del juego). Default: primero de la lista de CURSOS.
-    const cursosDisponibles = (window.CURSOS || []);
+    const cursosDisponibles = cursos;
     const initialCurso = (window.loadCursoSelection && window.loadCursoSelection())
         || (cursosDisponibles[0] && cursosDisponibles[0].id)
         || '3B-2026';
     const [currentCursoId, setCurrentCursoId] = useState(initialCurso);
+
+    // Setter que ademas actualiza el registro global y lo persiste en Firebase.
+    const cursosLoadedRef = useRef(false);
+    const setCursos = (nuevos) => {
+        if (typeof nuevos === 'function') nuevos = nuevos(cursos);
+        if (!Array.isArray(nuevos) || nuevos.length === 0) return;
+        window.setCursosRegistry(nuevos);
+        setCursosState(nuevos);
+    };
+
+    // Al montar, cargamos el registro personalizado si existe.
+    useEffect(() => {
+        if (!window.DatabaseService.isFirebaseConnected()) {
+            cursosLoadedRef.current = true;
+            return;
+        }
+        window.DatabaseService.loadOnce('cursos_registro').then(function(data) {
+            var arr = data && (Array.isArray(data) ? data : Object.values(data));
+            if (arr && arr.length > 0) {
+                window.setCursosRegistry(arr);
+                setCursosState([].concat(arr));
+            }
+            cursosLoadedRef.current = true;
+        }).catch(function() { cursosLoadedRef.current = true; });
+    }, []);
+
+    // Persistir cambios en el registro de cursos.
+    useEffect(() => {
+        if (!cursosLoadedRef.current) return;
+        window.DatabaseService.save('cursos_registro', cursos)
+            .catch(function(err) { console.error('ERROR guardando cursos_registro:', err); });
+    }, [cursos]);
 
     const [currentUser, setCurrentUser] = useState(null);
     const [loginType, setLoginType] = useState(null);
@@ -351,7 +388,7 @@ window.FilosofoApp = () => {
 
     // Login screen
     if (!currentUser) {
-        return <window.LoginScreen onLogin={handleLogin} onCursoChange={handleCursoChange} />;
+        return <window.LoginScreen onLogin={handleLogin} onCursoChange={handleCursoChange} cursos={cursos} />;
     }
 
     const curso = window.getCurso(currentCursoId);
@@ -374,6 +411,10 @@ window.FilosofoApp = () => {
                 onExportData={handleExportData}
                 onImportData={handleImportData}
                 curso={curso}
+                cursos={cursos}
+                setCursos={setCursos}
+                currentCursoId={currentCursoId}
+                setCurrentCursoId={handleCursoChange}
             />
         );
     }
