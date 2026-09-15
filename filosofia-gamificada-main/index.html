@@ -2,46 +2,89 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#3b0764">
+    <meta name="description" content="Filosofo en Formacion - Sistema gamificado para clases de Filosofia III Medio. Profesor Nicolas Aldunate Gaete.">
+    <meta name="author" content="Nicolas Aldunate Gaete">
     <title>Filosofo en Formacion - Sistema Gamificado</title>
+
+    <!-- PWA / instalable -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%9B%EF%B8%8F%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%9B%EF%B8%8F%3C/text%3E%3C/svg%3E">
+
+    <!-- Google Fonts: Inter (UI) + Lora (serif, encabezados filosoficos) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
 
     <!-- React + Babel + Tailwind -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Extender Tailwind con fuentes propias y utilidades
+        if (window.tailwind) {
+            window.tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+                            serif: ['Lora', 'Georgia', 'serif']
+                        }
+                    }
+                }
+            };
+        }
+    </script>
 
     <!-- Firebase (compat mode) -->
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-database-compat.js"></script>
 
     <style>
-        /* Animacion de carga */
+        html, body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .font-serif { font-family: 'Lora', Georgia, serif; }
+
+        /* Animaciones */
         @keyframes pulse-slow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); }
         }
-        .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in .35s ease-out both; }
+
         /* Scrollbar custom */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #a78bfa66; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+
+        /* Prevent flash of unstyled content en loading */
+        body { background: #020617; }
     </style>
 </head>
 <body>
     <div id="root">
-        <!-- Loading placeholder -->
-        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#312e81,#581c87,#831843)">
-            <div style="text-align:center;color:white">
-                <div style="font-size:4rem" class="animate-pulse-slow">🎓</div>
-                <h1 style="font-size:1.5rem;font-weight:bold;margin-top:1rem">Cargando sistema...</h1>
+        <!-- Loading placeholder (antes de que React monte) -->
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a,#3b0764,#4c1d95);color:white;font-family:Inter,system-ui,sans-serif">
+            <div style="text-align:center">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;margin-bottom:1.25rem;border-radius:1rem;background:linear-gradient(135deg,#d946ef,#8b5cf6,#6366f1);box-shadow:0 20px 60px rgba(139,92,246,.4);font-size:2.5rem" class="animate-pulse-slow">🏛️</div>
+                <h1 style="font-family:'Lora',Georgia,serif;font-size:1.75rem;font-weight:700;letter-spacing:-0.02em">Cargando...</h1>
+                <p style="color:#c4b5fd;font-size:.875rem;margin-top:.25rem">Preparando el sistema</p>
             </div>
         </div>
     </div>
 
     <!-- ========== DATOS (JS plano, se cargan primero) ========== -->
     <script src="js/config.js"></script>
+    <script src="js/data/cursos.js"></script>
     <script src="js/data/niveles.js"></script>
     <script src="js/data/habilidades.js"></script>
     <script src="js/data/badges.js"></script>
