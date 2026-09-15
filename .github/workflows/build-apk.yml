@@ -6,11 +6,16 @@ name: Build Android APK
 
 on:
   push:
-    branches: ["claude/web-to-mobile-app-3J0Il"]
+    branches: ["claude/web-to-mobile-app-3J0Il", "main"]
     paths:
       - "filosofia-app/**"
       - ".github/workflows/build-apk.yml"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Rama a compilar"
+        required: true
+        default: "claude/web-to-mobile-app-3J0Il"
 
 jobs:
   build-apk:
@@ -20,6 +25,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -41,9 +48,17 @@ jobs:
         working-directory: filosofia-app
         run: npm ci
 
+      - name: Diagnostic (expo doctor)
+        working-directory: filosofia-app
+        run: npx expo-doctor || true
+        continue-on-error: true
+
       - name: Generate native Android project (prebuild)
         working-directory: filosofia-app
-        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_NO_TELEMETRY: "1"
+          CI: "true"
+        run: npx expo prebuild --platform android --no-install --clean
 
       - name: Build release APK
         working-directory: filosofia-app/android
