@@ -1,0 +1,32 @@
+[
+  {
+    "nivel": 1,
+    "nombre": "Aprendiz",
+    "min": 0,
+    "max": 9
+  },
+  {
+    "nivel": 2,
+    "nombre": "Competente",
+    "min": 10,
+    "max": 29
+  },
+  {
+    "nivel": 3,
+    "nombre": "Experto",
+    "min": 30,
+    "max": 59
+  },
+  {
+    "nivel": 4,
+    "nombre": "Maestro",
+    "min": 60,
+    "max": 99
+  },
+  {
+    "nivel": 5,
+    "nombre": "Filósofo",
+    "min": 100,
+    "max": 9999
+  }
+]
