@@ -27,6 +27,8 @@ export class SyncedResource {
         this.fallback = fallback;
         this.storage = storage;
         this.loadTimeoutMs = loadTimeoutMs;
+        // La copia local se separa por espacio de datos (reales vs. de prueba).
+        this.cacheKey = CACHE_PREFIX + (backend.namespace ? backend.namespace + '/' : '') + path;
         this.onError = onError;
 
         this.value = kind === 'collection' ? [] : clone(fallback);
@@ -207,14 +209,14 @@ export class SyncedResource {
         clearTimeout(this.cacheTimer);
         this.cacheTimer = setTimeout(() => {
             try {
-                this.storage.setItem(CACHE_PREFIX + this.path, JSON.stringify(this.value));
+                this.storage.setItem(this.cacheKey, JSON.stringify(this.value));
             } catch { /* almacenamiento lleno o no disponible: no es critico */ }
         }, 400);
     }
 
     readCache() {
         try {
-            const raw = this.storage.getItem(CACHE_PREFIX + this.path);
+            const raw = this.storage.getItem(this.cacheKey);
             return raw === null ? undefined : JSON.parse(raw);
         } catch {
             return undefined;

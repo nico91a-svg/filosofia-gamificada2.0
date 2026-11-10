@@ -296,6 +296,34 @@ test.describe('cursos y contenido', () => {
     });
 });
 
+test.describe('modo de prueba', () => {
+    test('?db=sandbox usa datos separados y ?db=real vuelve a los reales', async ({ page }) => {
+        await page.goto('/?db=sandbox');
+        await expect(page.getByTestId('sandbox-banner')).toBeVisible();
+        await page.getByRole('button', { name: /Acceso Profesor/ }).click();
+        await page.getByLabel('Usuario').fill('profesor');
+        await page.getByLabel('Contraseña').fill(CLAVE_DOCENTE);
+        await page.getByRole('button', { name: 'Entrar' }).click();
+        await irA(page, 'Estudiantes');
+        await page.getByRole('button', { name: 'Agregar Estudiante' }).click();
+        const modal = page.locator('div.fixed').filter({ hasText: 'Agregar Nuevo Estudiante' });
+        await modal.getByPlaceholder(/Nombre social/).fill('Ensayo');
+        await modal.locator('select').nth(0).selectOption('no-binario');
+        await modal.locator('select').nth(1).selectOption('C1');
+        await modal.getByPlaceholder('Contraseña').fill('x');
+        await modal.getByRole('button', { name: 'Agregar', exact: true }).click();
+        await expect(page.getByText('Ensayo', { exact: true })).toBeVisible();
+
+        // Lo creado quedo en el espacio de prueba; los datos reales, intactos.
+        expect(await readDb(page, 'sandbox/students')).toHaveLength(1);
+        expect(progreso(await readDb(page, 'students'))).toEqual(progreso(ESTUDIANTES));
+
+        await page.getByRole('link', { name: 'Volver a los datos reales' }).click();
+        await expect(page.getByTestId('sandbox-banner')).toBeHidden();
+        await entrarComoEstudiante(page, 'AnaP');
+    });
+});
+
 test.describe('aplicacion instalable', () => {
     test.use({ serviceWorkers: 'allow' });
 

@@ -15,7 +15,7 @@ import { normalizeUnidades } from './content/index.js';
 import { LoginScreen } from './components/LoginScreen.jsx';
 import { ProfesorDashboard } from './components/profesor/ProfesorDashboard.jsx';
 import { EstudianteDashboard } from './components/estudiante/EstudianteDashboard.jsx';
-import { ConnectionBanner, SplashScreen } from './components/shared/Status.jsx';
+import { ConnectionBanner, SandboxBanner, SplashScreen } from './components/shared/Status.jsx';
 
 const CURSOS_OPTIONS = { kind: 'value', normalize: normalizeCursos, fallback: CURSOS_BASE };
 
@@ -226,6 +226,7 @@ export function App() {
 
     return (
         <>
+            <SandboxBanner namespace={backend.namespace} />
             <ConnectionBanner status={data.status} blockedWrites={data.blockedWrites} visible={!!session} />
             {screen}
         </>

@@ -7,25 +7,16 @@ cofres y artefactos. Un panel para el docente y otro para cada estudiante.
 
 | Carpeta | Qué contiene |
 |---|---|
-| `web/` | **La aplicación.** Un solo código que se publica como sitio web, app instalable (PWA) y APK de Android. |
+| `web/` | **Código de la app nueva.** Un solo código para sitio web, app instalable (PWA) y APK de Android. |
 | `web/src/domain/` | Reglas del juego: niveles, XP, cofres, misiones, insignias. |
 | `web/src/content/` | Contenido por curso ("packs"): unidades, clases, vocabulario. Ver `docs/CONTENIDO.md`. |
-| `web/src/services/` | Datos: sincronización con Firebase, acceso, respaldo local. |
+| `web/src/services/` | Datos: sincronización con Firebase, acceso, copia local. |
 | `web/src/components/` | Pantallas (login, panel docente, panel estudiante). |
-| `datos-privados/` | Nómina inicial. No se publica. |
+| `app/` | La app nueva ya compilada, tal como se publica. Generada; no se edita. |
+| `filosofia-gamificada-main/` | La app anterior, en uso hasta completar el cambio. No recibe mejoras. |
 | `docs/` | Guías: publicar, crear contenido, seguridad. |
 
-## Uso rápido
-
-```bash
-cd web
-npm install
-npm run dev      # servidor local con recarga automática
-npm run check    # lint + pruebas unitarias + build
-npm run e2e      # pruebas en navegador real
-```
-
-Publicar la web y generar el APK: `docs/DEPLOY.md`.
+Publicación, direcciones y APK: `docs/DEPLOY.md`.
 
 ## Decisiones de arquitectura
 
@@ -38,10 +29,12 @@ Publicar la web y generar el APK: `docs/DEPLOY.md`.
    progreso del curso. Sin conexión al abrir, la app queda en solo lectura.
 3. **Contenido separado de las reglas.** Un curso = sus datos + un pack de
    contenido + su identidad visual. Crear un curso nuevo no requiere programar.
-4. **Pruebas automáticas** en cada cambio (GitHub Actions): 45 unitarias y 16 en
+4. **Pruebas automáticas** en cada cambio (GitHub Actions): unitarias y en
    navegador real sobre el build de producción.
+5. **Cambio gradual.** La app nueva se publica junto a la anterior y tiene un
+   modo de ensayo (`?db=sandbox`), para probarla antes de mover a los estudiantes.
 
 ## Pendiente importante
 
-La base de datos todavía acepta lecturas y escrituras sin autenticación. Antes
-de dar a conocer la dirección pública del sitio, leer `docs/SEGURIDAD.md`.
+La base de datos todavía acepta lecturas y escrituras sin autenticación, y este
+repositorio se publica completo. Leer `docs/SEGURIDAD.md`.

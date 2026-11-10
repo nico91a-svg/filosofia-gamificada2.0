@@ -1,0 +1,72 @@
+name: Publicar web
+
+# Despues de cada cambio de web/ en main: verifica, compila y deja el resultado
+# en app/, que es la carpeta que GitHub Pages sirve en
+#   https://nico91a-svg.github.io/filosofia-gamificada2.0/app/
+# Si la verificacion falla no se publica nada y queda en linea la version anterior.
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", ".github/workflows/publicar-web.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: publicar-web
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: web
+        run: npm ci
+
+      - name: Verificar (lint + pruebas + build)
+        working-directory: web
+        run: npm run check
+
+      - name: Compilar el sitio en app/
+        working-directory: web
+        run: npm run publicar
+
+      - name: Guardar app/ si cambio
+        id: guardar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app
+          if git diff --cached --quiet; then
+            echo "El sitio publicado ya estaba al dia."
+            echo "cambio=no" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: publicar web (build automatico)"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            echo "cambio=si" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Los envios hechos por este workflow pueden no disparar por si solos el
+      # despliegue de Pages; se solicita de forma explicita.
+      - name: Solicitar despliegue de GitHub Pages
+        if: steps.guardar.outputs.cambio == 'si'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"

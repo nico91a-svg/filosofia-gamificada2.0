@@ -46,6 +46,18 @@ export function ConnectionBanner({ status, blockedWrites, visible }) {
     );
 }
 
+// Aviso permanente cuando se usan datos de ensayo (?db=sandbox).
+export function SandboxBanner({ namespace }) {
+    if (!namespace) return null;
+    return (
+        <div role="status" data-testid="sandbox-banner"
+            className="sticky top-0 z-[61] bg-cyan-400 text-cyan-950 text-sm font-semibold px-4 py-2 text-center shadow">
+            Modo de prueba ({namespace}): estos son datos de ensayo. Nada de lo que hagas aquí cambia tus cursos reales.{' '}
+            <a href="?db=real" className="underline">Volver a los datos reales</a>
+        </div>
+    );
+}
+
 export class ErrorBoundary extends React.Component {
     constructor(props) {
         super(props);

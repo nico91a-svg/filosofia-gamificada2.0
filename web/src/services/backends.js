@@ -19,6 +19,7 @@ export function createFirebaseBackend(config, namespace = '') {
 
     return {
         kind: 'firebase',
+        namespace,
         subscribe(path, onValue, onError) {
             const node = ref(path);
             const handler = node.on('value', (snapshot) => onValue(snapshot.val()), (error) => {
@@ -67,6 +68,7 @@ export function createLocalBackend(storage = window.localStorage, namespace = ''
 
     return {
         kind: 'local',
+        namespace,
         subscribe(path, onValue) {
             if (!listeners.has(path)) listeners.set(path, new Set());
             listeners.get(path).add(onValue);
@@ -88,13 +90,33 @@ export function createLocalBackend(storage = window.localStorage, namespace = ''
     };
 }
 
+// Espacio de datos activo. Vacio = datos reales.
+//
+// Un espacio antepone un prefijo a todas las rutas, de modo que se puede usar
+// la aplicacion contra la misma base de datos sin tocar los cursos reales.
+// Se elige de dos formas:
+//   - al compilar:  VITE_DB_NAMESPACE=sandbox
+//   - al abrir:     https://.../app/?db=sandbox   (dura hasta cerrar la pestaña;
+//                   ?db=real vuelve a los datos reales)
+const NAMESPACE_KEY = 'filosofo_db_namespace';
+
+export function resolveNamespace(env = import.meta.env || {}) {
+    if (env.VITE_DB_NAMESPACE) return env.VITE_DB_NAMESPACE;
+    try {
+        const param = new URLSearchParams(window.location.search).get('db');
+        if (param === 'real') sessionStorage.removeItem(NAMESPACE_KEY);
+        else if (param && /^[a-z0-9-]{1,30}$/.test(param)) sessionStorage.setItem(NAMESPACE_KEY, param);
+        return sessionStorage.getItem(NAMESPACE_KEY) || '';
+    } catch {
+        return '';
+    }
+}
+
 // Elige el backend segun el entorno de compilacion.
-//   VITE_DB_BACKEND=local      fuerza localStorage (tests e2e, demos sin red)
-//   VITE_DB_NAMESPACE=sandbox  antepone un prefijo a todas las rutas, para
-//                              probar contra Firebase sin tocar datos reales
+//   VITE_DB_BACKEND=local  fuerza localStorage (pruebas de navegador, demos sin red)
 export function createBackend(firebaseConfig) {
     const env = import.meta.env || {};
-    const namespace = env.VITE_DB_NAMESPACE || '';
+    const namespace = resolveNamespace(env);
     if (env.VITE_DB_BACKEND === 'local') return createLocalBackend(window.localStorage, namespace);
     try {
         return createFirebaseBackend(firebaseConfig, namespace);

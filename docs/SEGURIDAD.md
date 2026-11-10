@@ -2,13 +2,16 @@
 
 ## Estado actual
 
+GitHub Pages publica **todo** lo que hay en la rama `main`, no solo la app. Por
+eso ningún archivo con datos personales debe vivir en el repositorio.
+
 | Tema | Estado |
 |---|---|
-| Nómina con nombres legales y claves dentro del sitio publicado | **Resuelto**: ya no se publica (`datos-privados/`). |
-| Clave docente legible en el código del sitio | **Mitigado**: se compara por huella SHA-256. |
-| Un dispositivo desactualizado pisa datos de otros | **Resuelto**: se escribe por campo. |
+| Nómina con nombres legales y claves, descargable desde el sitio | **Retirada** del sitio al mergear. Sigue en el historial de git (ver abajo). |
+| Clave docente legible en el código | **Mitigado en la app nueva** (huella SHA-256). La app anterior aún la trae en texto. |
+| Un dispositivo desactualizado pisa datos de otros | **Resuelto en la app nueva** (se escribe por campo). |
 | Base de datos abierta a cualquiera | **Pendiente** (ver abajo). |
-| Claves de estudiantes guardadas en texto en la base de datos | **Pendiente** (se resuelve con lo mismo). |
+| Claves y nombres legales de estudiantes legibles en la base de datos | **Pendiente** (se resuelve con lo mismo). |
 
 ## Lo pendiente, en claro
 
@@ -33,10 +36,13 @@ El paso 3 cambia quién puede escribir, así que debe probarse primero con
 
 ## Recomendaciones inmediatas
 
-- **Cambiar la clave docente.** La anterior estuvo escrita en versiones
-  antiguas del código y sigue en el historial de git.
-  `npm run hash-password -- profesor "clave nueva"` (ver `docs/DEPLOY.md`).
-- **Mantener este repositorio privado** mientras contenga `datos-privados/` o
-  su historial.
-- **Exportar un respaldo** (panel docente → Exportar) antes de publicar una
-  versión nueva.
+- **Cambiar la clave docente** una vez hecho el paso a la app nueva. La actual
+  está escrita en la app anterior y en el historial de git.
+- **Historial de git.** La nómina se retiró de la versión actual, pero las
+  versiones antiguas del repositorio la conservan. Si el repositorio es público,
+  lo más simple es crear uno nuevo solo con la versión actual y dejar este
+  privado o eliminarlo. Es una decisión del dueño del repositorio.
+- **Exportar un respaldo** (panel docente → Exportar) antes del paso a la app
+  nueva y de forma periódica.
+- No subir al repositorio listas de curso, respaldos exportados ni planillas
+  con datos de estudiantes.
