@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-e2e/
+playwright-report/
+test-results/
+.env.local
+.env.*.local
+# Proyectos nativos generados por Capacitor (se regeneran con `npx cap add`)
+android/
+ios/

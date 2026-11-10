@@ -1,0 +1,43 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+
+// `base: './'` produce rutas relativas: el mismo build sirve en la raiz de un
+// dominio, en una subcarpeta (GitHub Pages) y dentro del APK (Capacitor).
+export default defineConfig({
+    base: './',
+    plugins: [
+        react(),
+        VitePWA({
+            registerType: 'autoUpdate',
+            includeAssets: ['icon.svg', 'icons/apple-touch-icon.png'],
+            manifest: {
+                name: 'Filósofo en Formación',
+                short_name: 'Filósofo',
+                description: 'Sistema gamificado para clases de Filosofía.',
+                lang: 'es-CL',
+                start_url: './',
+                scope: './',
+                display: 'standalone',
+                orientation: 'portrait',
+                background_color: '#0f172a',
+                theme_color: '#3b0764',
+                icons: [
+                    { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+                    { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+                    { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+                ]
+            },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+                cleanupOutdatedCaches: true
+            }
+        })
+    ],
+    build: { target: 'es2020', sourcemap: false },
+    server: { host: true },
+    test: {
+        environment: 'node',
+        include: ['tests/**/*.test.js']
+    }
+});
