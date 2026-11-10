@@ -4,11 +4,18 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // `base: './'` produce rutas relativas: el mismo build sirve en la raiz de un
 // dominio, en una subcarpeta (GitHub Pages) y dentro del APK (Capacitor).
-export default defineConfig({
+//
+// Modos de compilacion:
+//   (por defecto)  sitio web + PWA instalable
+//   e2e            pruebas de navegador (datos locales, ver .env.e2e)
+//   capacitor      contenido del APK: sin service worker, porque los archivos
+//                  ya viajan dentro de la aplicacion
+export default defineConfig(({ mode }) => ({
     base: './',
     plugins: [
         react(),
         VitePWA({
+            disable: mode === 'capacitor',
             registerType: 'autoUpdate',
             includeAssets: ['icon.svg', 'icons/apple-touch-icon.png'],
             manifest: {
@@ -40,4 +47,4 @@ export default defineConfig({
         environment: 'node',
         include: ['tests/**/*.test.js']
     }
-});
+}));

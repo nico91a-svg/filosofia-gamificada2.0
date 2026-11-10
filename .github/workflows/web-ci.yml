@@ -1,0 +1,62 @@
+name: Web CI
+
+# Verifica la aplicacion web en cada cambio: estilo, pruebas unitarias, build de
+# produccion y pruebas en un navegador real.
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", ".github/workflows/web-ci.yml"]
+  pull_request:
+    paths: ["web/**", ".github/workflows/web-ci.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Pruebas unitarias
+        run: npm test
+
+      - name: Build de produccion
+        run: npm run build
+
+      - name: Instalar navegador de pruebas
+        run: npx playwright install --with-deps chromium
+
+      - name: Pruebas en navegador
+        run: npm run e2e
+
+      - name: Guardar reporte si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            web/playwright-report
+            web/test-results
+          retention-days: 14
