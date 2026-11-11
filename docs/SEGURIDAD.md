@@ -11,7 +11,9 @@ eso ningún archivo con datos personales debe vivir en el repositorio.
 | Clave docente legible en el código | **Mitigado en la app nueva** (huella SHA-256). La app anterior aún la trae en texto. |
 | Un dispositivo desactualizado pisa datos de otros | **Resuelto en la app nueva** (se escribe por campo). |
 | Base de datos abierta a cualquiera | **Código listo, falta activar** (ver abajo). |
-| Claves y nombres legales de estudiantes legibles en la base de datos | **Código listo, falta migrar** (se resuelve con lo mismo). |
+| Claves de estudiantes legibles en la base de datos | **Código listo, falta migrar** (`migrar-roster`, ver abajo). |
+| Nombres legales de estudiantes legibles por sus compañeros | **Resuelto en el código** (nodo `students_privado`, solo lectura del docente); falta migrar el roster que ya existía (`migrar-nombres-legales`, ver abajo). |
+| El formulario "Agregar estudiante" guarda la clave en texto plano | **Resuelto contra `firebase`**: ya no pide ni guarda clave; muestra el comando para crear la cuenta real. (El backend `local` de desarrollo/tests la sigue pidiendo, a propósito: ver abajo). |
 
 ## Cuentas reales + reglas por rol
 
@@ -54,9 +56,17 @@ Cómo funciona:
   curso. Cerrarlo del todo requeriría mediar el intercambio con una Cloud
   Function; no está hecho.
 - El backend `local` (desarrollo sin red, tests e2e) no cambia: sigue
-  verificando como antes (huella SHA-256 del docente en `web/src/config.js`,
-  clave en texto del estudiante), porque no hay Firebase Auth que conectar en
-  esos entornos.
+  verificando como antes (huella SHA-256 del docente, clave en texto del
+  estudiante en `AddStudentModal`), porque no hay Firebase Auth que conectar
+  en esos entornos. La huella del docente (`VITE_PROFESOR_PASSWORD_HASH`) ya
+  no tiene un valor por defecto en el código: sin esa variable, el login de
+  profesor contra `local` queda deshabilitado a propósito (`.env.e2e` la
+  define para los tests).
+- Contra `firebase`, el formulario "Agregar estudiante" (panel docente) **ya
+  no pide ni guarda contraseña**: guardar una clave en la base de datos es
+  justo lo que las reglas están evitando. Al guardar, muestra el comando
+  exacto de `gestionar-cuentas.mjs crear-estudiante` (con el `studentId` ya
+  asignado) para que crees la cuenta real aparte.
 - **Las claves nuevas se generan al azar, nunca se reutilizan las antiguas.**
   `crear-estudiante`/`migrar-roster`/`restablecer-clave` generan una clave si
   no les pasas una (10 caracteres, sin 0/O/1/l/I para que se puedan copiar a
@@ -67,37 +77,36 @@ Cómo funciona:
   vez de reusar la que estaba en texto plano en la base — esa quedó expuesta
   mientras no había reglas, así que seguir usándola no habría servido de nada.
 
-### Pendiente aparte: el nombre legal sigue siendo legible entre compañeros
+### El nombre legal ya no vive junto al resto del registro del estudiante
 
-La interfaz nunca le muestra el nombre legal a un estudiante, pero las reglas
-de arriba dan acceso de lectura a **todo** el nodo `students` de un curso a
+Antes, aunque la interfaz nunca mostraba el nombre legal a un estudiante, las
+reglas de acceso dan lectura a **todo** el nodo `students` de un curso a
 cualquier estudiante autenticado de ese curso (lo necesitan para ver a sus
-compañeros, el ranking, etc.) — y `nombreLegal` vive en ese mismo nodo. Así
-que alguien con herramientas de desarrollador puede leer los nombres legales
-de sus compañeros aunque la app no los despliegue. Esto no es nuevo (ya
-estaba así, solo que antes lo podía leer cualquiera sin sesión); las cuentas
-reales ya lo acotan a "compañeros del mismo curso", pero no lo cierran del
-todo.
+compañeros, el ranking, etc.), y `nombreLegal` vivía ahí mismo — así que
+alguien con herramientas de desarrollador podía leerlo igual.
 
-Para cerrarlo habría que sacar `nombreLegal` del nodo `students` y moverlo a
-uno paralelo de lectura exclusiva del docente, por ejemplo
-`students_privado/<clave>/nombreLegal` (y `cursos/<cursoId>/students_privado/...`
-para los demás cursos), con reglas `".read"/".write": solo docente`. Implica:
+Ahora `nombreLegal` vive en un nodo aparte, `students_privado` (y
+`cursos/<cursoId>/students_privado` para los demás cursos), con
+`.read`/`.write` exclusivos del docente en `database.rules.json`. En la
+práctica:
 
-- una regla nueva en `database.rules.json` (análoga a las de `students`, pero
-  sin el permiso de estudiante);
-- que `useCourseData.js` suscriba ese nodo aparte y lo combine con `students`
-  solo cuando la sesión es de docente;
-- que el alta de estudiante (`AddStudentModal` en
-  `web/src/components/shared/Modals.jsx`) escriba `nombreLegal` ahí en vez de
-  en el registro normal;
-- una migración una vez (como `migrar-roster`, pero para mover el campo en
-  vez de borrarlo) para los estudiantes que ya tienen `nombreLegal` en el
-  lugar viejo.
-
-No lo implementé todavía porque toca varios archivos y el modelo de datos de
-un curso (hoy `useCourseData` asume un recurso por nodo); si quieres que lo
-haga, lo trato como un cambio aparte de este.
+- `AddStudentModal` ya no incluye el nombre legal en el registro público: el
+  alta de estudiante (`domain/estudiantes.js` → `crearEstudiante`) nunca lo
+  escribe ahí, y `ProfesorDashboard` lo guarda aparte con `setNombreLegal`
+  (expuesto por `useCourseData.js`).
+- El panel docente sigue viendo el nombre legal igual que antes:
+  `useCourseData` combina `students` con `students_privado` solo cuando la
+  sesión es de docente (para una sesión de estudiante ese nodo ni se
+  suscribe, por las reglas).
+- Importar un respaldo también separa el nombre legal del registro público y
+  lo manda a `students_privado`.
+- **Falta migrar el roster que ya existía** antes de este cambio (ahí
+  `nombreLegal` sigue en el lugar viejo hasta que corras la migración):
+  `node scripts/gestionar-cuentas.mjs migrar-nombres-legales <cursoId>` desde
+  `web/` — saca el campo de `students` y lo deja en `students_privado`.
+- Probado en `web/tests/rules/database.rules.test.js`
+  (`describe('students_privado...')`): un estudiante del mismo curso no
+  puede leer ni escribir ese nodo; el docente sí.
 
 ### Qué falta para activarlo (pasos en la consola, no en el código)
 
@@ -109,8 +118,9 @@ haga, lo trato como un cambio aparte de este.
 3. Con esa clave en `GOOGLE_APPLICATION_CREDENTIALS`, correr
    `npm run gestionar-cuentas -- <comando>` desde `web/` (ver la ayuda del
    script: crear la cuenta docente, probar en `sandbox`, y por último
-   `migrar-roster` sobre el curso real — eso es lo que de verdad saca las
-   claves de la base de datos).
+   `migrar-roster` y `migrar-nombres-legales` sobre el curso real — eso es lo
+   que de verdad saca las claves y los nombres legales de donde cualquiera
+   del curso los podía leer).
 4. Probar todo contra `?db=sandbox` antes de tocar el curso real (ver
    `docs/DEPLOY.md`). También puedes correr `npm run test:rules` desde `web/`
    (ver "Cómo se probaron las reglas" abajo) sin tocar ningún proyecto real.
@@ -138,6 +148,28 @@ Se corre con `npm run test:rules` desde `web/` (requiere Java para el
 emulador; `firebase-tools` ya queda como devDependency). Arranca el
 emulador, corre las pruebas y lo apaga solo — no necesita el proyecto real
 ni credenciales.
+
+## Probar contra otro proyecto de Firebase (sin tocar el real)
+
+Además del emulador (abajo) y `?db=sandbox` (mismo proyecto real, datos
+separados), se puede apuntar la app entera a un proyecto de Firebase
+*distinto* — util para ensayar el alta de Authentication y las reglas de
+punta a punta sin que nada toque jamás el proyecto real:
+
+```bash
+cd web
+VITE_FIREBASE_PROJECT_ID=mi-proyecto-de-pruebas \
+VITE_FIREBASE_DATABASE_URL=https://mi-proyecto-de-pruebas-default-rtdb.firebaseio.com \
+VITE_FIREBASE_API_KEY=... VITE_FIREBASE_AUTH_DOMAIN=... VITE_FIREBASE_APP_ID=... \
+  npm run dev
+```
+
+Sin esas variables, `web/src/config.js` usa el proyecto real de siempre (son
+valores públicos, no secretos: identifican el proyecto, no otorgan
+permisos). `scripts/gestionar-cuentas.mjs` lee las mismas dos variables
+(`VITE_FIREBASE_PROJECT_ID`/`VITE_FIREBASE_DATABASE_URL`) para crear cuentas
+y migrar datos en ese mismo proyecto de pruebas — imprime cuál está usando al
+arrancar, para no confundirlo con el real por accidente.
 
 ## Si algo se rompe: volver a las reglas abiertas (menos de un minuto)
 

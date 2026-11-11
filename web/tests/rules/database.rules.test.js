@@ -154,6 +154,33 @@ describe('regalo de artefactos entre companeros', () => {
     });
 });
 
+describe('students_privado (nombre legal): solo el docente', () => {
+    beforeEach(() => seed({
+        'cursos/curso-a/students': { 0: { id: 1, nombreSocial: 'Ana' } },
+        'cursos/curso-a/students_privado': { 1: 'Ana Perez Soto' }
+    }));
+
+    test('un estudiante del propio curso NO puede leer los nombres legales', async () => {
+        const db = estudiante('uid-ana', 'curso-a', 1);
+        await assertFails(get(ref(db, 'cursos/curso-a/students_privado')));
+    });
+
+    test('un estudiante tampoco puede escribirlos', async () => {
+        const db = estudiante('uid-ana', 'curso-a', 1);
+        await assertFails(set(ref(db, 'cursos/curso-a/students_privado/1'), 'Nombre Falso'));
+    });
+
+    test('un visitante sin sesion no puede leerlos', async () => {
+        await assertFails(get(ref(anonimo(), 'cursos/curso-a/students_privado')));
+    });
+
+    test('el docente si puede leer y escribir los nombres legales', async () => {
+        const db = docente();
+        await assertSucceeds(get(ref(db, 'cursos/curso-a/students_privado')));
+        await assertSucceeds(set(ref(db, 'cursos/curso-a/students_privado/2'), 'Beto Rojas'));
+    });
+});
+
 describe('namespace sandbox', () => {
     test('se comporta igual que el real: mismo curso lee y escribe su inventario, otros no', async () => {
         await seed({ 'sandbox/cursos/prueba/students': { 0: { id: 1, nombreSocial: 'Test', artefactos: [] } } });

@@ -10,12 +10,42 @@ import { getNivel } from '../../domain/niveles.js';
 // Modals compartidos
 const { useState, useEffect } = React;
 
-// Modal para agregar estudiante
-export const AddStudentModal = ({ onClose, onAdd }) => {
+// Modal para agregar estudiante.
+//
+// Contra el backend 'firebase' (produccion) este formulario NO pide ni
+// guarda contraseña: la cuenta real se crea aparte, con
+// scripts/gestionar-cuentas.mjs (ver docs/SEGURIDAD.md). Guardar una clave en
+// la base de datos es justamente lo que esas reglas estan evitando. Contra
+// 'local' (desarrollo sin red, tests e2e) se mantiene el campo, porque ahi no
+// hay Firebase Authentication con el que crear una cuenta real.
+export const AddStudentModal = ({ onClose, onAdd, backendKind, cursoId }) => {
+    const esLocal = backendKind === 'local';
     const [formData, setFormData] = useState({
         nombreSocial: '', nombreLegal: '', genero: '', clase: '', password: ''
     });
+    const [creado, setCreado] = useState(null);
     const clases = CLASES_FILOSOFICAS;
+
+    if (creado) {
+        const comando = 'node scripts/gestionar-cuentas.mjs crear-estudiante ' +
+            cursoId + ' "' + creado.nombreSocial + '" ' + creado.id;
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+                <div className="bg-white rounded-lg p-5 sm:p-6 max-w-md w-full my-4">
+                    <h3 className="text-xl font-bold mb-4">{creado.nombreSocial} fue agregado/a</h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                        Para que pueda entrar, crea su cuenta real corriendo esto en una terminal
+                        (requiere la clave de servicio del proyecto — ver <code>docs/SEGURIDAD.md</code>):
+                    </p>
+                    <pre className="bg-gray-900 text-green-400 text-xs rounded-lg p-3 mb-4 overflow-x-auto select-all">{comando}</pre>
+                    <p className="text-xs text-gray-500 mb-4">
+                        El comando genera una clave al azar y te dice dónde queda guardada para que se la entregues.
+                    </p>
+                    <button onClick={onClose} className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Listo</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
@@ -24,6 +54,11 @@ export const AddStudentModal = ({ onClose, onAdd }) => {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <p className="text-blue-700 text-xs">El <strong>nombre social</strong> es el que aparecera visible en la plataforma. El nombre legal se guarda solo como referencia interna.</p>
                 </div>
+                {!esLocal && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                        <p className="text-amber-700 text-xs">Esto agrega el registro del estudiante. Su cuenta para entrar se crea aparte, con un comando que te mostraremos al guardar.</p>
+                    </div>
+                )}
                 <input type="text" placeholder="Nombre social (como quiere ser llamado/a)" value={formData.nombreSocial}
                     onChange={(e) => setFormData({ ...formData, nombreSocial: e.target.value })}
                     className="w-full px-4 py-2 border rounded-lg mb-3" />
@@ -42,21 +77,27 @@ export const AddStudentModal = ({ onClose, onAdd }) => {
                     <option value="">Seleccionar clase</option>
                     {clases.map(c => <option key={c.id} value={c.id}>{c.emoji} {c.nombre}</option>)}
                 </select>
-                <input type="password" placeholder="Contraseña" value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg mb-4" />
+                {esLocal && (
+                    <input type="password" placeholder="Contraseña" value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg mb-4" />
+                )}
                 <div className="flex gap-2">
                     <button onClick={() => {
-                        if (formData.nombreSocial && formData.genero && formData.clase && formData.password) {
-                            onAdd({
+                        if (formData.nombreSocial && formData.genero && formData.clase && (!esLocal || formData.password)) {
+                            const nuevo = onAdd({
                                 nombre: formData.nombreSocial,
                                 nombreSocial: formData.nombreSocial,
                                 nombreLegal: formData.nombreLegal || formData.nombreSocial,
                                 genero: formData.genero,
                                 clase: formData.clase,
-                                password: formData.password
+                                ...(esLocal ? { password: formData.password } : {})
                             });
-                        } else { alert('Por favor completa nombre social, genero, clase y contraseña'); }
+                            if (esLocal) onClose();
+                            else setCreado(nuevo);
+                        } else {
+                            alert('Por favor completa nombre social, genero y clase' + (esLocal ? ' y contraseña' : ''));
+                        }
                     }} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Agregar</button>
                     <button onClick={onClose} className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">Cancelar</button>
                 </div>

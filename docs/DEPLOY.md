@@ -79,14 +79,21 @@ npm run gestionar-cuentas -- ayuda
 
 Orden recomendado: crear tu cuenta docente, crear una cuenta de estudiante de
 prueba y probar ambos roles contra `?db=sandbox`, recién después
-`migrar-roster` sobre el curso real, y por último subir `database.rules.json`
-(raíz del repositorio) desde Firebase Console → Realtime Database → Reglas,
-o con `firebase deploy --only database` si tienes `firebase-tools` instalado.
+`migrar-roster` y `migrar-nombres-legales` sobre el curso real, y por último
+subir `database.rules.json` (raíz del repositorio) desde Firebase Console →
+Realtime Database → Reglas, o con `firebase deploy --only database` si tienes
+`firebase-tools` instalado.
 
 Si no le pasas una clave a `crear-estudiante`/`restablecer-clave`, se genera
 una al azar y queda en `web/scripts/salida-claves/` (no viaja a git): entrégala
 y borra el archivo. `migrar-roster` siempre genera claves nuevas (no reusa
 las que estaban en texto plano en la base).
+
+Para ensayar todo contra un proyecto de Firebase distinto del real (no solo
+`sandbox` dentro del mismo proyecto), exporta `VITE_FIREBASE_PROJECT_ID` y
+`VITE_FIREBASE_DATABASE_URL` (mismas variables para `npm run dev` y para
+`gestionar-cuentas.mjs`) — ver "Probar contra otro proyecto de Firebase" en
+`docs/SEGURIDAD.md`.
 
 Antes de subir las reglas puedes probarlas sin tocar ningún proyecto real:
 
@@ -100,12 +107,26 @@ procedimiento de rollback (menos de un minuto, vía `database.rules.rollback.jso
 
 ## Cambiar la clave docente (app nueva)
 
+Contra el proyecto real (backend `firebase`), la cuenta del docente es una
+cuenta real de Firebase Authentication — para cambiarle la clave:
+
+```bash
+cd web
+export GOOGLE_APPLICATION_CREDENTIALS=/ruta/fuera-del-repo/clave-de-servicio.json
+npm run gestionar-cuentas -- restablecer-clave docente "clave nueva"
+```
+
+Para el backend `local` (desarrollo sin red, tests e2e) la clave sigue siendo
+solo una huella SHA-256, que viene de la variable `VITE_PROFESOR_PASSWORD_HASH`
+(nunca un valor por defecto en el código — ver `docs/SEGURIDAD.md`):
+
 ```bash
 cd web
 npm run hash-password -- profesor "clave nueva"
 ```
 
-Pega el resultado en `web/src/config.js` (`profesor.passwordHash`) y mergea.
+Exporta el resultado como `VITE_PROFESOR_PASSWORD_HASH` antes de `npm run dev`
+(o en `.env.local`, que está en `.gitignore`).
 
 ## Trabajar en el código
 

@@ -13,6 +13,14 @@
 //   GOOGLE_APPLICATION_CREDENTIALS=/ruta/fuera-del-repo/clave.json \
 //     node scripts/gestionar-cuentas.mjs <comando> [argumentos]
 //
+// Por defecto apunta al proyecto real de siempre. Para probar contra OTRO
+// proyecto de Firebase (sin tocar el real), exporta las mismas variables que
+// usa la app (ver web/src/config.js y docs/SEGURIDAD.md):
+//   VITE_FIREBASE_PROJECT_ID=mi-proyecto-de-pruebas \
+//   VITE_FIREBASE_DATABASE_URL=https://mi-proyecto-de-pruebas-default-rtdb.firebaseio.com \
+//   GOOGLE_APPLICATION_CREDENTIALS=/ruta/clave-de-ese-proyecto.json \
+//     node scripts/gestionar-cuentas.mjs <comando> [argumentos]
+//
 // Comandos:
 //   crear-docente <usuario> [clave]
 //       Crea o actualiza la cuenta del docente. Sin clave, se genera una.
@@ -30,6 +38,10 @@
 //   restablecer-clave docente [clave-nueva]
 //   restablecer-clave <cursoId> "<nombreSocial>" [clave-nueva]
 //       Para cuando alguien olvida su clave. Sin clave, se genera una.
+//   migrar-nombres-legales <cursoId>
+//       Saca `nombreLegal` del registro publico de cada estudiante y lo deja
+//       en `students_privado` (solo lectura del docente). Los estudiantes
+//       nuevos ya se crean asi; esto es para el roster que ya existia.
 //   listar <cursoId>
 //       Compara el roster contra las cuentas de Authentication existentes.
 //
@@ -42,10 +54,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import admin from 'firebase-admin';
 
-// Mismos valores publicos que web/src/config.js (projectId y databaseURL no
-// son secretos: identifican el proyecto, no otorgan permisos por si solos).
-const PROJECT_ID = 'filosofia-gamificada';
-const DATABASE_URL = 'https://filosofia-gamificada-default-rtdb.firebaseio.com';
+// Mismos valores (y mismas variables de entorno) que web/src/config.js:
+// projectId y databaseURL no son secretos, identifican el proyecto, no
+// otorgan permisos por si solos.
+const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'filosofia-gamificada';
+const DATABASE_URL = process.env.VITE_FIREBASE_DATABASE_URL ||
+    'https://filosofia-gamificada-default-rtdb.firebaseio.com';
 
 // Mismo calculo que web/src/services/auth.js (emailDocente/emailEstudiante):
 // si cambias uno, cambia el otro.
@@ -163,6 +177,31 @@ async function migrarRoster(cursoId) {
     }
 }
 
+// Saca `nombreLegal` del registro publico de cada estudiante y lo deja en
+// `students_privado` (lectura exclusiva del docente, ver database.rules.json).
+// La app ya escribe ahi a los estudiantes nuevos; esto es solo para el roster
+// que ya existia antes de este cambio.
+async function migrarNombresLegales(cursoId) {
+    const refStudents = admin.database().ref(cursoDbPath(cursoId, 'students'));
+    const refPrivado = admin.database().ref(cursoDbPath(cursoId, 'students_privado'));
+    const snapshot = await refStudents.once('value');
+    const raw = snapshot.val() || {};
+    const entradas = Object.entries(raw).filter(([, s]) => s);
+    let movidos = 0;
+    for (const [key, s] of entradas) {
+        const nombre = s.nombreSocial || s.nombre;
+        if (!s.nombreLegal || s.nombreLegal === nombre) {
+            await refStudents.child(key).child('nombreLegal').remove();
+            continue;
+        }
+        await refPrivado.child(String(s.id)).set(s.nombreLegal);
+        await refStudents.child(key).child('nombreLegal').remove();
+        movidos++;
+        console.log('  nombre legal movido a students_privado para ' + nombre + '.');
+    }
+    console.log(movidos + ' nombre(s) legal(es) movido(s) de ' + entradas.length + ' estudiante(s) en ' + cursoId + '.');
+}
+
 async function restablecerClave(args) {
     if (args[0] === 'docente') {
         const [, claveNueva] = args;
@@ -199,8 +238,12 @@ async function listar(cursoId) {
     for (const s of roster) {
         const nombre = s.nombreSocial || s.nombre;
         const tieneCuenta = cuentas.some((u) => u.customClaims.studentId === s.id);
-        const avisoClave = s.password ? ' — aun tiene clave en texto plano en la base' : '';
-        console.log('  ' + (tieneCuenta ? '[cuenta OK]    ' : '[SIN CUENTA]  ') + nombre + avisoClave);
+        const avisos = [
+            s.password ? 'aun tiene clave en texto plano en la base' : null,
+            s.nombreLegal && s.nombreLegal !== nombre ? 'nombre legal sin migrar a students_privado' : null
+        ].filter(Boolean);
+        console.log('  ' + (tieneCuenta ? '[cuenta OK]    ' : '[SIN CUENTA]  ') + nombre +
+            (avisos.length ? ' — ' + avisos.join('; ') : ''));
     }
     const huerfanas = cuentas.filter((u) => !roster.some((s) => s.id === u.customClaims.studentId));
     if (huerfanas.length) {
@@ -217,6 +260,7 @@ function ayuda() {
   migrar-roster <cursoId>
   restablecer-clave docente [clave-nueva]
   restablecer-clave <cursoId> "<nombreSocial>" [clave-nueva]
+  migrar-nombres-legales <cursoId>
   listar <cursoId>
 
 Si omites la clave se genera una al azar y queda en
@@ -234,6 +278,8 @@ if (!comando || comando === 'ayuda' || comando === '--help') {
     process.exit(comando ? 0 : 1);
 }
 
+console.log('Proyecto: ' + PROJECT_ID + ' (' + DATABASE_URL + ')');
+
 admin.initializeApp({
     credential: admin.credential.applicationDefault(),
     projectId: PROJECT_ID,
@@ -245,6 +291,7 @@ const comandos = {
     'crear-estudiante': () => crearEstudiante(args[0], args[1], Number(args[2]), args[3]),
     'migrar-roster': () => migrarRoster(args[0]),
     'restablecer-clave': () => restablecerClave(args),
+    'migrar-nombres-legales': () => migrarNombresLegales(args[0]),
     listar: () => listar(args[0])
 };
 

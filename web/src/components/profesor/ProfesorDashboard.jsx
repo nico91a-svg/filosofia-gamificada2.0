@@ -19,14 +19,15 @@ import { getNivel } from '../../domain/niveles.js';
 const { useState, useEffect } = React;
 
 export const ProfesorDashboard = function ProfesorDashboard({
-    students, setStudents,
+    students, setStudents, setNombreLegal,
     activities, setActivities,
     unidades, setUnidades,
     currentUnidad, setCurrentUnidad,
     currentClase, setCurrentClase,
     onLogout, onExportData, onImportData,
     onResetUnidades, unidadesPersonalizadas,
-    curso, cursos, setCursos, currentCursoId, setCurrentCursoId
+    curso, cursos, setCursos, currentCursoId, setCurrentCursoId,
+    backendKind
 }) {
     // ---- Estado interno ----
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -43,10 +44,13 @@ export const ProfesorDashboard = function ProfesorDashboard({
     // Aqui solo se modifica el estado con setStudents / setActivities.
 
     // ---- Funciones de estudiantes ----
+    // Devuelve el estudiante creado: lo usa AddStudentModal para mostrar el
+    // comando de gestionar-cuentas.mjs (backend 'firebase') antes de cerrarse.
     function addStudent(data) {
         var newStudent = crearEstudiante(nextId(), data);
         setStudents(function(prev) { return [].concat(prev, [newStudent]); });
-        setShowAddStudent(false);
+        if (setNombreLegal) setNombreLegal(newStudent.id, data.nombreLegal || data.nombreSocial || data.nombre);
+        return newStudent;
     }
 
     function deleteStudent(id) {
@@ -1225,6 +1229,8 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 <AddStudentModal
                     onClose={function() { setShowAddStudent(false); }}
                     onAdd={addStudent}
+                    backendKind={backendKind}
+                    cursoId={curso.id}
                 />
             )}
 

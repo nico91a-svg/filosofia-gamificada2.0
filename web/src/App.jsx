@@ -62,7 +62,8 @@ export function App() {
     // (no hay reglas que lo impidan, y la restauracion de sesion de abajo
     // necesita los datos para comparar contra la clave recordada).
     const dataEnabled = !authBackend || !!session;
-    const data = useCourseData(backend, curso, dataEnabled);
+    const esDocente = !!session && session.tipo === 'profesor';
+    const data = useCourseData(backend, curso, dataEnabled, esDocente);
 
     // Restaurar la sesion persistida por Firebase Authentication.
     useEffect(() => {
@@ -190,7 +191,18 @@ export function App() {
                 try {
                     const imported = JSON.parse(evt.target.result);
                     const toList = (v) => (Array.isArray(v) ? v : Object.values(v || {})).filter(Boolean);
-                    const students = imported.students ? toList(imported.students).map(normalizeStudent) : null;
+                    // Los respaldos (viejos o nuevos) pueden traer la clave en texto
+                    // plano y el nombre legal junto al resto: ninguno de los dos va al
+                    // registro publico del estudiante (ver docs/SEGURIDAD.md). El
+                    // nombre legal se reubica en students_privado; la clave se
+                    // descarta (las cuentas reales se gestionan aparte).
+                    const normalizados = imported.students ? toList(imported.students).map(normalizeStudent) : null;
+                    const students = normalizados && normalizados.map((s) => {
+                        const resto = { ...s };
+                        delete resto.password;
+                        delete resto.nombreLegal;
+                        return resto;
+                    });
                     const activities = imported.activities ? toList(imported.activities) : null;
                     const unidades = imported.unidades ? normalizeUnidades(imported.unidades) : null;
 
@@ -201,6 +213,11 @@ export function App() {
                         return;
                     }
                     if (students) data.setStudents(students);
+                    if (normalizados) {
+                        normalizados.forEach((s) => {
+                            if (s.nombreLegal && s.nombreLegal !== s.nombre) data.setNombreLegal(s.id, s.nombreLegal);
+                        });
+                    }
                     if (activities) data.setActivities(activities);
                     if (unidades && unidades.length) data.setUnidades(unidades);
                     if (imported.position && imported.position.unidad) {
@@ -254,6 +271,7 @@ export function App() {
             <ProfesorDashboard
                 students={data.students}
                 setStudents={data.setStudents}
+                setNombreLegal={data.setNombreLegal}
                 activities={data.activities}
                 setActivities={data.setActivities}
                 unidades={data.unidades}
@@ -267,6 +285,7 @@ export function App() {
                 onLogout={handleLogout}
                 onExportData={handleExportData}
                 onImportData={handleImportData}
+                backendKind={backend.kind}
                 curso={curso}
                 cursos={cursos}
                 setCursos={setCursos}
