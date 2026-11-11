@@ -9,17 +9,20 @@ import { normalizeStudent } from '../domain/estudiantes.js';
 const STUDENTS = { kind: 'collection', normalize: normalizeStudent };
 const ACTIVITIES = { kind: 'collection' };
 
-export function useCourseData(backend, curso) {
+// `enabled=false` (sin sesion) deja los cuatro recursos en pausa: no tiene
+// sentido leerlos antes de autenticarse, porque las reglas de la base de
+// datos los van a rechazar (ver docs/SEGURIDAD.md).
+export function useCourseData(backend, curso, enabled = true) {
     const pack = getContentPack(curso.contentPackId);
     const firstUnidad = pack.unidades[0].id;
 
-    const students = useResource(backend, cursoPath(curso, 'students'), STUDENTS);
-    const activities = useResource(backend, cursoPath(curso, 'activities'), ACTIVITIES);
+    const students = useResource(backend, cursoPath(curso, 'students'), STUDENTS, [], enabled);
+    const activities = useResource(backend, cursoPath(curso, 'activities'), ACTIVITIES, [], enabled);
     // Sin unidades guardadas se usan las del pack; solo se guardan si el docente las edita.
     const unidades = useResource(backend, cursoPath(curso, 'unidades'),
-        { kind: 'value', normalize: normalizeUnidades, fallback: pack.unidades }, [pack.id]);
+        { kind: 'value', normalize: normalizeUnidades, fallback: pack.unidades }, [pack.id], enabled);
     const position = useResource(backend, cursoPath(curso, 'position'),
-        { kind: 'value', fallback: { unidad: firstUnidad, clase: 1 } }, [pack.id]);
+        { kind: 'value', fallback: { unidad: firstUnidad, clase: 1 } }, [pack.id], enabled);
 
     const setPosition = position.set;
     const setCurrentUnidad = useCallback(
