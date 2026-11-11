@@ -154,7 +154,8 @@ ni credenciales.
 Además del emulador (abajo) y `?db=sandbox` (mismo proyecto real, datos
 separados), se puede apuntar la app entera a un proyecto de Firebase
 *distinto* — util para ensayar el alta de Authentication y las reglas de
-punta a punta sin que nada toque jamás el proyecto real:
+punta a punta sin que nada toque jamás el proyecto real. Guía paso a paso
+con comandos exactos: `docs/ENSAYO.md`.
 
 ```bash
 cd web
