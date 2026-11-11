@@ -1,0 +1,9 @@
+{
+  "appId": "cl.filosofoenformacion.app",
+  "appName": "Filósofo en Formación",
+  "webDir": "dist",
+  "backgroundColor": "#020617",
+  "android": {
+    "allowMixedContent": false
+  }
+}

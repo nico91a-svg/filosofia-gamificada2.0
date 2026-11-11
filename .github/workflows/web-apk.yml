@@ -1,0 +1,62 @@
+name: Web APK (Android)
+
+# Empaqueta la aplicacion web como APK de Android con Capacitor. El APK queda
+# como "Artifact" descargable al final de la ejecucion (seccion Actions).
+# Es un APK de depuracion: sirve para instalarlo directamente en un telefono,
+# no para publicarlo en Google Play (eso requiere firmarlo).
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", ".github/workflows/web-apk.yml"]
+  pull_request:
+    paths:
+      - "web/capacitor.config.json"
+      - "web/package.json"
+      - "web/assets/**"
+      - ".github/workflows/web-apk.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar web, generar proyecto Android y APK
+        run: npm run android:apk
+
+      - name: Renombrar APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk filosofo-en-formacion.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: filosofo-en-formacion-apk
+          path: web/filosofo-en-formacion.apk
+          if-no-files-found: error
+          retention-days: 90
