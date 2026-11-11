@@ -1,0 +1,5 @@
+# app/ es el sitio compilado que publica GitHub Pages. Lo genera
+# `npm run publicar` (o el workflow "Publicar web"); no se edita a mano.
+app/** linguist-generated=true
+app/**/*.js -diff
+app/**/*.css -diff
