@@ -12,3 +12,11 @@ ios/
 # repositorio, se guarda fuera de este directorio (ver docs/SEGURIDAD.md).
 *serviceAccount*.json
 *-firebase-adminsdk-*.json
+# Claves generadas al azar por scripts/gestionar-cuentas.mjs: se entregan y se
+# borran, nunca se commitean.
+scripts/salida-claves/
+# Ruido del emulador de Firebase (npm run test:rules).
+firebase-debug.log
+database-debug.log
+ui-debug.log
+.firebase/

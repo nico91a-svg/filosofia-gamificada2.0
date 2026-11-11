@@ -14,21 +14,32 @@
 //     node scripts/gestionar-cuentas.mjs <comando> [argumentos]
 //
 // Comandos:
-//   crear-docente <usuario> <clave>
-//       Crea o actualiza la cuenta del docente.
-//   crear-estudiante <cursoId> "<nombreSocial>" <clave> <studentId>
+//   crear-docente <usuario> [clave]
+//       Crea o actualiza la cuenta del docente. Sin clave, se genera una.
+//   crear-estudiante <cursoId> "<nombreSocial>" <studentId> [clave]
 //       Crea o actualiza la cuenta de un estudiante que YA existe en el
 //       roster de ese curso (studentId es su campo `id` en la base de datos).
+//       Sin clave, se genera una.
 //   migrar-roster <cursoId>
 //       Recorre el roster real de ese curso, crea una cuenta por cada
-//       estudiante usando su clave actual como clave inicial, y borra el
-//       campo `password` de la base de datos (es el paso que de verdad saca
-//       las claves en texto plano). Usa 3B-2026 para el curso original.
-//   restablecer-clave docente <clave-nueva>
-//   restablecer-clave <cursoId> "<nombreSocial>" <clave-nueva>
-//       Para cuando alguien olvida su clave.
+//       estudiante con una clave NUEVA generada al azar (la que estaba en la
+//       base quedo expuesta mientras no habia reglas, asi que no se reutiliza)
+//       y borra el campo `password` de la base de datos: es el paso que de
+//       verdad saca las claves en texto plano. Usa 3B-2026 para el curso
+//       original.
+//   restablecer-clave docente [clave-nueva]
+//   restablecer-clave <cursoId> "<nombreSocial>" [clave-nueva]
+//       Para cuando alguien olvida su clave. Sin clave, se genera una.
 //   listar <cursoId>
 //       Compara el roster contra las cuentas de Authentication existentes.
+//
+// Las claves generadas automaticamente NUNCA se escriben en la base de datos
+// ni en este repositorio: se guardan en un archivo CSV local, fuera de git
+// (ver web/.gitignore), para que las entregues y luego borres el archivo.
+import { randomInt } from 'node:crypto';
+import { appendFile, mkdir } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import admin from 'firebase-admin';
 
 // Mismos valores publicos que web/src/config.js (projectId y databaseURL no
@@ -53,6 +64,34 @@ function cursoDbPath(cursoId, recurso) {
     return cursoId === '3B-2026' ? recurso : 'cursos/' + cursoId + '/' + recurso;
 }
 
+// ---- claves generadas: al azar (CSPRNG), nunca a la base de datos ni a git ----
+
+// Sin 0/O/1/l/I ni caracteres ambiguos: se pueden copiar a mano sin errores.
+const ALFABETO_CLAVE = 'abcdefghjkmnpqrstuvwxyz23456789';
+function generarClave(longitud = 10) {
+    let clave = '';
+    for (let i = 0; i < longitud; i++) clave += ALFABETO_CLAVE[randomInt(ALFABETO_CLAVE.length)];
+    return clave;
+}
+
+const DIR_SALIDA = join(dirname(fileURLToPath(import.meta.url)), 'salida-claves');
+let archivoSalida = null;
+function archivoDeEstaEjecucion() {
+    if (!archivoSalida) {
+        const marca = new Date().toISOString().replace(/[:.]/g, '-');
+        archivoSalida = join(DIR_SALIDA, 'claves-' + marca + '.csv');
+    }
+    return archivoSalida;
+}
+
+// Devuelve la ruta del archivo donde quedo escrita la clave (para avisar).
+async function registrarClaveGenerada(etiqueta, clave) {
+    await mkdir(DIR_SALIDA, { recursive: true });
+    const archivo = archivoDeEstaEjecucion();
+    await appendFile(archivo, etiqueta + ',' + clave + '\n', 'utf8');
+    return archivo;
+}
+
 async function upsertUser(email, password, claims) {
     let user;
     try {
@@ -66,16 +105,32 @@ async function upsertUser(email, password, claims) {
     return user;
 }
 
-async function crearDocente(usuario, clave) {
+async function crearDocente(usuario, claveArg) {
+    const clave = claveArg || generarClave();
     const email = emailDocente(usuario);
     await upsertUser(email, clave, { role: 'docente' });
-    console.log('Cuenta docente lista: ' + usuario + ' -> ' + email);
+    if (claveArg) {
+        console.log('Cuenta docente lista: ' + usuario + ' -> ' + email);
+    } else {
+        const archivo = await registrarClaveGenerada('docente:' + usuario, clave);
+        console.log('Cuenta docente lista: ' + usuario + ' -> ' + email + ' (clave generada en ' + archivo + ')');
+    }
 }
 
-async function crearEstudiante(cursoId, nombreSocial, clave, studentId) {
+// Devuelve la clave usada (generada o la dada), para que migrar-roster pueda
+// resumir cuantas genero sin tener que volver a leer el archivo.
+async function crearEstudiante(cursoId, nombreSocial, studentId, claveArg) {
+    const clave = claveArg || generarClave();
     const email = emailEstudiante(cursoId, nombreSocial);
     await upsertUser(email, clave, { role: 'estudiante', cursoId, studentId });
-    console.log('Cuenta lista: ' + nombreSocial + ' (curso ' + cursoId + ', id ' + studentId + ') -> ' + email);
+    if (claveArg) {
+        console.log('Cuenta lista: ' + nombreSocial + ' (curso ' + cursoId + ', id ' + studentId + ') -> ' + email);
+    } else {
+        await registrarClaveGenerada(nombreSocial + ' (curso ' + cursoId + ')', clave);
+        console.log('Cuenta lista: ' + nombreSocial + ' (curso ' + cursoId + ', id ' + studentId + ') -> ' + email +
+            ' (clave generada)');
+    }
+    return clave;
 }
 
 async function migrarRoster(cursoId) {
@@ -87,23 +142,38 @@ async function migrarRoster(cursoId) {
         console.log('No hay estudiantes en ' + cursoDbPath(cursoId, 'students') + '.');
         return;
     }
+    let migrados = 0;
     for (const [key, s] of entradas) {
         const nombre = s.nombreSocial || s.nombre;
         if (!s.password) {
             console.log('- ' + nombre + ': sin clave en la base (¿ya migrado?), se omite.');
             continue;
         }
-        await crearEstudiante(cursoId, nombre, s.password, s.id);
+        // Clave NUEVA generada al azar: la que estaba en `s.password` quedo
+        // expuesta mientras la base no tenia reglas, asi que no se reutiliza.
+        await crearEstudiante(cursoId, nombre, s.id);
         await ref.child(key).child('password').remove();
+        migrados++;
         console.log('  clave retirada de la base para ' + nombre + '.');
+    }
+    if (migrados > 0) {
+        console.log('\n' + migrados + ' clave(s) nueva(s) guardada(s) en ' + archivoDeEstaEjecucion());
+        console.log('Entregalas a cada estudiante y DESPUES borra ese archivo: no viaja al repositorio ' +
+            '(esta en .gitignore), pero tampoco debe quedar en el disco mas de lo necesario.');
     }
 }
 
 async function restablecerClave(args) {
     if (args[0] === 'docente') {
         const [, claveNueva] = args;
-        await upsertUser(emailDocente('profesor'), claveNueva, { role: 'docente' });
-        console.log('Clave docente actualizada.');
+        const clave = claveNueva || generarClave();
+        await upsertUser(emailDocente('profesor'), clave, { role: 'docente' });
+        if (claveNueva) {
+            console.log('Clave docente actualizada.');
+        } else {
+            const archivo = await registrarClaveGenerada('docente:profesor', clave);
+            console.log('Clave docente actualizada (generada en ' + archivo + ').');
+        }
         return;
     }
     const [cursoId, nombreSocial, claveNueva] = args;
@@ -115,7 +185,7 @@ async function restablecerClave(args) {
         console.error('No se encontro "' + nombreSocial + '" en el curso ' + cursoId + '.');
         process.exit(1);
     }
-    await crearEstudiante(cursoId, nombreSocial, claveNueva, match.id);
+    await crearEstudiante(cursoId, nombreSocial, match.id, claveNueva);
 }
 
 async function listar(cursoId) {
@@ -142,12 +212,16 @@ async function listar(cursoId) {
 function ayuda() {
     console.log(`Uso: node scripts/gestionar-cuentas.mjs <comando> [argumentos]
 
-  crear-docente <usuario> <clave>
-  crear-estudiante <cursoId> "<nombreSocial>" <clave> <studentId>
+  crear-docente <usuario> [clave]
+  crear-estudiante <cursoId> "<nombreSocial>" <studentId> [clave]
   migrar-roster <cursoId>
-  restablecer-clave docente <clave-nueva>
-  restablecer-clave <cursoId> "<nombreSocial>" <clave-nueva>
+  restablecer-clave docente [clave-nueva]
+  restablecer-clave <cursoId> "<nombreSocial>" [clave-nueva]
   listar <cursoId>
+
+Si omites la clave se genera una al azar y queda en
+web/scripts/salida-claves/ (fuera de git) para que la entregues y borres
+el archivo despues.
 
 Antes de usar cualquier comando: GOOGLE_APPLICATION_CREDENTIALS debe apuntar
 a la clave de servicio del proyecto (fuera de este repositorio).`);
@@ -168,7 +242,7 @@ admin.initializeApp({
 
 const comandos = {
     'crear-docente': () => crearDocente(args[0], args[1]),
-    'crear-estudiante': () => crearEstudiante(args[0], args[1], args[2], Number(args[3])),
+    'crear-estudiante': () => crearEstudiante(args[0], args[1], Number(args[2]), args[3]),
     'migrar-roster': () => migrarRoster(args[0]),
     'restablecer-clave': () => restablecerClave(args),
     listar: () => listar(args[0])

@@ -6,6 +6,10 @@ export const APP_CONFIG = {
     subtitulo: 'Sistema gamificado de Filosofía',
     autor: 'Nicolás Aldunate Gaete',
     anio: 2026,
+    // Solo lo usa el backend 'local' (desarrollo sin red, tests e2e: ver
+    // VITE_DB_BACKEND en docs/DEPLOY.md). Contra 'firebase' (produccion) el
+    // docente se autentica con una cuenta real de Firebase Authentication
+    // (services/authBackend.js) y esta huella no se consulta.
     profesor: {
         usuario: 'profesor',
         // Huella SHA-256 de la clave (nunca la clave en texto). Para cambiarla:

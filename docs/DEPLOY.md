@@ -83,6 +83,21 @@ prueba y probar ambos roles contra `?db=sandbox`, recién después
 (raíz del repositorio) desde Firebase Console → Realtime Database → Reglas,
 o con `firebase deploy --only database` si tienes `firebase-tools` instalado.
 
+Si no le pasas una clave a `crear-estudiante`/`restablecer-clave`, se genera
+una al azar y queda en `web/scripts/salida-claves/` (no viaja a git): entrégala
+y borra el archivo. `migrar-roster` siempre genera claves nuevas (no reusa
+las que estaban en texto plano en la base).
+
+Antes de subir las reglas puedes probarlas sin tocar ningún proyecto real:
+
+```bash
+cd web
+npm run test:rules   # requiere Java; arranca y apaga el emulador solo
+```
+
+Si algo se rompe después de publicarlas, `docs/SEGURIDAD.md` tiene el
+procedimiento de rollback (menos de un minuto, vía `database.rules.rollback.json`).
+
 ## Cambiar la clave docente (app nueva)
 
 ```bash
