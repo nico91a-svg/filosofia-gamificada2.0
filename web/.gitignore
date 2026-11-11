@@ -8,3 +8,7 @@ test-results/
 # Proyectos nativos generados por Capacitor (se regeneran con `npx cap add`)
 android/
 ios/
+# Clave de cuenta de servicio para scripts/gestionar-cuentas.mjs: nunca va al
+# repositorio, se guarda fuera de este directorio (ver docs/SEGURIDAD.md).
+*serviceAccount*.json
+*-firebase-adminsdk-*.json

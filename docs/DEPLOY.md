@@ -66,6 +66,23 @@ npm run android:apk
 Es un APK de depuración: sirve para instalarlo directamente, no para Google
 Play. Publicar en la tienda requiere una clave de firma propia.
 
+## Cuentas reales y reglas de la base de datos
+
+Ver `docs/SEGURIDAD.md` para el contexto. En resumen, para activar las
+cuentas reales y cerrar el acceso anónimo a la base de datos:
+
+```bash
+cd web
+export GOOGLE_APPLICATION_CREDENTIALS=/ruta/fuera-del-repo/clave-de-servicio.json
+npm run gestionar-cuentas -- ayuda
+```
+
+Orden recomendado: crear tu cuenta docente, crear una cuenta de estudiante de
+prueba y probar ambos roles contra `?db=sandbox`, recién después
+`migrar-roster` sobre el curso real, y por último subir `database.rules.json`
+(raíz del repositorio) desde Firebase Console → Realtime Database → Reglas,
+o con `firebase deploy --only database` si tienes `firebase-tools` instalado.
+
 ## Cambiar la clave docente (app nueva)
 
 ```bash
