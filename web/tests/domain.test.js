@@ -7,7 +7,7 @@ import { RUBRICS_HABILIDADES, RUBRICS_XP, TIPOS_ACTIVIDAD } from '../src/domain/
 import { nextId } from '../src/domain/ids.js';
 import { crearEstudiante, findStudentByCredentials, normalizeStudent } from '../src/domain/estudiantes.js';
 import { CURSOS_BASE, crearCurso, cursoPath, getCurso, normalizeCursos } from '../src/data/cursos.js';
-import { credentialHash, verifyProfesor } from '../src/services/auth.js';
+import { credentialHash, emailDocente, emailEstudiante, verifyProfesor } from '../src/services/auth.js';
 
 describe('niveles y habilidades', () => {
     it('cada XP cae en un nivel', () => {
@@ -118,5 +118,29 @@ describe('acceso docente', () => {
         expect(await verifyProfesor(config, 'Profesor ', 'secreta')).toBe(true);
         expect(await verifyProfesor(config, 'profesor', 'Secreta')).toBe(false);
         expect(await verifyProfesor(config, 'otro', 'secreta')).toBe(false);
+    });
+});
+
+describe('correo sintetico para Firebase Authentication', () => {
+    // El dominio tiene que ser ".invalid" (RFC 2606/6761): nadie puede
+    // registrarlo, asi que un restablecimiento de clave por correo jamas le
+    // llega a nadie. Si esto cambia a un dominio real, un restablecimiento de
+    // clave de CUALQUIER cuenta (incluida la docente) podria terminar en
+    // manos de quien registre ese dominio.
+    it('el correo del docente usa el TLD .invalid', () => {
+        const email = emailDocente('profesor');
+        expect(email).toBe('profesor@docentes.filosofo-en-formacion.invalid');
+        expect(email).toMatch(/\.invalid$/);
+    });
+
+    it('el correo del estudiante se deriva del nombre social y el curso, con .invalid', () => {
+        const email = emailEstudiante('3B-2026', 'Ana Pérez');
+        expect(email).toBe('ana-perez.3b-2026@alumnos.filosofo-en-formacion.invalid');
+        expect(email).toMatch(/\.invalid$/);
+    });
+
+    it('nunca produce un dominio .app ni ningun otro TLD real', () => {
+        expect(emailDocente('profesor')).not.toMatch(/\.app$/);
+        expect(emailEstudiante('curso-x', 'Beto')).not.toMatch(/\.app$/);
     });
 });

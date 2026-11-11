@@ -78,11 +78,21 @@ npm run gestionar-cuentas -- ayuda
 ```
 
 Orden recomendado: crear tu cuenta docente, crear una cuenta de estudiante de
-prueba y probar ambos roles contra `?db=sandbox`, recién después
-`migrar-roster` y `migrar-nombres-legales` sobre el curso real, y por último
-subir `database.rules.json` (raíz del repositorio) desde Firebase Console →
-Realtime Database → Reglas, o con `firebase deploy --only database` si tienes
-`firebase-tools` instalado.
+prueba y probar ambos roles contra `?db=sandbox` (o, mejor, contra un
+proyecto de Firebase de pruebas aparte — ver `docs/ENSAYO.md`), recién
+después `migrar-roster` y `migrar-nombres-legales` sobre el curso real, y por
+último subir `database.rules.json` (raíz del repositorio) desde Firebase
+Console → Realtime Database → Reglas, o con el CLI:
+
+```bash
+npx firebase deploy --only database --project real
+```
+
+**Siempre con `--project` explícito** (`real` o `pruebas`, alias definidos en
+`.firebaserc`) — nunca confiar en el proyecto por defecto. De hecho el
+default de `.firebaserc` es `pruebas`, así que un `firebase deploy` sin
+`--project` jamás toca el proyecto real por accidente; aun así, que cada
+comando lo diga explícito es la única forma de estar seguro con solo mirarlo.
 
 Si no le pasas una clave a `crear-estudiante`/`restablecer-clave`, se genera
 una al azar y queda en `web/scripts/salida-claves/` (no viaja a git): entrégala
@@ -113,8 +123,14 @@ cuenta real de Firebase Authentication — para cambiarle la clave:
 ```bash
 cd web
 export GOOGLE_APPLICATION_CREDENTIALS=/ruta/fuera-del-repo/clave-de-servicio.json
-npm run gestionar-cuentas -- restablecer-clave docente "clave nueva"
+npm run gestionar-cuentas -- restablecer-clave docente
 ```
+
+Sin pasarle una clave por la línea de comandos a propósito: los argumentos de
+un comando quedan en el historial de la terminal y a veces en la lista de
+procesos del sistema, así que el día real nunca se escribe una clave ahí. El
+comando genera una al azar y la deja en `web/scripts/salida-claves/` (fuera
+de git) — entrégasela al docente y borra el archivo.
 
 Para el backend `local` (desarrollo sin red, tests e2e) la clave sigue siendo
 solo una huella SHA-256, que viene de la variable `VITE_PROFESOR_PASSWORD_HASH`

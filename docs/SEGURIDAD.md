@@ -121,11 +121,18 @@ práctica:
    `migrar-roster` y `migrar-nombres-legales` sobre el curso real — eso es lo
    que de verdad saca las claves y los nombres legales de donde cualquiera
    del curso los podía leer).
-4. Probar todo contra `?db=sandbox` antes de tocar el curso real (ver
-   `docs/DEPLOY.md`). También puedes correr `npm run test:rules` desde `web/`
-   (ver "Cómo se probaron las reglas" abajo) sin tocar ningún proyecto real.
+4. Probar todo primero con `npm run test:rules` (emulador, no toca ningún
+   proyecto) y después de punta a punta contra el proyecto de pruebas (ver
+   `docs/ENSAYO.md`) — nunca contra el real antes de estar conforme.
 5. Subir `database.rules.json` desde Firebase Console → Realtime Database →
-   Reglas, o con `firebase deploy --only database`.
+   Reglas, o con el CLI — **siempre con `--project` explícito**:
+   ```bash
+   npx firebase deploy --only database --project real
+   ```
+   `.firebaserc` define los alias `real` y `pruebas`; el *default* es
+   `pruebas`, así que un `firebase deploy` sin `--project` nunca toca el
+   proyecto real por accidente — pero el hábito correcto es no depender de
+   eso y escribir el proyecto siempre.
 
 ## Cómo se probaron las reglas
 

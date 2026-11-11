@@ -42,6 +42,11 @@
 //       Saca `nombreLegal` del registro publico de cada estudiante y lo deja
 //       en `students_privado` (solo lectura del docente). Los estudiantes
 //       nuevos ya se crean asi; esto es para el roster que ya existia.
+//   sembrar-roster <cursoId> [cantidad=35]
+//       SOLO PARA ENSAYOS. Escribe estudiantes ficticios con la forma vieja
+//       del roster (password y nombreLegal dentro de `students`, como antes
+//       de este cambio), para poder probar migrar-roster/migrar-nombres-legales
+//       de punta a punta. Se niega a correr contra el proyecto real.
 //   listar <cursoId>
 //       Compara el roster contra las cuentas de Authentication existentes.
 //
@@ -57,14 +62,17 @@ import admin from 'firebase-admin';
 // Mismos valores (y mismas variables de entorno) que web/src/config.js:
 // projectId y databaseURL no son secretos, identifican el proyecto, no
 // otorgan permisos por si solos.
-const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'filosofia-gamificada';
+const PROJECT_REAL = 'filosofia-gamificada';
+const PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || PROJECT_REAL;
 const DATABASE_URL = process.env.VITE_FIREBASE_DATABASE_URL ||
     'https://filosofia-gamificada-default-rtdb.firebaseio.com';
 
-// Mismo calculo que web/src/services/auth.js (emailDocente/emailEstudiante):
-// si cambias uno, cambia el otro.
-const DOMINIO_DOCENTE = 'docentes.filosofo-en-formacion.app';
-const DOMINIO_ESTUDIANTE = 'alumnos.filosofo-en-formacion.app';
+// ".invalid" (RFC 2606/6761): nadie puede registrar ese dominio ni recibir
+// correo ahi, asi que un restablecimiento de clave por correo nunca le
+// llega a nadie. Mismo calculo que web/src/services/auth.js
+// (emailDocente/emailEstudiante): si cambias uno, cambia el otro.
+const DOMINIO_DOCENTE = 'docentes.filosofo-en-formacion.invalid';
+const DOMINIO_ESTUDIANTE = 'alumnos.filosofo-en-formacion.invalid';
 
 function slug(texto) {
     return String(texto).trim().toLowerCase()
@@ -202,6 +210,35 @@ async function migrarNombresLegales(cursoId) {
     console.log(movidos + ' nombre(s) legal(es) movido(s) de ' + entradas.length + ' estudiante(s) en ' + cursoId + '.');
 }
 
+// SOLO para ensayos: escribe un roster ficticio con password/nombreLegal
+// inline, tal como se veia ANTES de este cambio, para poder probar
+// migrar-roster/migrar-nombres-legales sin inventar 35 estudiantes a mano.
+// El guardia contra el proyecto real esta en el dispatcher, mas abajo.
+async function sembrarRoster(cursoId, cantidadArg) {
+    const cantidad = Number(cantidadArg) || 35;
+    const ref = admin.database().ref(cursoDbPath(cursoId, 'students'));
+    const existentes = (await ref.once('value')).val() || {};
+    const base = Array.isArray(existentes) ? existentes.length : Object.keys(existentes).length;
+    const nuevos = [];
+    for (let i = 0; i < cantidad; i++) {
+        const n = base + i + 1;
+        nuevos.push({
+            id: Date.now() + i,
+            nombre: 'Estudiante' + n,
+            nombreSocial: 'Estudiante' + n,
+            nombreLegal: 'Estudiante' + n + ' Apellido Ficticio',
+            genero: 'no-binario',
+            clase: 'C' + ((i % 5) + 1),
+            password: 'clave-ficticia-' + n,
+            xp: 0,
+            badges: ['iniciado']
+        });
+    }
+    const combinados = (Array.isArray(existentes) ? existentes : Object.values(existentes)).concat(nuevos);
+    await ref.set(combinados);
+    console.log('Sembrados ' + cantidad + ' estudiantes ficticios en ' + cursoDbPath(cursoId, 'students') + '.');
+}
+
 async function restablecerClave(args) {
     if (args[0] === 'docente') {
         const [, claveNueva] = args;
@@ -261,6 +298,7 @@ function ayuda() {
   restablecer-clave docente [clave-nueva]
   restablecer-clave <cursoId> "<nombreSocial>" [clave-nueva]
   migrar-nombres-legales <cursoId>
+  sembrar-roster <cursoId> [cantidad=35]   (solo ensayos; bloqueado contra el proyecto real)
   listar <cursoId>
 
 Si omites la clave se genera una al azar y queda en
@@ -278,6 +316,12 @@ if (!comando || comando === 'ayuda' || comando === '--help') {
     process.exit(comando ? 0 : 1);
 }
 
+if (comando === 'sembrar-roster' && PROJECT_ID === PROJECT_REAL) {
+    console.error('sembrar-roster esta bloqueado contra el proyecto real (' + PROJECT_REAL + ').');
+    console.error('Usa VITE_FIREBASE_PROJECT_ID para apuntar a un proyecto de pruebas (ver docs/ENSAYO.md).');
+    process.exit(1);
+}
+
 console.log('Proyecto: ' + PROJECT_ID + ' (' + DATABASE_URL + ')');
 
 admin.initializeApp({
@@ -292,6 +336,7 @@ const comandos = {
     'migrar-roster': () => migrarRoster(args[0]),
     'restablecer-clave': () => restablecerClave(args),
     'migrar-nombres-legales': () => migrarNombresLegales(args[0]),
+    'sembrar-roster': () => sembrarRoster(args[0], args[1]),
     listar: () => listar(args[0])
 };
 

@@ -10,7 +10,7 @@
     "publicar": "vite build --outDir ../app --emptyOutDir",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:rules": "firebase emulators:exec --only database --project demo-filosofia-gamificada-rules-test --config ../firebase.json \"vitest run --config vitest.rules.config.js\"",
+    "test:rules": "firebase emulators:exec --only database,auth --project demo-filosofia-gamificada-rules-test --config ../firebase.json \"vitest run --config vitest.rules.config.js\"",
     "e2e": "playwright test",
     "check": "npm run lint && npm run test && npm run build",
     "hash-password": "node scripts/hash-password.mjs",

@@ -62,10 +62,17 @@ export async function matchesSession(session, student) {
 // nada ahi). Se derivan de datos que ya existen para no depender de una
 // lectura previa a iniciar sesion.
 //
+// El dominio usa el TLD ".invalid" (reservado por RFC 2606 / RFC 6761):
+// nadie puede registrarlo ni delegarlo via DNS, nunca resuelve. Si fuera un
+// dominio real sin registrar (p. ej. ".app"), cualquiera podria registrarlo
+// y despues pedir un restablecimiento de clave desde la pantalla de login de
+// Firebase para CUALQUIER cuenta (incluida la docente) y recibir el correo
+// el mismo. Con ".invalid" ese correo nunca puede llegar a nadie.
+//
 // Mismo calculo que scripts/gestionar-cuentas.mjs: si cambias uno, cambia el
 // otro.
-const DOMINIO_DOCENTE = 'docentes.filosofo-en-formacion.app';
-const DOMINIO_ESTUDIANTE = 'alumnos.filosofo-en-formacion.app';
+const DOMINIO_DOCENTE = 'docentes.filosofo-en-formacion.invalid';
+const DOMINIO_ESTUDIANTE = 'alumnos.filosofo-en-formacion.invalid';
 
 function slug(texto) {
     return String(texto).trim().toLowerCase()
