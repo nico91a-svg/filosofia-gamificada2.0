@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "filosofia-gamificada-pruebas",
+    "pruebas": "filosofia-gamificada-pruebas",
+    "real": "filosofia-gamificada"
+  }
+}

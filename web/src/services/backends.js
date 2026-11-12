@@ -98,6 +98,11 @@ export function createLocalBackend(storage = window.localStorage, namespace = ''
 //   - al compilar:  VITE_DB_NAMESPACE=sandbox
 //   - al abrir:     https://.../app/?db=sandbox   (dura hasta cerrar la pestaña;
 //                   ?db=real vuelve a los datos reales)
+//
+// Solo se acepta el literal "sandbox" desde la URL (no cualquier texto): las
+// reglas de la base de datos (database.rules.json) solo abren ese namespace
+// ademas de las rutas reales, asi que aceptar otros no serviria para nada y
+// solo agregaria superficie.
 const NAMESPACE_KEY = 'filosofo_db_namespace';
 
 export function resolveNamespace(env = import.meta.env || {}) {
@@ -105,7 +110,7 @@ export function resolveNamespace(env = import.meta.env || {}) {
     try {
         const param = new URLSearchParams(window.location.search).get('db');
         if (param === 'real') sessionStorage.removeItem(NAMESPACE_KEY);
-        else if (param && /^[a-z0-9-]{1,30}$/.test(param)) sessionStorage.setItem(NAMESPACE_KEY, param);
+        else if (param === 'sandbox') sessionStorage.setItem(NAMESPACE_KEY, param);
         return sessionStorage.getItem(NAMESPACE_KEY) || '';
     } catch {
         return '';

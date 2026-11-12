@@ -1,0 +1,140 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "cursos_registro": {
+      ".read": true,
+      ".write": "auth != null && auth.token.role === 'docente'"
+    },
+
+    "students": {
+      ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+      ".write": "auth != null && auth.token.role === 'docente'",
+      "$studentId": {
+        "artefactos": {
+          ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')"
+        },
+        "vocabularioDescubierto": {
+          ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')"
+        }
+      }
+    },
+    "activities": {
+      ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+      ".write": "auth != null && auth.token.role === 'docente'"
+    },
+    "unidades": {
+      ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+      ".write": "auth != null && auth.token.role === 'docente'"
+    },
+    "position": {
+      ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+      ".write": "auth != null && auth.token.role === 'docente'"
+    },
+    "students_privado": {
+      ".read": "auth != null && auth.token.role === 'docente'",
+      ".write": "auth != null && auth.token.role === 'docente'"
+    },
+
+    "cursos": {
+      "$cursoId": {
+        "students": {
+          ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+          ".write": "auth != null && auth.token.role === 'docente'",
+          "$studentId": {
+            "artefactos": {
+              ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)"
+            },
+            "vocabularioDescubierto": {
+              ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)"
+            }
+          }
+        },
+        "activities": {
+          ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+          ".write": "auth != null && auth.token.role === 'docente'"
+        },
+        "unidades": {
+          ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+          ".write": "auth != null && auth.token.role === 'docente'"
+        },
+        "position": {
+          ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+          ".write": "auth != null && auth.token.role === 'docente'"
+        },
+        "students_privado": {
+          ".read": "auth != null && auth.token.role === 'docente'",
+          ".write": "auth != null && auth.token.role === 'docente'"
+        }
+      }
+    },
+
+    "sandbox": {
+      "cursos_registro": {
+        ".read": true,
+        ".write": "auth != null && auth.token.role === 'docente'"
+      },
+      "students": {
+        ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+        ".write": "auth != null && auth.token.role === 'docente'",
+        "$studentId": {
+          "artefactos": {
+            ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')"
+          },
+          "vocabularioDescubierto": {
+            ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')"
+          }
+        }
+      },
+      "activities": {
+        ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+        ".write": "auth != null && auth.token.role === 'docente'"
+      },
+      "unidades": {
+        ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+        ".write": "auth != null && auth.token.role === 'docente'"
+      },
+      "position": {
+        ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+        ".write": "auth != null && auth.token.role === 'docente'"
+      },
+      "students_privado": {
+        ".read": "auth != null && auth.token.role === 'docente'",
+        ".write": "auth != null && auth.token.role === 'docente'"
+      },
+      "cursos": {
+        "$cursoId": {
+          "students": {
+            ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+            ".write": "auth != null && auth.token.role === 'docente'",
+            "$studentId": {
+              "artefactos": {
+                ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)"
+              },
+              "vocabularioDescubierto": {
+                ".write": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)"
+              }
+            }
+          },
+          "activities": {
+            ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+            ".write": "auth != null && auth.token.role === 'docente'"
+          },
+          "unidades": {
+            ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+            ".write": "auth != null && auth.token.role === 'docente'"
+          },
+          "position": {
+            ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+            ".write": "auth != null && auth.token.role === 'docente'"
+          },
+          "students_privado": {
+            ".read": "auth != null && auth.token.role === 'docente'",
+            ".write": "auth != null && auth.token.role === 'docente'"
+          }
+        }
+      }
+    }
+  }
+}

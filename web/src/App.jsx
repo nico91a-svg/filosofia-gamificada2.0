@@ -2,10 +2,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { APP_CONFIG } from './config.js';
 import { createBackend } from './services/backends.js';
+import { createFirebaseAuthBackend } from './services/authBackend.js';
 import { useResource } from './services/useResource.js';
 import { useCourseData } from './services/useCourseData.js';
 import {
-    clearStudentSession, loadStudentSession, matchesSession, saveStudentSession, verifyProfesor
+    clearStudentSession, emailDocente, emailEstudiante, loadStudentSession, matchesSession,
+    saveStudentSession, verifyProfesor
 } from './services/auth.js';
 import {
     CURSOS_BASE, CURSO_ORIGINAL_ID, getCurso, loadCursoSelection, normalizeCursos, saveCursoSelection
@@ -21,6 +23,13 @@ const CURSOS_OPTIONS = { kind: 'value', normalize: normalizeCursos, fallback: CU
 
 export function App() {
     const backend = useMemo(() => createBackend(APP_CONFIG.firebase), []);
+    // Solo existe contra el backend 'firebase' (produccion). Con 'local'
+    // (desarrollo sin red, tests e2e) la verificacion sigue siendo la
+    // historica: ver handleLogin.
+    const authBackend = useMemo(
+        () => (backend.kind === 'firebase' ? createFirebaseAuthBackend(APP_CONFIG.firebase) : null),
+        [backend]
+    );
 
     // ---- cursos ----
     const cursosRes = useResource(backend, 'cursos_registro', CURSOS_OPTIONS);
@@ -39,17 +48,41 @@ export function App() {
         saveCursoSelection(id);
     }, []);
 
-    // ---- datos del curso activo ----
-    const data = useCourseData(backend, curso);
-
     // ---- sesion ----
     const [session, setSession] = useState(null); // { tipo: 'profesor' } | { tipo: 'estudiante', studentId }
     const [loginError, setLoginError] = useState('');
     const [restoreTried, setRestoreTried] = useState(false);
+    // Con 'firebase' la sesion la restaura Firebase Auth (persistida sola);
+    // con 'local' no hay nada que restaurar de esa forma, así que arranca en true.
+    const [authRestored, setAuthRestored] = useState(!authBackend);
 
-    // Restaurar la sesion recordada del estudiante cuando ya hay datos.
+    // ---- datos del curso activo ----
+    // Con 'firebase' no tiene sentido leer antes de autenticarse: las reglas
+    // de la base de datos lo van a rechazar. Con 'local' sigue leyendo siempre
+    // (no hay reglas que lo impidan, y la restauracion de sesion de abajo
+    // necesita los datos para comparar contra la clave recordada).
+    const dataEnabled = !authBackend || !!session;
+    const esDocente = !!session && session.tipo === 'profesor';
+    const data = useCourseData(backend, curso, dataEnabled, esDocente);
+
+    // Restaurar la sesion persistida por Firebase Authentication.
     useEffect(() => {
-        if (restoreTried || session || data.status === 'loading') return;
+        if (!authBackend || authRestored) return;
+        authBackend.restore().then((claims) => {
+            if (claims && claims.role === 'docente') {
+                setSession({ tipo: 'profesor' });
+            } else if (claims && claims.role === 'estudiante' && claims.studentId != null) {
+                setCursoId(claims.cursoId || CURSO_ORIGINAL_ID);
+                setSession({ tipo: 'estudiante', studentId: claims.studentId });
+            }
+            setAuthRestored(true);
+        });
+    }, [authBackend, authRestored]);
+
+    // Restaurar la sesion recordada del estudiante cuando ya hay datos (solo
+    // backend 'local': con 'firebase' la restaura el efecto de arriba).
+    useEffect(() => {
+        if (authBackend || restoreTried || session || data.status === 'loading') return;
         setRestoreTried(true);
         const saved = loadStudentSession();
         if (!saved || saved.cursoId !== curso.id) return;
@@ -58,11 +91,39 @@ export function App() {
             if (ok) setSession((current) => current || { tipo: 'estudiante', studentId: student.id });
             else if (data.status === 'live') clearStudentSession();
         });
-    }, [restoreTried, session, data.status, data.students, curso.id]);
+    }, [authBackend, restoreTried, session, data.status, data.students, curso.id]);
 
     const handleLogin = async (tipo, username, password) => {
         setLoginError('');
         try {
+            if (authBackend) {
+                const email = tipo === 'profesor' ? emailDocente(username) : emailEstudiante(curso.id, username);
+                let claims;
+                try {
+                    claims = await authBackend.signIn(email, password);
+                } catch {
+                    setLoginError(tipo === 'profesor'
+                        ? 'Usuario o contraseña incorrectos.'
+                        : 'Nombre o contraseña incorrectos. Revisa que elegiste tu curso.');
+                    return;
+                }
+                if (tipo === 'profesor' && claims.role === 'docente') {
+                    setSession({ tipo: 'profesor' });
+                    return;
+                }
+                if (tipo === 'estudiante' && claims.role === 'estudiante' &&
+                    claims.cursoId === curso.id && claims.studentId != null) {
+                    setSession({ tipo: 'estudiante', studentId: claims.studentId });
+                    return;
+                }
+                await authBackend.signOut();
+                setLoginError(tipo === 'profesor'
+                    ? 'Esta cuenta no tiene acceso de profesor.'
+                    : 'Nombre o contraseña incorrectos. Revisa que elegiste tu curso.');
+                return;
+            }
+
+            // Backend 'local' (desarrollo sin red, tests e2e): verificacion historica.
             if (tipo === 'profesor') {
                 if (await verifyProfesor(APP_CONFIG.profesor, username, password)) {
                     setSession({ tipo: 'profesor' });
@@ -89,6 +150,7 @@ export function App() {
     };
 
     const handleLogout = () => {
+        if (authBackend) authBackend.signOut();
         clearStudentSession();
         setSession(null);
         setLoginError('');
@@ -129,7 +191,18 @@ export function App() {
                 try {
                     const imported = JSON.parse(evt.target.result);
                     const toList = (v) => (Array.isArray(v) ? v : Object.values(v || {})).filter(Boolean);
-                    const students = imported.students ? toList(imported.students).map(normalizeStudent) : null;
+                    // Los respaldos (viejos o nuevos) pueden traer la clave en texto
+                    // plano y el nombre legal junto al resto: ninguno de los dos va al
+                    // registro publico del estudiante (ver docs/SEGURIDAD.md). El
+                    // nombre legal se reubica en students_privado; la clave se
+                    // descarta (las cuentas reales se gestionan aparte).
+                    const normalizados = imported.students ? toList(imported.students).map(normalizeStudent) : null;
+                    const students = normalizados && normalizados.map((s) => {
+                        const resto = { ...s };
+                        delete resto.password;
+                        delete resto.nombreLegal;
+                        return resto;
+                    });
                     const activities = imported.activities ? toList(imported.activities) : null;
                     const unidades = imported.unidades ? normalizeUnidades(imported.unidades) : null;
 
@@ -140,6 +213,11 @@ export function App() {
                         return;
                     }
                     if (students) data.setStudents(students);
+                    if (normalizados) {
+                        normalizados.forEach((s) => {
+                            if (s.nombreLegal && s.nombreLegal !== s.nombre) data.setNombreLegal(s.id, s.nombreLegal);
+                        });
+                    }
                     if (activities) data.setActivities(activities);
                     if (unidades && unidades.length) data.setUnidades(unidades);
                     if (imported.position && imported.position.unidad) {
@@ -163,13 +241,18 @@ export function App() {
     // El estudiante de la sesion ya no existe en este curso: volver al login.
     useEffect(() => {
         if (session && session.tipo === 'estudiante' && data.status !== 'loading' && !estudiante) {
-            if (data.status === 'live') clearStudentSession();
+            if (data.status === 'live') {
+                clearStudentSession();
+                if (authBackend) authBackend.signOut();
+            }
             setSession(null);
         }
-    }, [session, data.status, estudiante]);
+    }, [session, data.status, estudiante, authBackend]);
 
     let screen;
-    if (!session) {
+    if (!authRestored) {
+        screen = <SplashScreen mensaje="Preparando tu edición del juego" />;
+    } else if (!session) {
         screen = (
             <LoginScreen
                 cursos={cursos}
@@ -188,6 +271,7 @@ export function App() {
             <ProfesorDashboard
                 students={data.students}
                 setStudents={data.setStudents}
+                setNombreLegal={data.setNombreLegal}
                 activities={data.activities}
                 setActivities={data.setActivities}
                 unidades={data.unidades}
@@ -201,6 +285,7 @@ export function App() {
                 onLogout={handleLogout}
                 onExportData={handleExportData}
                 onImportData={handleImportData}
+                backendKind={backend.kind}
                 curso={curso}
                 cursos={cursos}
                 setCursos={setCursos}

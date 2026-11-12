@@ -15,18 +15,28 @@ export function normalizeStudent(s) {
     };
 }
 
+// `data.password` solo llega del backend 'local' (ver AddStudentModal); contra
+// 'firebase' no se recibe, y aqui se omite la clave por completo del registro
+// en vez de guardarla vacia (Firebase rechaza escribir `undefined`).
+//
+// El nombre legal NO viaja en el registro que devuelve esta funcion: vive
+// aparte, en `students_privado` (ver useCourseData.js / database.rules.json),
+// porque es lo unico que distingue a quien lee cualquier estudiante del
+// mismo curso de quien no deberia ver nombres legales. Quien llama a
+// crearEstudiante es responsable de guardar `data.nombreLegal` ahi.
 export function crearEstudiante(id, data) {
-    return normalizeStudent({
+    const estudiante = normalizeStudent({
         id,
         nombre: data.nombreSocial || data.nombre,
         nombreSocial: data.nombreSocial || data.nombre,
-        nombreLegal: data.nombreLegal || data.nombre,
         genero: data.genero || 'no-binario',
         clase: data.clase,
-        password: data.password,
+        ...(data.password ? { password: data.password } : {}),
         xp: 0,
         badges: ['iniciado']
     });
+    delete estudiante.nombreLegal;
+    return estudiante;
 }
 
 // Busca al estudiante que coincide con las credenciales del login.
