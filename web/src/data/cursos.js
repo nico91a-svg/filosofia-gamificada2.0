@@ -11,11 +11,13 @@
 import { DEFAULT_PACK_ID } from '../content/index.js';
 import { nextId } from '../domain/ids.js';
 
+// Gradientes re-tonados a la gama "mazmorra" (mas oscuros y menos saturados)
+// para que la personalizacion por curso no rompa la atmosfera pixel.
 export const PALETAS = [
-    { id: 'violeta', label: 'Violeta filosófico', card: 'linear-gradient(90deg,#6366f1,#8b5cf6,#d946ef)', navbar: 'linear-gradient(90deg,#4338ca,#7c3aed,#c026d3)' },
-    { id: 'esmeralda', label: 'Verde epistémico', card: 'linear-gradient(90deg,#10b981,#14b8a6,#06b6d4)', navbar: 'linear-gradient(90deg,#047857,#0f766e,#0891b2)' },
-    { id: 'ambar', label: 'Ámbar retórico', card: 'linear-gradient(90deg,#f59e0b,#f97316,#f43f5e)', navbar: 'linear-gradient(90deg,#b45309,#c2410c,#be123c)' },
-    { id: 'azul', label: 'Azul dialógico', card: 'linear-gradient(90deg,#0ea5e9,#3b82f6,#6366f1)', navbar: 'linear-gradient(90deg,#0369a1,#1d4ed8,#4338ca)' }
+    { id: 'violeta', label: 'Violeta filosófico', card: 'linear-gradient(90deg,#3b2f6e,#6b5fa3,#9d6bd8)', navbar: 'linear-gradient(90deg,#221a45,#2e2458,#4a3f7a)' },
+    { id: 'esmeralda', label: 'Verde epistémico', card: 'linear-gradient(90deg,#123a2e,#1c5a44,#3fb27f)', navbar: 'linear-gradient(90deg,#0b241c,#123a2e,#1c5a44)' },
+    { id: 'ambar', label: 'Ámbar retórico', card: 'linear-gradient(90deg,#7a4f24,#b07d18,#f2c33d)', navbar: 'linear-gradient(90deg,#3a2a06,#5c3d12,#8a6214)' },
+    { id: 'azul', label: 'Azul dialógico', card: 'linear-gradient(90deg,#1b2a5e,#2e4a8a,#5aa9f2)', navbar: 'linear-gradient(90deg,#0e1838,#1b2a5e,#2e4a8a)' }
 ];
 
 export function getPaleta(id) {

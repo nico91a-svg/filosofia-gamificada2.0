@@ -19,11 +19,11 @@ export const RadarChart = ({ student, darkMode }) => {
         };
     };
 
-    // Colores adaptados al modo
-    const gridColor = darkMode ? 'rgba(255,255,255,0.15)' : '#e0e0e0';
-    const fillColor = darkMode ? 'rgba(168, 85, 247, 0.35)' : 'rgba(139, 92, 246, 0.3)';
-    const strokeColor = darkMode ? '#C084FC' : '#8B5CF6';
-    const dotColor = darkMode ? '#E9D5FF' : '#8B5CF6';
+    // Colores adaptados al modo (gama mazmorra: arcane sobre piedra)
+    const gridColor = darkMode ? 'rgba(107,95,163,0.4)' : 'rgba(107,95,163,0.35)';
+    const fillColor = 'rgba(157, 107, 216, 0.35)';
+    const strokeColor = '#9d6bd8';
+    const dotColor = '#f2c33d';
 
     const levelLines = [];
     for (let level = 1; level <= levels; level++) {
@@ -54,11 +54,11 @@ export const RadarChart = ({ student, darkMode }) => {
         return (
             <g key={hab.id}>
                 <text x={point.x} y={point.y - 7} textAnchor="middle" dominantBaseline="middle"
-                    style={{ fontSize: '11px', fontWeight: '600', fill: darkMode ? '#E9D5FF' : '#374151' }}>
+                    style={{ fontSize: '11px', fontWeight: '600', fill: '#e8d9a0' }}>
                     {hab.emoji} {hab.shortName}
                 </text>
                 <text x={point.x} y={point.y + 7} textAnchor="middle" dominantBaseline="middle"
-                    style={{ fontSize: '9px', fill: darkMode ? '#A78BFA' : '#6B7280' }}>
+                    style={{ fontSize: '9px', fill: '#9d6bd8' }}>
                     Nv.{nivelH} ({pts}p)
                 </text>
             </g>

@@ -8,6 +8,9 @@ import { RUBRICS_HABILIDADES, TIPOS_ACTIVIDAD } from '../../domain/tipos-activid
 import { RadarChart } from '../shared/RadarChart.jsx';
 import { getMisionesDeClase } from '../../domain/misiones.js';
 import { getNivel } from '../../domain/niveles.js';
+import { PixelSprite } from '../pixel/PixelSprite.jsx';
+import { GEM_SPRITE, chestOpenSprite, chestSprite, gemColor } from '../pixel/sprites.js';
+import { skillIcon } from '../pixel/icons.js';
 
 // Dashboard del Estudiante - Vista gamificada completa
 // Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
@@ -126,7 +129,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
         var stars = [];
         for (var i = 1; i <= 5; i++) {
             stars.push(
-                <span key={i} className={i <= nivel ? 'text-yellow-400' : 'text-gray-300'}>
+                <span key={i} className={i <= nivel ? 'text-gold' : 'text-gray-300'}>
                     {i <= nivel ? '\u2605' : '\u2606'}
                 </span>
             );
@@ -260,7 +263,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
         <div className="space-y-6">
             {/* Progreso Global del Curso */}
             {cursoUnidadObj && (
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-cyan-400/30">
+                <div className="bg-dungeon-600 backdrop-blur-md rounded-2xl p-4 border border-cyan-400/30">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-2xl">{cursoUnidadObj.emoji}</span>
                         <div className="flex-1 min-w-0">
@@ -269,23 +272,23 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         </div>
                         <div className="text-right shrink-0">
                             <p className="text-cyan-400 font-bold text-lg">{progresoCurso}%</p>
-                            <p className="text-purple-300 text-xs">del curso</p>
+                            <p className="text-arcane text-xs">del curso</p>
                         </div>
                     </div>
-                    <div className="w-full bg-purple-900/50 rounded-full h-2.5">
-                        <div className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2.5 rounded-full transition-all duration-700"
+                    <div className="w-full bg-stone-dark border border-stone h-2.5">
+                        <div className="bg-emerald h-2.5 transition-all duration-700"
                             style={{ width: progresoCurso + '%' }}></div>
                     </div>
                 </div>
             )}
 
             {/* Misiones de Clase */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+            <div className="panel-pixel p-5">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-white font-bold flex items-center gap-2">
                         <span className="text-xl">🎯</span> Misiones de Clase
                     </h3>
-                    <span className="bg-yellow-500/20 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="bg-yellow-500/20 text-gold text-xs font-bold px-3 py-1 rounded-full">
                         {misionesCompletadas}/{misiones.length} completadas
                     </span>
                 </div>
@@ -300,7 +303,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         ? 'bg-green-500/15 border-green-400/30'
                                         : esEntreClases
                                             ? 'bg-orange-500/10 border-orange-400/20'
-                                            : 'bg-white/5 border-white/10'
+                                            : 'bg-dungeon-800 border-stone-dark'
                                 }`}>
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{completada ? '✅' : mision.emoji}</span>
@@ -317,7 +320,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                 {esEntreClases ? '📋 Entre clases' : '🏫 En clase'}
                                             </span>
                                         </div>
-                                        <p className="text-purple-300 text-xs">{mision.descripcion}</p>
+                                        <p className="text-arcane text-xs">{mision.descripcion}</p>
                                         {mision.verificacion === 'manual' && !completada && (
                                             <p className="text-orange-300/70 text-xs mt-1 italic">El profesor verificara tu avance</p>
                                         )}
@@ -326,7 +329,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         {completada ? (
                                             <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-lg font-bold">Lograda</span>
                                         ) : (
-                                            <span className="bg-white/10 text-purple-300 text-xs px-2 py-1 rounded-lg">{mision.recompensa}</span>
+                                            <span className="bg-dungeon-600 text-arcane text-xs px-2 py-1 rounded-lg">{mision.recompensa}</span>
                                         )}
                                     </div>
                                 </div>
@@ -337,14 +340,14 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             </div>
 
             {/* Avatar Card */}
-            <div className={`bg-gradient-to-br ${avatar.bg} rounded-2xl p-6 text-center border border-white/20 relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-white/5"></div>
+            <div className={`bg-gradient-to-br ${avatar.bg} rounded-2xl p-6 text-center border border-stone-dark relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-dungeon-800"></div>
                 <div className="relative">
                     <div className="text-7xl mb-2 drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>
                         {avatar.emoji}
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-1">{currentUser.nombreSocial || currentUser.nombre}</h2>
-                    <p className="text-white/80 text-sm font-semibold">{avatar.titulo}</p>
+                    <p className="text-parchment/80 text-sm font-semibold">{avatar.titulo}</p>
                     <div className="flex items-center justify-center gap-2 mt-2">
                         <span className={`inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${clase.color}`}>
                             {clase.emoji} {clase.nombre}
@@ -357,7 +360,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             </div>
 
             {/* Evolucion del Avatar */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+            <div className="panel-pixel p-5">
                 <h3 className="text-white font-bold mb-3 text-center">Evolucion del Avatar</h3>
                 <div className="flex items-center gap-1 overflow-x-auto pb-2">
                     {[1,2,3,4,5,6,7,8,9,10].map(n => {
@@ -367,7 +370,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         return (
                             <div key={n} className={`flex flex-col items-center min-w-[60px] p-2 rounded-xl transition-all ${
                                 isCurrent ? 'bg-yellow-500/30 ring-2 ring-yellow-400' :
-                                isReached ? 'bg-white/10' : 'opacity-30'
+                                isReached ? 'bg-dungeon-600' : 'opacity-30'
                             }`}>
                                 <span className={`text-2xl ${!isReached ? 'grayscale' : ''}`}>{isReached ? av.emoji : '🔒'}</span>
                                 <span className="text-white text-xs font-bold mt-1">Nv.{n}</span>
@@ -378,48 +381,51 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             </div>
 
             {/* Nivel y XP */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+            <div className="panel-pixel p-6">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <span className="text-purple-200 text-sm">Nivel {nivel.nivel}</span>
+                        <span className="text-parchment/80 text-sm">Nivel {nivel.nivel}</span>
                         <h3 className="text-xl font-bold text-white">{nivel.titulo}</h3>
                     </div>
                     <div className="text-right">
-                        <span className="text-3xl font-bold text-yellow-400">{currentUser.xp || 0}</span>
-                        <span className="text-purple-200 text-sm block">XP Total</span>
+                        <span className="text-3xl font-bold text-gold">{currentUser.xp || 0}</span>
+                        <span className="text-parchment/80 text-sm block">XP Total</span>
                     </div>
                 </div>
-                <div className="w-full bg-purple-900/50 rounded-full h-4 mb-2">
-                    <div className="bg-gradient-to-r from-yellow-400 to-orange-500 h-4 rounded-full transition-all duration-500"
+                <div className="w-full bg-stone-dark border border-stone h-4 mb-2">
+                    <div className="bg-gold h-4 transition-all duration-500"
                         style={{ width: xpProgress + '%' }}></div>
                 </div>
-                <p className="text-purple-300 text-sm text-center">
+                <p className="text-arcane text-sm text-center">
                     {nivel.nivel < 10 ? (nivel.xp_max - (currentUser.xp || 0)) + ' XP para siguiente nivel' : 'Nivel maximo alcanzado!'}
                 </p>
             </div>
 
             {/* Radar de habilidades */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+            <div className="panel-pixel p-6">
                 <h3 className="text-lg font-bold text-white mb-4 text-center">Perfil de Habilidades</h3>
                 <RadarChart student={currentUser} darkMode={true} />
             </div>
 
             {/* Grid de habilidades */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+            <div className="panel-pixel p-6">
                 <h3 className="text-lg font-bold text-white mb-4">Habilidades Filosoficas</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {HABILIDADES.map(hab => {
                         var pts = (currentUser.habilidades || {})[hab.id] || 0;
                         var habNivel = getHabilidadNivel(pts);
                         var habNivelInfo = HABILIDAD_NIVELES.find(n => n.nivel === habNivel);
+                        var icono = skillIcon(hab.id);
                         return (
-                            <div key={hab.id} className="bg-white/10 rounded-xl p-3 text-center">
-                                <div className="text-2xl mb-1">{hab.emoji}</div>
+                            <div key={hab.id} className="bg-dungeon-800 border-2 border-stone-dark p-3 text-center">
+                                <div className="mb-1 flex justify-center">
+                                    {icono ? <PixelSprite sprite={icono} size={28} /> : <span className="text-2xl">{hab.emoji}</span>}
+                                </div>
                                 <p className="text-white text-sm font-semibold">{hab.shortName}</p>
                                 <div className="flex justify-center gap-0.5 my-1">
                                     {renderStars(habNivel)}
                                 </div>
-                                <p className="text-purple-300 text-xs">{habNivelInfo ? habNivelInfo.nombre : ''}</p>
+                                <p className="text-arcane text-xs">{habNivelInfo ? habNivelInfo.nombre : ''}</p>
                                 <p className="text-purple-400 text-xs">{pts} pts</p>
                             </div>
                         );
@@ -428,10 +434,10 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             </div>
 
             {/* Badges */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+            <div className="panel-pixel p-6">
                 <h3 className="text-lg font-bold text-white mb-4">Insignias Obtenidas</h3>
                 {(currentUser.badges || []).length === 0 ? (
-                    <p className="text-purple-300 text-center text-sm">Aun no tienes insignias. Sigue participando para ganarlas.</p>
+                    <p className="text-arcane text-center text-sm">Aun no tienes insignias. Sigue participando para ganarlas.</p>
                 ) : (
                     <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                         {(currentUser.badges || []).map(bid => {
@@ -441,7 +447,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 <div key={bid} className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-3 text-center">
                                     <div className="text-3xl mb-1">{badge.icon}</div>
                                     <p className="text-white text-xs font-semibold">{badge.nombre}</p>
-                                    <p className="text-purple-300 text-xs mt-1">{badge.descripcion}</p>
+                                    <p className="text-arcane text-xs mt-1">{badge.descripcion}</p>
                                 </div>
                             );
                         })}
@@ -472,10 +478,10 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
         return (
             <div className="space-y-4">
                 {/* Titulo del mapa */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 text-center">
+                <div className="panel-pixel p-5 text-center">
                     <div className="text-4xl mb-2">🗺️</div>
                     <h3 className="text-xl font-bold text-white">El Camino del Filosofo</h3>
-                    <p className="text-purple-300 text-sm">Tu viaje a traves del saber filosofico</p>
+                    <p className="text-arcane text-sm">Tu viaje a traves del saber filosofico</p>
                     <div className="flex items-center justify-center gap-2 mt-3">
                         <span className="text-2xl">{avatar.emoji}</span>
                         <span className="text-white font-semibold">{avatar.titulo}</span>
@@ -527,7 +533,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         <h4 className="text-white font-bold">{unidad.nombre}</h4>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-white/60 text-xs">{terreno.terrain}</span>
+                                        <span className="text-arcane/80 text-xs">{terreno.terrain}</span>
                                         {isCurrent && (
                                             <span className="bg-yellow-500 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full animate-bounce">ESTAS AQUI</span>
                                         )}
@@ -550,19 +556,19 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                 title={cl.titulo}>
                                                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-lg border-2 transition-all ${
                                                     participoYo ? `${terreno.path} border-white text-white shadow-lg` :
-                                                    claseAlcanzada ? `${terreno.path}/60 border-white/50 text-white/70` :
+                                                    claseAlcanzada ? `${terreno.path}/60 border-white/50 text-parchment/70` :
                                                     esClaseActual ? 'bg-yellow-500/30 border-yellow-400 animate-pulse' :
                                                     'bg-gray-700/50 border-gray-600 opacity-50'
                                                 }`}>
                                                     {participoYo ? cl.emoji : claseAlcanzada ? '✓' : esClaseActual ? '👣' : (ci + 1)}
                                                 </div>
                                                 <span className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-center leading-tight max-w-[40px] sm:max-w-[52px] ${
-                                                    participoYo ? 'text-white' : claseAlcanzada ? 'text-white/60' : 'text-gray-400'
+                                                    participoYo ? 'text-white' : claseAlcanzada ? 'text-arcane/80' : 'text-gray-400'
                                                 }`}>
                                                     {claseAlcanzada || participoYo ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'C' + cl.num}
                                                 </span>
                                                 {claseAlcanzada && !participoYo && (
-                                                    <span className="text-[8px] text-yellow-300/70 mt-0.5">sin actividad</span>
+                                                    <span className="text-[8px] text-gold-light/70 mt-0.5">sin actividad</span>
                                                 )}
                                             </div>
                                             {ci < unidad.clases.length - 1 && (
@@ -576,10 +582,10 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                             {/* Barra de progreso */}
                             <div className="mb-2">
                                 <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-white/70">Progreso</span>
+                                    <span className="text-parchment/70">Progreso</span>
                                     <span className="text-white font-bold">{clasesAlcanzadas}/{unidad.clases.length} clases</span>
                                     {misClasesConActividad > 0 && misClasesConActividad < clasesAlcanzadas && (
-                                        <span className="text-yellow-300 text-xs">(participaste en {misClasesConActividad})</span>
+                                        <span className="text-gold-light text-xs">(participaste en {misClasesConActividad})</span>
                                     )}
                                 </div>
                                 <div className="w-full bg-black/30 rounded-full h-3">
@@ -592,7 +598,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                             {vocabTotal > 0 && (
                                 <div className="flex items-center gap-2 mt-2">
                                     <span className="text-sm">📚</span>
-                                    <span className="text-white/70 text-xs">Vocabulario: {vocabFound}/{vocabTotal}</span>
+                                    <span className="text-parchment/70 text-xs">Vocabulario: {vocabFound}/{vocabTotal}</span>
                                     <div className="flex-1 bg-black/30 rounded-full h-2">
                                         <div className="bg-cyan-400 h-2 rounded-full transition-all"
                                             style={{ width: (vocabFound / vocabTotal * 100) + '%' }}></div>
@@ -606,7 +612,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                     <span className="text-lg">🎯</span>
                                     <div className="flex-1">
                                         <p className="text-white text-xs font-semibold">{unidad.evaluacionSumativa.nombre}</p>
-                                        <p className="text-white/50 text-xs">{unidad.evaluacionSumativa.descripcion}</p>
+                                        <p className="text-arcane/70 text-xs">{unidad.evaluacionSumativa.descripcion}</p>
                                     </div>
                                 </div>
                             )}
@@ -627,36 +633,36 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             'from-yellow-500/30 to-amber-500/30 border-yellow-400/50',
             'from-gray-400/20 to-gray-500/20 border-gray-400/50',
             'from-orange-500/20 to-amber-600/20 border-orange-400/50',
-            'from-white/5 to-white/10 border-white/20',
-            'from-white/5 to-white/10 border-white/20'
+            'from-white/5 to-white/10 border-stone-dark',
+            'from-white/5 to-white/10 border-stone-dark'
         ];
 
         return (
             <div className="space-y-4">
                 {/* Tu posicion */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center">
+                <div className="panel-pixel p-6 text-center">
                     <div className="text-5xl mb-2">🏆</div>
                     <h3 className="text-xl font-bold text-white">Tu Posicion</h3>
                     <div className="flex items-center justify-center gap-4 mt-3">
                         <div>
-                            <p className="text-4xl font-bold text-yellow-400">#{rankPosition}</p>
-                            <p className="text-purple-300 text-sm">de {totalStudents}</p>
+                            <p className="text-4xl font-bold text-gold">#{rankPosition}</p>
+                            <p className="text-arcane text-sm">de {totalStudents}</p>
                         </div>
-                        <div className="h-12 w-px bg-white/20"></div>
+                        <div className="h-12 w-px bg-stone"></div>
                         <div>
                             <p className="text-4xl font-bold text-cyan-400">{currentUser.xp || 0}</p>
-                            <p className="text-purple-300 text-sm">XP Total</p>
+                            <p className="text-arcane text-sm">XP Total</p>
                         </div>
-                        <div className="h-12 w-px bg-white/20"></div>
+                        <div className="h-12 w-px bg-stone"></div>
                         <div>
                             <p className="text-4xl">{avatar.emoji}</p>
-                            <p className="text-purple-300 text-sm">Nv.{nivel.nivel}</p>
+                            <p className="text-arcane text-sm">Nv.{nivel.nivel}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Top 5 Leaderboard */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                <div className="panel-pixel p-5">
                     <h3 className="text-white font-bold mb-4 text-center">Top 5 Filosofos</h3>
                     <div className="space-y-3">
                         {top5.map((student, idx) => {
@@ -674,7 +680,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         <span className="text-2xl">{sAvatar.emoji}</span>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <p className={`font-bold text-sm truncate ${isMe ? 'text-yellow-400' : 'text-white'}`}>
+                                                <p className={`font-bold text-sm truncate ${isMe ? 'text-gold' : 'text-white'}`}>
                                                     {student.nombreSocial || student.nombre} {isMe ? '(Tu)' : ''}
                                                 </p>
                                                 {sClase && (
@@ -683,11 +689,11 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-white/60 text-xs">Nv.{sNivel.nivel} {sNivel.titulo}</p>
+                                            <p className="text-arcane/80 text-xs">Nv.{sNivel.nivel} {sNivel.titulo}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-yellow-400 font-bold text-lg">{student.xp || 0}</p>
-                                            <p className="text-white/50 text-xs">XP</p>
+                                            <p className="text-gold font-bold text-lg">{student.xp || 0}</p>
+                                            <p className="text-arcane/70 text-xs">XP</p>
                                         </div>
                                     </div>
                                 </div>
@@ -701,15 +707,15 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                             <div className="text-center text-white/30 my-2">• • •</div>
                             <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-xl p-4 border-2 border-yellow-400/30 ring-2 ring-yellow-400/30">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-xl font-bold text-white/60">#{rankPosition}</span>
+                                    <span className="text-xl font-bold text-arcane/80">#{rankPosition}</span>
                                     <span className="text-2xl">{avatar.emoji}</span>
                                     <div className="flex-1">
-                                        <p className="font-bold text-sm text-yellow-400">{currentUser.nombreSocial || currentUser.nombre} (Tu)</p>
-                                        <p className="text-white/60 text-xs">Nv.{nivel.nivel} {nivel.titulo}</p>
+                                        <p className="font-bold text-sm text-gold">{currentUser.nombreSocial || currentUser.nombre} (Tu)</p>
+                                        <p className="text-arcane/80 text-xs">Nv.{nivel.nivel} {nivel.titulo}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-yellow-400 font-bold text-lg">{currentUser.xp || 0}</p>
-                                        <p className="text-white/50 text-xs">XP</p>
+                                        <p className="text-gold font-bold text-lg">{currentUser.xp || 0}</p>
+                                        <p className="text-arcane/70 text-xs">XP</p>
                                     </div>
                                 </div>
                             </div>
@@ -718,25 +724,25 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 </div>
 
                 {/* Stats comparativos */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                <div className="panel-pixel p-5">
                     <h3 className="text-white font-bold mb-3">Tu desempeno vs el curso</h3>
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-white/5 rounded-xl p-3 text-center">
-                            <p className="text-purple-300 text-xs">Tu XP</p>
-                            <p className="text-xl font-bold text-yellow-400">{currentUser.xp || 0}</p>
+                        <div className="bg-dungeon-800 border-2 border-stone-dark p-3 text-center">
+                            <p className="text-arcane text-xs">Tu XP</p>
+                            <p className="text-xl font-bold text-gold">{currentUser.xp || 0}</p>
                         </div>
-                        <div className="bg-white/5 rounded-xl p-3 text-center">
-                            <p className="text-purple-300 text-xs">Promedio curso</p>
+                        <div className="bg-dungeon-800 border-2 border-stone-dark p-3 text-center">
+                            <p className="text-arcane text-xs">Promedio curso</p>
                             <p className="text-xl font-bold text-cyan-400">
                                 {totalStudents > 0 ? Math.round(sortedStudents.reduce((s, st) => s + (st.xp || 0), 0) / totalStudents) : 0}
                             </p>
                         </div>
-                        <div className="bg-white/5 rounded-xl p-3 text-center">
-                            <p className="text-purple-300 text-xs">Tus actividades</p>
+                        <div className="bg-dungeon-800 border-2 border-stone-dark p-3 text-center">
+                            <p className="text-arcane text-xs">Tus actividades</p>
                             <p className="text-xl font-bold text-green-400">{myActivities.length}</p>
                         </div>
-                        <div className="bg-white/5 rounded-xl p-3 text-center">
-                            <p className="text-purple-300 text-xs">Tus insignias</p>
+                        <div className="bg-dungeon-800 border-2 border-stone-dark p-3 text-center">
+                            <p className="text-arcane text-xs">Tus insignias</p>
                             <p className="text-xl font-bold text-pink-400">{(currentUser.badges || []).length}</p>
                         </div>
                     </div>
@@ -758,13 +764,13 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
         return (
             <div className="space-y-4">
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 text-center">
+                <div className="panel-pixel p-5 text-center">
                     <div className="text-4xl mb-2">📚</div>
                     <h3 className="text-xl font-bold text-white">Lexico Filosofico</h3>
                     <p className="text-3xl font-bold text-cyan-400 mt-1">{totalDescubiertos}/{totalTerminos}</p>
-                    <p className="text-purple-300 text-sm">terminos descubiertos</p>
-                    <div className="w-full bg-purple-900/50 rounded-full h-3 mt-3 max-w-xs mx-auto">
-                        <div className="bg-gradient-to-r from-cyan-400 to-blue-500 h-3 rounded-full transition-all"
+                    <p className="text-arcane text-sm">terminos descubiertos</p>
+                    <div className="w-full bg-stone-dark border border-stone h-3 mt-3 max-w-xs mx-auto">
+                        <div className="bg-emerald h-3 transition-all"
                             style={{ width: (totalTerminos > 0 ? (totalDescubiertos / totalTerminos) * 100 : 0) + '%' }}></div>
                     </div>
                 </div>
@@ -776,9 +782,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                     var isOpen = expandedUnidades[unidad.id] !== false;
 
                     return (
-                        <div key={unidad.id} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
+                        <div key={unidad.id} className="panel-pixel overflow-hidden">
                             <button onClick={() => toggleUnidad(unidad.id)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                                className="w-full flex items-center justify-between p-4 hover:bg-dungeon-600/60 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{unidad.emoji}</span>
                                     <div className="text-left">
@@ -809,7 +815,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                         {discovered ? v.termino : '???'}
                                                     </span>
                                                 </div>
-                                                <p className={`text-xs leading-relaxed ${discovered ? 'text-purple-200' : 'text-gray-600'}`}>
+                                                <p className={`text-xs leading-relaxed ${discovered ? 'text-parchment/80' : 'text-gray-600'}`}>
                                                     {discovered ? v.definicion : 'Termino no descubierto aun. Sigue explorando...'}
                                                 </p>
                                             </div>
@@ -845,22 +851,22 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
         return (
             <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center">
-                        <p className="text-2xl font-bold text-yellow-400">{myActivities.length}</p>
-                        <p className="text-purple-300 text-xs">Actividades</p>
+                    <div className="panel-pixel p-4 text-center">
+                        <p className="text-2xl font-bold text-gold">{myActivities.length}</p>
+                        <p className="text-arcane text-xs">Actividades</p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center">
+                    <div className="panel-pixel p-4 text-center">
                         <p className="text-2xl font-bold text-green-400">{totalXpActividades}</p>
-                        <p className="text-purple-300 text-xs">XP Ganado</p>
+                        <p className="text-arcane text-xs">XP Ganado</p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center">
+                    <div className="panel-pixel p-4 text-center">
                         <p className="text-2xl">{strongestHab ? strongestHab.emoji : '---'}</p>
-                        <p className="text-purple-300 text-xs">{strongestHab ? strongestHab.shortName : 'N/A'}</p>
+                        <p className="text-arcane text-xs">{strongestHab ? strongestHab.shortName : 'N/A'}</p>
                     </div>
                 </div>
 
                 {Object.keys(tipoCount).length > 0 && (
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                    <div className="panel-pixel p-5">
                         <h3 className="text-white font-bold mb-3">Actividades por Tipo</h3>
                         <div className="space-y-2">
                             {Object.entries(tipoCount).sort((a, b) => b[1] - a[1]).map(([tipo, count]) => {
@@ -869,9 +875,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 return (
                                     <div key={tipo} className="flex items-center gap-2">
                                         <span className="text-lg w-8 text-center">{tipoInfo.icon}</span>
-                                        <span className="text-purple-200 text-xs w-24 truncate">{tipoInfo.nombre}</span>
-                                        <div className="flex-1 bg-purple-900/50 rounded-full h-5 relative">
-                                            <div className="bg-gradient-to-r from-indigo-400 to-purple-500 h-5 rounded-full transition-all flex items-center justify-end pr-2"
+                                        <span className="text-parchment/80 text-xs w-24 truncate">{tipoInfo.nombre}</span>
+                                        <div className="flex-1 bg-stone-dark border border-stone h-5 relative">
+                                            <div className="bg-arcane h-5 transition-all flex items-center justify-end pr-2"
                                                 style={{ width: Math.max(pct, 10) + '%' }}>
                                                 <span className="text-white text-xs font-bold">{count}</span>
                                             </div>
@@ -883,10 +889,10 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                     </div>
                 )}
 
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                <div className="panel-pixel p-5">
                     <h3 className="text-white font-bold mb-3">Actividades Recientes</h3>
                     {myActivities.length === 0 ? (
-                        <p className="text-purple-300 text-center text-sm">No tienes actividades registradas aun.</p>
+                        <p className="text-arcane text-center text-sm">No tienes actividades registradas aun.</p>
                     ) : (
                         <div className="space-y-2 max-h-[500px] overflow-y-auto">
                             {myActivities.slice(0, 20).map((act, i) => {
@@ -894,17 +900,17 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 var unidad = unidadesData.find(u => u.id === act.unidadId);
                                 var habsGanadas = act.habilidades || (RUBRICS_HABILIDADES[act.tipo] || {});
                                 return (
-                                    <div key={i} className="bg-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors">
+                                    <div key={i} className="bg-dungeon-800 rounded-xl p-3 hover:bg-dungeon-600 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <span className="text-2xl">{tipoInfo.icon}</span>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-white text-sm font-semibold truncate">{tipoInfo.nombre}</p>
-                                                <p className="text-purple-300 text-xs">
+                                                <p className="text-arcane text-xs">
                                                     {unidad ? unidad.emoji + ' ' + unidad.nombre : ''}{(act.date || act.fecha) ? ' - ' + new Date(act.date || act.fecha).toLocaleDateString() : ''}
                                                 </p>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <span className="bg-yellow-500/20 text-yellow-400 text-sm font-bold px-2 py-1 rounded-lg">
+                                                <span className="bg-yellow-500/20 text-gold text-sm font-bold px-2 py-1 rounded-lg">
                                                     +{act.xp || 0} XP
                                                 </span>
                                                 <p className="text-purple-400 text-xs mt-1 capitalize">{act.nivel || ''}</p>
@@ -917,7 +923,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                     var hab = HABILIDADES.find(h => h.id === habId);
                                                     if (!hab || pts <= 0) return null;
                                                     return (
-                                                        <span key={habId} className="bg-white/10 text-purple-200 text-xs px-2 py-0.5 rounded-full">
+                                                        <span key={habId} className="bg-dungeon-600 text-parchment/80 text-xs px-2 py-0.5 rounded-full">
                                                             {hab.emoji} +{pts}
                                                         </span>
                                                     );
@@ -974,16 +980,16 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
         return (
             <div className="space-y-4">
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 text-center">
+                <div className="panel-pixel p-5 text-center">
                     <div className="text-4xl mb-2">🏺</div>
                     <h3 className="text-xl font-bold text-white">Inventario de Artefactos</h3>
-                    <p className="text-purple-300 text-sm">{artefactosNormales.length} artefacto{artefactosNormales.length !== 1 ? 's' : ''} y {cofres.length} cofre{cofres.length !== 1 ? 's' : ''}</p>
+                    <p className="text-arcane text-sm">{artefactosNormales.length} artefacto{artefactosNormales.length !== 1 ? 's' : ''} y {cofres.length} cofre{cofres.length !== 1 ? 's' : ''}</p>
                 </div>
 
                 {artefactosNormales.length === 0 && cofres.length === 0 ? (
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
+                    <div className="bg-dungeon-600 backdrop-blur-md rounded-2xl p-8 border border-stone-dark text-center">
                         <div className="text-5xl mb-3 opacity-50">🔮</div>
-                        <p className="text-purple-300">No tienes artefactos aun.</p>
+                        <p className="text-arcane">No tienes artefactos aun.</p>
                         <p className="text-purple-400 text-sm mt-1">Completa actividades y logros para obtener artefactos filosoficos.</p>
                     </div>
                 ) : (
@@ -991,20 +997,20 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                     {/* Cofres sin abrir */}
                     {cofres.length > 0 && (
                         <div className="mb-4">
-                            <h4 className="text-yellow-300 font-bold text-sm mb-2">🎁 Cofres sin abrir ({cofres.length})</h4>
+                            <h4 className="text-gold-light font-bold text-sm mb-2">🎁 Cofres sin abrir ({cofres.length})</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {cofres.map((cofre, i) => (
                                     <div key={'cofre-' + i}
-                                        className="rounded-2xl p-4 border-2 border-yellow-400/50 bg-yellow-500/10">
+                                        className="panel-pixel-dark p-4 !border-gold-dark">
                                         <div className="flex items-center gap-3">
-                                            <span className="text-4xl">{cofre.emoji}</span>
+                                            <PixelSprite sprite={chestSprite(cofre.tipoCofre)} size={48} />
                                             <div className="flex-1">
-                                                <h4 className="text-white font-bold text-sm">{cofre.nombre}</h4>
-                                                <p className="text-yellow-200 text-xs">Contiene un artefacto misterioso</p>
+                                                <h4 className="text-parchment font-bold text-sm">{cofre.nombre}</h4>
+                                                <p className="text-gold-light text-xs">Contiene un artefacto misterioso</p>
                                             </div>
                                         </div>
                                         <button onClick={() => handleOpenChest(cofre._idx, cofre.tipoCofre)}
-                                            className="mt-3 w-full bg-yellow-500/30 hover:bg-yellow-500/50 border border-yellow-400/50 text-yellow-200 hover:text-white py-2 rounded-xl text-sm font-bold transition-all">
+                                            className="btn-pixel-primary mt-3 w-full py-2 text-sm">
                                             🔓 Abrir Cofre
                                         </button>
                                     </div>
@@ -1015,24 +1021,21 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                     {artefactosNormales.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {artefactosNormales.map((art, i) => {
-                            var rarezaClasses = art.rareza === 'legendario'
-                                ? 'border-yellow-400/50 bg-yellow-500/10'
-                                : art.rareza === 'epico'
-                                    ? 'border-purple-400/50 bg-purple-500/10'
-                                    : art.rareza === 'raro'
-                                        ? 'border-blue-400/50 bg-blue-500/10'
-                                        : 'border-gray-400/50 bg-gray-500/10';
-                            var rarezaLabel = art.rareza === 'legendario' ? '⭐ Legendario'
-                                : art.rareza === 'epico' ? '💜 Epico'
-                                : art.rareza === 'raro' ? '💙 Raro'
-                                : '⚪ Comun';
+                            var rarezaLabel = art.rareza === 'legendario' ? 'Legendario'
+                                : art.rareza === 'epico' ? 'Epico'
+                                : art.rareza === 'raro' ? 'Raro'
+                                : 'Comun';
                             var fromStudent = art.regaladoPor ? (students || []).find(s => s.id === art.regaladoPor) : null;
 
                             return (
                                 <div key={i}
-                                    className={`rounded-2xl p-4 border-2 ${rarezaClasses} ${art.usado ? 'opacity-60' : ''} transition-all`}>
+                                    style={{ borderColor: gemColor(art.rareza) }}
+                                    className={`panel-pixel-dark p-4 ${art.usado ? 'opacity-60' : ''} transition-all`}>
                                     <div className="flex items-start gap-3">
-                                        <span className="text-4xl">{art.emoji}</span>
+                                        <div className="relative shrink-0">
+                                            <PixelSprite sprite={GEM_SPRITE} size={44} tint={gemColor(art.rareza)} tintKey="c" />
+                                            <span className="absolute -bottom-1 -right-1 text-base">{art.emoji}</span>
+                                        </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h4 className="text-white font-bold text-sm">{art.nombre}</h4>
@@ -1042,8 +1045,8 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                     <span className="bg-green-500/30 text-green-400 text-xs px-2 py-0.5 rounded-full">Disponible</span>
                                                 )}
                                             </div>
-                                            <p className="text-purple-200 text-xs mb-1">{art.efecto}</p>
-                                            <p className="text-xs">{rarezaLabel}</p>
+                                            <p className="text-parchment/80 text-xs mb-1">{art.efecto}</p>
+                                            <p className="text-xs font-bold uppercase" style={{ color: gemColor(art.rareza) }}>{rarezaLabel}</p>
                                             {fromStudent && (
                                                 <p className="text-purple-400 text-xs mt-1">🎁 Regalo de {fromStudent.nombreSocial || fromStudent.nombre}</p>
                                             )}
@@ -1058,7 +1061,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                             </button>
                                             {otherStudents.length > 0 && (
                                                 <button onClick={() => { setSelectedTradeArt(art._idx); setShowTradeModal(true); }}
-                                                    className="flex-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 text-purple-300 hover:text-white py-2 rounded-xl text-xs font-semibold transition-all">
+                                                    className="flex-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 text-arcane hover:text-white py-2 rounded-xl text-xs font-semibold transition-all">
                                                     🎁 Regalar
                                                 </button>
                                             )}
@@ -1073,7 +1076,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 )}
 
                 {/* Catalogo */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+                <div className="panel-pixel p-5">
                     <h3 className="text-white font-bold mb-3">Catalogo Completo</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {ARTEFACTOS.map(art => {
@@ -1112,29 +1115,29 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+        <div className="min-h-screen bg-dungeon-950">
             {/* Header */}
-            <header className="bg-black/20 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
+            <header className="bg-black/20 backdrop-blur-md border-b border-stone-dark sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                         <span className="text-xl sm:text-2xl">{avatar.emoji}</span>
                         <div className="min-w-0">
                             <h1 className="text-white font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombreSocial || currentUser.nombre}</h1>
-                            <p className="text-purple-300 text-xs hidden sm:block">
+                            <p className="text-arcane text-xs hidden sm:block">
                                 Nv.{nivel.nivel} {avatar.titulo}
                                 {curso && <span className="ml-2 opacity-70">· {curso.emoji} {curso.nombre}</span>}
                             </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                        <span className="bg-yellow-500/20 text-yellow-400 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
+                        <span className="bg-yellow-500/20 text-gold text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
                             {currentUser.xp || 0} XP
                         </span>
-                        <span className="bg-purple-500/20 text-purple-300 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
+                        <span className="bg-purple-500/20 text-arcane text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
                             #{rankPosition}
                         </span>
                         <button onClick={onLogout}
-                            className="text-purple-300 hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-white/10"
+                            className="text-arcane hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-dungeon-600"
                             title="Cerrar sesion">
                             <Icons.LogOut size={18} />
                         </button>
@@ -1151,7 +1154,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                             className={`flex items-center gap-2 px-4 py-3 rounded-xl text-left text-sm font-semibold transition-all relative ${
                                 activeTab === tab.id
                                     ? 'bg-white/20 text-white shadow-lg'
-                                    : 'text-purple-300 hover:bg-white/10 hover:text-white'
+                                    : 'text-arcane hover:bg-dungeon-600 hover:text-white'
                             }`}>
                             <span>{tab.emoji}</span>
                             <span>{tab.label}</span>
@@ -1169,7 +1172,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             </div>
 
             {/* Bottom tab bar (mobile) - safe area + compact */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-white/10 z-50"
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black/60 backdrop-blur-xl border-t border-stone-dark z-50"
                 style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
                 <div className="flex justify-around py-1.5 px-1">
                     {tabs.map(tab => (
@@ -1191,7 +1194,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             {/* Modal apertura de cofre con animacion mejorada */}
             {showOpenChest && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-                    <div className="bg-gradient-to-b from-gray-800 to-gray-900 border-2 border-yellow-500/50 rounded-2xl p-8 max-w-sm w-full text-center relative overflow-hidden">
+                    <div className="panel-pixel-dark !border-gold-dark p-8 max-w-sm w-full text-center relative overflow-hidden">
                         {/* Particulas de fondo */}
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
                             {chestAnimating && [0,1,2,3,4,5,6,7].map(i => (
@@ -1217,33 +1220,32 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         </div>
                         {chestAnimating ? (
                             <>
-                                <div className="text-8xl mb-4 animate-bounce" style={{animationDuration: '0.6s'}}>
-                                    {chestOpening ? (COFRES[chestOpening.tipo]?.emoji || '🎁') : '🎁'}
+                                <div className="mb-4 animate-bounce inline-block" style={{animationDuration: '0.6s'}}>
+                                    <PixelSprite sprite={chestSprite(chestOpening ? chestOpening.tipo : 'bronce')} size={96} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-yellow-300 mb-2 animate-pulse">Abriendo cofre...</h3>
-                                <p className="text-yellow-200/60 text-sm mb-3">Descubriendo artefacto misterioso</p>
-                                <div className="w-full bg-gray-700 rounded-full h-3 mt-4 overflow-hidden">
-                                    <div className="bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 h-3 rounded-full transition-all duration-[2000ms] ease-out"
+                                <h3 className="text-lg font-bold text-gold-light mb-2 animate-pulse">Abriendo cofre...</h3>
+                                <p className="text-gold-light/60 text-sm mb-3">Descubriendo artefacto misterioso</p>
+                                <div className="w-full bg-stone-dark border border-stone h-3 mt-4 overflow-hidden">
+                                    <div className="bg-gold h-3 transition-all duration-[2000ms] ease-out"
                                         style={{width: '100%'}}></div>
                                 </div>
                             </>
                         ) : chestResult ? (
                             <>
-                                <div className="text-8xl mb-4" style={{animation: 'pulse 1s ease-in-out infinite'}}>{chestResult.emoji}</div>
-                                <h3 className="text-2xl font-bold text-white mb-2">Obtuviste: {chestResult.nombre}</h3>
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${
-                                    chestResult.rareza === 'legendario' ? 'bg-yellow-500/30 text-yellow-300' :
-                                    chestResult.rareza === 'epico' ? 'bg-purple-500/30 text-purple-300' :
-                                    chestResult.rareza === 'raro' ? 'bg-blue-500/30 text-blue-300' :
-                                    'bg-gray-500/30 text-gray-300'
-                                }`}>
-                                    {chestResult.rareza === 'legendario' ? '⭐ LEGENDARIO' :
-                                     chestResult.rareza === 'epico' ? '💜 EPICO' :
-                                     chestResult.rareza === 'raro' ? '💙 RARO' : '⚪ COMUN'}
+                                <div className="mb-2 inline-block">
+                                    <PixelSprite sprite={chestOpenSprite(chestOpening ? chestOpening.tipo : 'bronce')} size={96} />
+                                </div>
+                                <div className="text-5xl mb-3" style={{animation: 'pulse 1s ease-in-out infinite'}}>{chestResult.emoji}</div>
+                                <h3 className="text-lg font-bold text-parchment mb-2">Obtuviste: {chestResult.nombre}</h3>
+                                <span className="inline-block px-3 py-1 border-2 text-xs font-bold mb-3 uppercase"
+                                    style={{ color: gemColor(chestResult.rareza), borderColor: gemColor(chestResult.rareza) }}>
+                                    {chestResult.rareza === 'legendario' ? 'LEGENDARIO' :
+                                     chestResult.rareza === 'epico' ? 'EPICO' :
+                                     chestResult.rareza === 'raro' ? 'RARO' : 'COMUN'}
                                 </span>
-                                <p className="text-purple-200 text-sm mb-4">{chestResult.efecto}</p>
+                                <p className="text-parchment/80 text-sm mb-4">{chestResult.efecto}</p>
                                 <button onClick={() => { setShowOpenChest(false); setChestResult(null); setChestOpening(null); }}
-                                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-xl font-bold transition">
+                                    className="btn-pixel-primary w-full py-3">
                                     Genial!
                                 </button>
                             </>
@@ -1265,19 +1267,19 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 var artInv = inventario[selectedUseArt];
                 var artDef = artInv ? ARTEFACTOS.find(a => a.id === (artInv.id || artInv)) : null;
                 return (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                         <div className="bg-gray-900 border border-green-500/30 rounded-2xl p-6 max-w-sm w-full text-center">
                             {artDef && (
                                 <>
                                     <div className="text-5xl mb-3">{artDef.emoji}</div>
                                     <h3 className="text-xl font-bold text-white mb-2">Usar {artDef.nombre}</h3>
                                     <p className="text-green-300 text-sm mb-1">Efecto: {artDef.efecto}</p>
-                                    <p className="text-yellow-400 text-xs mb-4">Una vez usado, no se puede recuperar. Tu profesor aplicara el efecto.</p>
+                                    <p className="text-gold text-xs mb-4">Una vez usado, no se puede recuperar. Tu profesor aplicara el efecto.</p>
                                 </>
                             )}
                             <div className="flex gap-3">
                                 <button onClick={() => { setShowUseConfirm(false); setSelectedUseArt(null); }}
-                                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-xl text-sm font-semibold transition">
+                                    className="btn-pixel-ghost flex-1 py-2 text-sm">
                                     Cancelar
                                 </button>
                                 <button onClick={handleUseArtefacto}
@@ -1292,10 +1294,10 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
             {/* Modal de intercambio de artefactos */}
             {showTradeModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <div className="bg-gray-900 border border-purple-500/30 rounded-2xl p-6 max-w-sm w-full">
                         <h3 className="text-xl font-bold text-white mb-4">🎁 Regalar Artefacto</h3>
-                        <p className="text-purple-300 text-sm mb-4">Selecciona a quien quieres regalar este artefacto:</p>
+                        <p className="text-arcane text-sm mb-4">Selecciona a quien quieres regalar este artefacto:</p>
                         <select value={tradeTarget} onChange={e => setTradeTarget(e.target.value)}
                             className="w-full bg-gray-800 border border-purple-500/30 text-white rounded-xl px-4 py-3 mb-4 text-sm">
                             <option value="">Seleccionar companero...</option>
@@ -1305,7 +1307,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         </select>
                         <div className="flex gap-3">
                             <button onClick={() => { setShowTradeModal(false); setSelectedTradeArt(null); setTradeTarget(''); }}
-                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-xl text-sm font-semibold transition">
+                                className="btn-pixel-ghost flex-1 py-2 text-sm">
                                 Cancelar
                             </button>
                             <button onClick={handleTrade}

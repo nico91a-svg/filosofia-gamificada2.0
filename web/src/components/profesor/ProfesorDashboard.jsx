@@ -507,7 +507,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
     var navbarGradient = getPaleta(curso.paleta).navbar;
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-dungeon-950">
             {/* ---- NAVBAR ---- */}
             <nav className="text-white shadow-lg" style={{ background: navbarGradient }}>
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -526,27 +526,27 @@ export const ProfesorDashboard = function ProfesorDashboard({
                             <select
                                 value={currentCursoId || ''}
                                 onChange={function(e) { setCurrentCursoId(e.target.value); }}
-                                className="min-w-0 max-w-[9rem] sm:max-w-none bg-white/15 hover:bg-white/25 border border-white/20 rounded-lg px-2 py-1 text-sm font-semibold cursor-pointer"
+                                className="min-w-0 max-w-[9rem] sm:max-w-none bg-dungeon-700/15 hover:bg-dungeon-700/25 border border-white/20 rounded-none px-2 py-1 text-sm font-semibold cursor-pointer"
                                 title="Cambiar de curso"
                                 aria-label="Cambiar de curso"
                             >
                                 {cursos.map(function(c) {
-                                    return <option key={c.id} value={c.id} className="text-gray-800">{c.emoji} {c.nombre} ({c.anio}){c.activo === false ? ' · oculto' : ''}</option>;
+                                    return <option key={c.id} value={c.id} className="text-parchment">{c.emoji} {c.nombre} ({c.anio}){c.activo === false ? ' · oculto' : ''}</option>;
                                 })}
                             </select>
                         )}
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <button onClick={onImportData} aria-label="Importar" title="Importar un respaldo"
-                            className="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition">
+                            className="flex items-center gap-2 bg-dungeon-700 bg-opacity-20 hover:bg-opacity-30 px-3 sm:px-4 py-2 rounded-none text-sm font-semibold transition">
                             <span aria-hidden="true">📥</span><span className="hidden sm:inline">Importar</span>
                         </button>
                         <button onClick={onExportData} aria-label="Exportar" title="Descargar un respaldo"
-                            className="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition">
+                            className="flex items-center gap-2 bg-dungeon-700 bg-opacity-20 hover:bg-opacity-30 px-3 sm:px-4 py-2 rounded-none text-sm font-semibold transition">
                             <Icons.Download size={16} /><span className="hidden sm:inline">Exportar</span>
                         </button>
                         <button onClick={onLogout} aria-label="Salir" title="Cerrar sesión"
-                            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition">
+                            className="flex items-center gap-2 bg-ruby hover:bg-ruby/80 px-3 sm:px-4 py-2 rounded-none text-sm font-semibold transition">
                             <Icons.LogOut size={16} /><span className="hidden sm:inline">Salir</span>
                         </button>
                     </div>
@@ -554,16 +554,16 @@ export const ProfesorDashboard = function ProfesorDashboard({
             </nav>
 
             {/* ---- TABS ---- */}
-            <div className="bg-white shadow-sm border-b">
+            <div className="bg-dungeon-800 border-b-2 border-stone-dark">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex gap-1 overflow-x-auto py-2">
                         {tabs.map(function(tab) {
                             return (
                                 <button key={tab.id} onClick={function() { setActiveTab(tab.id); }}
-                                    className={"px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition " +
+                                    className={"px-4 py-2 rounded-none text-sm font-semibold whitespace-nowrap transition " +
                                         (activeTab === tab.id
-                                            ? 'bg-indigo-600 text-white shadow'
-                                            : 'text-gray-600 hover:bg-gray-100')}>
+                                            ? 'bg-gold text-dungeon-950'
+                                            : 'text-arcane hover:bg-dungeon-600')}>
                                     <span className="mr-1">{tab.emoji}</span> {tab.label}
                                 </button>
                             );
@@ -580,60 +580,60 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     <div>
                         {/* Stat Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-white rounded-xl shadow p-5 flex items-center gap-4">
-                                <div className="bg-blue-100 p-3 rounded-lg">
-                                    <Icons.Users size={28} className="text-blue-600" />
+                            <div className="panel-pixel p-5 flex items-center gap-4">
+                                <div className="bg-blue-950/60 p-3 rounded-none">
+                                    <Icons.Users size={28} className="text-blue-300" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-800">{students.length}</div>
-                                    <div className="text-sm text-gray-500">Total Estudiantes</div>
+                                    <div className="text-2xl font-bold text-parchment">{students.length}</div>
+                                    <div className="text-sm text-arcane">Total Estudiantes</div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-xl shadow p-5 flex items-center gap-4">
-                                <div className="bg-purple-100 p-3 rounded-lg">
-                                    <Icons.TrendingUp size={28} className="text-purple-600" />
+                            <div className="panel-pixel p-5 flex items-center gap-4">
+                                <div className="bg-arcane/20 p-3 rounded-none">
+                                    <Icons.TrendingUp size={28} className="text-arcane" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-800">{avgXP}</div>
-                                    <div className="text-sm text-gray-500">XP Promedio</div>
+                                    <div className="text-2xl font-bold text-parchment">{avgXP}</div>
+                                    <div className="text-sm text-arcane">XP Promedio</div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-xl shadow p-5 flex items-center gap-4">
-                                <div className="bg-yellow-100 p-3 rounded-lg">
-                                    <Icons.Trophy size={28} className="text-yellow-600" />
+                            <div className="panel-pixel p-5 flex items-center gap-4">
+                                <div className="bg-gold/15 p-3 rounded-none">
+                                    <Icons.Trophy size={28} className="text-gold" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-800">{avgLevel}</div>
-                                    <div className="text-sm text-gray-500">Nivel Promedio</div>
+                                    <div className="text-2xl font-bold text-parchment">{avgLevel}</div>
+                                    <div className="text-sm text-arcane">Nivel Promedio</div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-xl shadow p-5 flex items-center gap-4">
-                                <div className="bg-green-100 p-3 rounded-lg">
-                                    <Icons.BookOpen size={28} className="text-green-600" />
+                            <div className="panel-pixel p-5 flex items-center gap-4">
+                                <div className="bg-emerald/20 p-3 rounded-none">
+                                    <Icons.BookOpen size={28} className="text-emerald" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-800">{activities.length}</div>
-                                    <div className="text-sm text-gray-500">Total Actividades</div>
+                                    <div className="text-2xl font-bold text-parchment">{activities.length}</div>
+                                    <div className="text-sm text-arcane">Total Actividades</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Unidad y Clase Actual */}
-                        <div className="bg-white rounded-xl shadow p-6 mb-6">
-                            <h2 className="text-lg font-bold text-gray-800 mb-4">Clase Actual</h2>
-                            <div className="flex items-center justify-between">
+                        <div className="panel-pixel p-6 mb-6">
+                            <h2 className="text-lg font-bold text-parchment mb-4">Clase Actual</h2>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
                                 <button onClick={prevClase}
-                                    className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg text-gray-700 font-bold transition">
+                                    className="bg-dungeon-600 hover:bg-stone px-4 py-2 rounded-none text-parchment/90 font-bold transition">
                                     &#8592; Anterior
                                 </button>
                                 <div className="text-center">
                                     {currentUnidadObj && (
                                         <div>
                                             <div className="text-3xl mb-1">{currentUnidadObj.emoji}</div>
-                                            <div className="text-sm text-gray-500 font-semibold">{currentUnidadObj.id} - {currentUnidadObj.nombre}</div>
+                                            <div className="text-sm text-arcane font-semibold">{currentUnidadObj.id} - {currentUnidadObj.nombre}</div>
                                             {currentClaseObj && (
                                                 <div className="mt-2">
-                                                    <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold">
+                                                    <span className="bg-indigo-950/60 text-indigo-300 px-3 py-1 rounded-full text-sm font-bold">
                                                         Clase {currentClaseObj.num}: {currentClaseObj.emoji} {currentClaseObj.titulo}
                                                     </span>
                                                 </div>
@@ -642,15 +642,15 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                     )}
                                 </div>
                                 <button onClick={nextClase}
-                                    className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg text-gray-700 font-bold transition">
+                                    className="bg-dungeon-600 hover:bg-stone px-4 py-2 rounded-none text-parchment/90 font-bold transition">
                                     Siguiente &#8594;
                                 </button>
                             </div>
                         </div>
 
                         {/* Actividades Recientes */}
-                        <div className="bg-white rounded-xl shadow p-6">
-                            <h2 className="text-lg font-bold text-gray-800 mb-4">Actividades Recientes</h2>
+                        <div className="panel-pixel p-6">
+                            <h2 className="text-lg font-bold text-parchment mb-4">Actividades Recientes</h2>
                             {recentActivities.length > 0 ? (
                                 <div className="space-y-3">
                                     {recentActivities.map(function(act) {
@@ -658,28 +658,28 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                         var student = students.find(function(s) { return s.id === act.studentId; });
                                         var unidad = unidades.find(function(u) { return u.id === act.unidadId; });
                                         return (
-                                            <div key={act.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition">
+                                            <div key={act.id} className="flex items-center justify-between bg-dungeon-800 rounded-none p-3 hover:bg-dungeon-600 transition">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-2xl">{tipo ? tipo.icon : '📌'}</span>
                                                     <div>
-                                                        <div className="font-semibold text-sm text-gray-800">
+                                                        <div className="font-semibold text-sm text-parchment">
                                                             {student ? student.nombre : 'Desconocido'} - {tipo ? tipo.nombre : act.tipo}
                                                         </div>
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-arcane">
                                                             {unidad ? unidad.emoji + ' ' + unidad.id : ''} Clase {act.claseNum || '?'} | {new Date(act.date).toLocaleDateString()}
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="font-bold text-purple-600">+{act.xp} XP</div>
-                                                    <div className="text-xs text-gray-500 capitalize">{act.nivel}</div>
+                                                    <div className="font-bold text-arcane">+{act.xp} XP</div>
+                                                    <div className="text-xs text-arcane capitalize">{act.nivel}</div>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
                             ) : (
-                                <div className="text-center text-gray-400 py-8">No hay actividades registradas aun.</div>
+                                <div className="text-center text-arcane/70 py-8">No hay actividades registradas aun.</div>
                             )}
                         </div>
                     </div>
@@ -688,15 +688,15 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 {/* ================ TAB: ESTUDIANTES ================ */}
                 {activeTab === 'estudiantes' && (
                     <div>
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">Ranking de Estudiantes</h2>
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                            <h2 className="text-2xl font-bold text-parchment">Ranking de Estudiantes</h2>
                             <button onClick={function() { setShowAddStudent(true); }}
-                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold transition">
+                                className="flex items-center gap-2 bg-emerald hover:bg-emerald/80 text-white px-5 py-2 rounded-none font-semibold transition">
                                 <Icons.Plus size={18} /> Agregar Estudiante
                             </button>
                         </div>
                         {students.length === 0 ? (
-                            <div className="bg-white rounded-xl shadow p-12 text-center text-gray-400">
+                            <div className="panel-pixel p-12 text-center text-arcane/70">
                                 <div className="text-5xl mb-4">👥</div>
                                 <p className="text-lg">No hay estudiantes registrados.</p>
                                 <p className="text-sm mt-1">Agrega tu primer estudiante para comenzar.</p>
@@ -708,18 +708,18 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                     var clase = CLASES_FILOSOFICAS.find(function(c) { return c.id === student.clase; });
                                     var xpProgress = Math.min(((student.xp - nivel.xp_min) / (nivel.xp_max - nivel.xp_min)) * 100, 100);
                                     return (
-                                        <div key={student.id} className="bg-white rounded-xl shadow hover:shadow-lg transition p-5">
+                                        <div key={student.id} className="panel-pixel shadow hover:shadow-lg transition p-5">
                                             {/* Rank + Nombre */}
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center gap-3">
                                                     <div className={"w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm " +
-                                                        (index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-gray-300')}>
+                                                        (index === 0 ? 'bg-gold/100' : index === 1 ? 'bg-stone' : index === 2 ? 'bg-orange-400' : 'bg-dungeon-600')}>
                                                         {index + 1}
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-gray-800">{student.nombreSocial || student.nombre}</div>
+                                                        <div className="font-bold text-parchment">{student.nombreSocial || student.nombre}</div>
                                                         {student.nombreLegal && student.nombreLegal !== (student.nombreSocial || student.nombre) && (
-                                                            <div className="text-gray-400 text-xs">Legal: {student.nombreLegal}</div>
+                                                            <div className="text-arcane/70 text-xs">Legal: {student.nombreLegal}</div>
                                                         )}
                                                         <div className="flex items-center gap-1 mt-1">
                                                             {clase && (
@@ -728,7 +728,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                                                 </div>
                                                             )}
                                                             {student.genero && (
-                                                                <span className="text-xs text-gray-400">
+                                                                <span className="text-xs text-arcane/70">
                                                                     {student.genero === 'femenino' ? '👩' : student.genero === 'masculino' ? '👨' : '🧑'}
                                                                 </span>
                                                             )}
@@ -740,10 +740,10 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                             {/* Nivel y XP */}
                                             <div className="mb-3">
                                                 <div className="flex items-center justify-between text-sm mb-1">
-                                                    <span className="font-semibold text-gray-700">Nv.{nivel.nivel} {nivel.titulo}</span>
-                                                    <span className="text-purple-600 font-bold">{student.xp} XP</span>
+                                                    <span className="font-semibold text-parchment/90">Nv.{nivel.nivel} {nivel.titulo}</span>
+                                                    <span className="text-arcane font-bold">{student.xp} XP</span>
                                                 </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                                <div className="w-full bg-dungeon-600 rounded-full h-2.5">
                                                     <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full transition-all duration-500"
                                                         style={{ width: xpProgress + '%' }}></div>
                                                 </div>
@@ -760,7 +760,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                                             <div className="flex gap-px">
                                                                 {[1,2,3,4,5].map(function(star) {
                                                                     return (
-                                                                        <span key={star} className={"text-xs " + (star <= nivelH ? 'text-yellow-400' : 'text-gray-300')}>&#9733;</span>
+                                                                        <span key={star} className={"text-xs " + (star <= nivelH ? 'text-gold' : 'text-arcane/60')}>&#9733;</span>
                                                                     );
                                                                 })}
                                                             </div>
@@ -772,15 +772,15 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                             {/* Botones de accion */}
                                             <div className="flex gap-2">
                                                 <button onClick={function() { setShowStudentDetail(student); }}
-                                                    className="flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-2 rounded-lg text-xs font-semibold transition">
+                                                    className="flex-1 bg-indigo-950/60 hover:bg-indigo-900/60 text-indigo-300 py-2 rounded-none text-xs font-semibold transition">
                                                     Ver Detalles
                                                 </button>
                                                 <button onClick={function() { setShowEditStudent(student); }}
-                                                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition" title="Editar">
+                                                    className="bg-blue-950/60 hover:bg-blue-900/60 text-blue-300 p-2 rounded-none transition" title="Editar">
                                                     <Icons.Edit2 size={16} />
                                                 </button>
                                                 <button onClick={function() { deleteStudent(student.id); }}
-                                                    className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-lg transition" title="Eliminar">
+                                                    className="bg-ruby/15 hover:bg-ruby/30 text-ruby p-2 rounded-none transition" title="Eliminar">
                                                     <Icons.Trash2 size={16} />
                                                 </button>
                                             </div>
@@ -796,25 +796,25 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 {activeTab === 'actividades' && (
                     <div>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">Actividades</h2>
+                            <h2 className="text-2xl font-bold text-parchment">Actividades</h2>
                             <button onClick={function() { setShowAddActivity(true); }}
-                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold transition">
+                                className="flex items-center gap-2 bg-emerald hover:bg-emerald/80 text-white px-5 py-2 rounded-none font-semibold transition">
                                 <Icons.Plus size={18} /> Registrar Actividad
                             </button>
                         </div>
 
                         {/* Tipos de actividad grid */}
-                        <div className="bg-white rounded-xl shadow p-6 mb-6">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">Tipos de Actividad</h3>
+                        <div className="panel-pixel p-6 mb-6">
+                            <h3 className="text-lg font-bold text-parchment mb-4">Tipos de Actividad</h3>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                 {TIPOS_ACTIVIDAD.map(function(tipo) {
                                     var rubric = RUBRICS_XP[tipo.id];
                                     return (
-                                        <div key={tipo.id} className="bg-gray-50 rounded-lg p-3 text-center hover:bg-gray-100 transition">
+                                        <div key={tipo.id} className="bg-dungeon-800 rounded-none p-3 text-center hover:bg-dungeon-600 transition">
                                             <div className="text-3xl mb-2">{tipo.icon}</div>
-                                            <div className="text-xs font-semibold text-gray-700 mb-1">{tipo.nombre}</div>
+                                            <div className="text-xs font-semibold text-parchment/90 mb-1">{tipo.nombre}</div>
                                             {rubric && (
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-arcane">
                                                     {rubric.basico}-{rubric.excepcional} XP
                                                 </div>
                                             )}
@@ -825,8 +825,8 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         </div>
 
                         {/* Historial */}
-                        <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">Historial de Actividades</h3>
+                        <div className="panel-pixel p-6">
+                            <h3 className="text-lg font-bold text-parchment mb-4">Historial de Actividades</h3>
                             {activities.length > 0 ? (
                                 <div className="space-y-2">
                                     {activities.slice(0, 50).map(function(act) {
@@ -834,29 +834,29 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                         var student = students.find(function(s) { return s.id === act.studentId; });
                                         var unidad = unidades.find(function(u) { return u.id === act.unidadId; });
                                         return (
-                                            <div key={act.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                            <div key={act.id} className="flex items-center justify-between bg-dungeon-800 rounded-none p-3">
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-2xl">{tipo ? tipo.icon : '📌'}</span>
                                                     <div>
-                                                        <div className="font-semibold text-sm text-gray-800">
+                                                        <div className="font-semibold text-sm text-parchment">
                                                             {student ? student.nombre : 'Desconocido'}
                                                         </div>
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-arcane">
                                                             {tipo ? tipo.nombre : act.tipo} | {unidad ? unidad.emoji + ' ' + unidad.id : ''} Clase {act.claseNum || '?'} | {new Date(act.date).toLocaleDateString()}
                                                         </div>
-                                                        {act.notas && <div className="text-xs text-gray-400 mt-0.5 italic">{act.notas}</div>}
+                                                        {act.notas && <div className="text-xs text-arcane/70 mt-0.5 italic">{act.notas}</div>}
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="font-bold text-purple-600">+{act.xp} XP</div>
-                                                    <div className="text-xs text-gray-500 capitalize">{act.nivel}</div>
+                                                    <div className="font-bold text-arcane">+{act.xp} XP</div>
+                                                    <div className="text-xs text-arcane capitalize">{act.nivel}</div>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
                             ) : (
-                                <div className="text-center text-gray-400 py-8">No hay actividades registradas aun.</div>
+                                <div className="text-center text-arcane/70 py-8">No hay actividades registradas aun.</div>
                             )}
                         </div>
                     </div>
@@ -893,13 +893,13 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 {/* ================ TAB: MISIONES ================ */}
                 {activeTab === 'misiones' && (
                     <div>
-                        <div className="bg-white rounded-xl shadow-md p-4 mb-4">
-                            <h2 className="text-lg font-bold text-gray-800 mb-1">🎯 Misiones de Clase</h2>
-                            <p className="text-sm text-gray-500 mb-3">
+                        <div className="panel-pixel shadow-md p-4 mb-4">
+                            <h2 className="text-lg font-bold text-parchment mb-1">🎯 Misiones de Clase</h2>
+                            <p className="text-sm text-arcane mb-3">
                                 Clase actual: <span className="font-semibold">{currentUnidad} - Clase {currentClase}</span>
                                 {currentClaseObj && <span> ({currentClaseObj.titulo})</span>}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-arcane/70">
                                 Las misiones cambian aleatoriamente en cada clase. Marca las misiones que cada estudiante haya completado.
                                 Las misiones "auto" se detectan por actividades registradas. Las manuales debes marcarlas tu.
                             </p>
@@ -923,39 +923,39 @@ export const ProfesorDashboard = function ProfesorDashboard({
                             }).length;
 
                             return (
-                                <div key={mision.id} className="bg-white rounded-xl shadow-md p-4 mb-4">
+                                <div key={mision.id} className="panel-pixel shadow-md p-4 mb-4">
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-3">
                                             <span className="text-3xl">{mision.emoji}</span>
                                             <div>
-                                                <h3 className="font-bold text-gray-800">{mision.nombre}</h3>
-                                                <p className="text-xs text-gray-500">{mision.descripcion}</p>
+                                                <h3 className="font-bold text-parchment">{mision.nombre}</h3>
+                                                <p className="text-xs text-arcane">{mision.descripcion}</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                                                         mision.tipo === 'entre-clases'
-                                                            ? 'bg-orange-100 text-orange-700'
-                                                            : 'bg-blue-100 text-blue-700'
+                                                            ? 'bg-gold/15 text-gold'
+                                                            : 'bg-blue-950/60 text-blue-300'
                                                     }`}>
                                                         {mision.tipo === 'entre-clases' ? '📋 Entre clases' : '🏫 En clase'}
                                                     </span>
                                                     <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                                        esManual ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                                        esManual ? 'bg-gold/15 text-gold' : 'bg-emerald/20 text-emerald'
                                                     }`}>
                                                         {esManual ? '✋ Manual' : '⚡ Automatica'}
                                                     </span>
-                                                    <span className="text-xs text-purple-600 font-semibold">+{mision.recompensa.xp} XP</span>
+                                                    <span className="text-xs text-arcane font-semibold">+{mision.recompensa.xp} XP</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-bold text-gray-700">{completados}/{students.length}</p>
-                                            <p className="text-xs text-gray-400">completaron</p>
+                                            <p className="text-sm font-bold text-parchment/90">{completados}/{students.length}</p>
+                                            <p className="text-xs text-arcane/70">completaron</p>
                                             {esManual && (
                                                 <button onClick={function() { toggleMisionTodos(mision.id); }}
-                                                    className={`mt-1 text-xs px-3 py-1 rounded-lg font-semibold transition-colors ${
+                                                    className={`mt-1 text-xs px-3 py-1 rounded-none font-semibold transition-colors ${
                                                         todosCompletaron
-                                                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                                                            : 'bg-green-100 text-green-600 hover:bg-green-200'
+                                                            ? 'bg-ruby/15 text-ruby hover:bg-ruby/30'
+                                                            : 'bg-emerald/20 text-emerald hover:bg-emerald/30'
                                                     }`}>
                                                     {todosCompletaron ? 'Desmarcar todos' : 'Marcar todos'}
                                                 </button>
@@ -982,15 +982,15 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                                             }
                                                         }}
                                                         disabled={completadaAuto && !esManual}
-                                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-all ${
+                                                        className={`flex items-center gap-2 px-3 py-2 rounded-none text-left text-sm transition-all ${
                                                             completada
-                                                                ? 'bg-green-50 border border-green-300 text-green-800'
-                                                                : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'
+                                                                ? 'bg-emerald/10 border border-emerald/60 text-emerald'
+                                                                : 'bg-dungeon-800 border border-stone-dark text-arcane hover:bg-dungeon-600'
                                                         } ${completadaAuto && !esManual ? 'cursor-default' : 'cursor-pointer'}`}>
                                                         <span className="text-lg">{completada ? '✅' : '⬜'}</span>
                                                         <span className="truncate font-medium">{student.nombreSocial || student.nombre}</span>
                                                         {completadaAuto && !esManual && (
-                                                            <span className="text-xs text-green-500 ml-auto">auto</span>
+                                                            <span className="text-xs text-emerald ml-auto">auto</span>
                                                         )}
                                                     </button>
                                                 );
@@ -1007,49 +1007,49 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 {activeTab === 'artefactos' && (
                     <div>
                         {/* Catalogo */}
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Catalogo de Artefactos Filosoficos</h2>
+                        <h2 className="text-2xl font-bold text-parchment mb-4">Catalogo de Artefactos Filosoficos</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
                             {ARTEFACTOS.map(function(art) {
                                 var rarezaColor = getRarezaColor(art.rareza);
                                 return (
-                                    <div key={art.id} className={"bg-white rounded-xl shadow p-5 border-2 " + rarezaColor}>
+                                    <div key={art.id} className={"panel-pixel p-5 border-2 " + rarezaColor}>
                                         <div className="text-4xl text-center mb-3">{art.emoji}</div>
-                                        <div className="text-center font-bold text-gray-800 mb-1">{art.nombre}</div>
-                                        <div className="text-center text-xs text-gray-500 capitalize mb-2">
+                                        <div className="text-center font-bold text-parchment mb-1">{art.nombre}</div>
+                                        <div className="text-center text-xs text-arcane capitalize mb-2">
                                             <span className={"px-2 py-0.5 rounded-full text-xs font-semibold " +
-                                                (art.rareza === 'legendario' ? 'bg-yellow-100 text-yellow-700' :
-                                                 art.rareza === 'epico' ? 'bg-purple-100 text-purple-700' :
-                                                 'bg-blue-100 text-blue-700')}>
+                                                (art.rareza === 'legendario' ? 'bg-gold/15 text-gold' :
+                                                 art.rareza === 'epico' ? 'bg-arcane/20 text-arcane' :
+                                                 'bg-blue-950/60 text-blue-300')}>
                                                 {art.rareza}
                                             </span>
                                         </div>
-                                        <div className="text-center text-xs text-gray-600">{art.efecto}</div>
+                                        <div className="text-center text-xs text-arcane">{art.efecto}</div>
                                     </div>
                                 );
                             })}
                         </div>
 
                         {/* Gestion por estudiante */}
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Gestion de Artefactos por Estudiante</h3>
+                        <h3 className="text-xl font-bold text-parchment mb-4">Gestion de Artefactos por Estudiante</h3>
                         {students.length > 0 ? (
                             <div className="space-y-3 mb-8">
                                 {students.map(function(student) {
                                     var artefactos = student.artefactos || [];
                                     return (
-                                        <div key={student.id} className="bg-white rounded-xl shadow p-5">
+                                        <div key={student.id} className="panel-pixel p-5">
                                             <div className="flex items-center justify-between mb-3">
-                                                <div className="font-bold text-gray-800">{student.nombreSocial || student.nombre}</div>
+                                                <div className="font-bold text-parchment">{student.nombreSocial || student.nombre}</div>
                                                 <div className="flex gap-2">
                                                     <button onClick={function() { setSelectedArtefactoStudent(student); setShowGrantArtefacto(true); }}
-                                                        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-lg text-xs font-semibold transition">
+                                                        className="bg-emerald/20 hover:bg-emerald/30 text-emerald px-3 py-1 rounded-none text-xs font-semibold transition">
                                                         Otorgar
                                                     </button>
                                                     <button onClick={function() { setSelectedArtefactoStudent(student); setShowUseArtefacto(true); }}
-                                                        className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg text-xs font-semibold transition">
+                                                        className="bg-blue-950/60 hover:bg-blue-900/60 text-blue-300 px-3 py-1 rounded-none text-xs font-semibold transition">
                                                         Usar
                                                     </button>
                                                     <button onClick={function() { setSelectedArtefactoStudent(student); setShowGiftArtefacto(true); }}
-                                                        className="bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1 rounded-lg text-xs font-semibold transition">
+                                                        className="bg-arcane/20 hover:bg-arcane/30 text-arcane px-3 py-1 rounded-none text-xs font-semibold transition">
                                                         Regalar
                                                     </button>
                                                 </div>
@@ -1062,51 +1062,51 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                                         return (
                                                             <div key={idx}
                                                                 className={"inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border " +
-                                                                    (artInv.usado ? 'bg-gray-100 text-gray-400 border-gray-300 line-through' : getRarezaColor(artDef.rareza))}
+                                                                    (artInv.usado ? 'bg-dungeon-800 text-arcane/70 border-stone line-through' : getRarezaColor(artDef.rareza))}
                                                                 title={artDef.efecto + (artInv.usado ? ' (Usado)' : '')}>
                                                                 {artDef.emoji} {artDef.nombre}
-                                                                {artInv.usado && <span className="ml-1 text-gray-400">(Usado)</span>}
+                                                                {artInv.usado && <span className="ml-1 text-arcane/70">(Usado)</span>}
                                                             </div>
                                                         );
                                                     })}
                                                 </div>
                                             ) : (
-                                                <div className="text-xs text-gray-400">Sin artefactos</div>
+                                                <div className="text-xs text-arcane/70">Sin artefactos</div>
                                             )}
                                         </div>
                                     );
                                 })}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-xl shadow p-8 text-center text-gray-400 mb-8">
+                            <div className="panel-pixel shadow p-8 text-center text-arcane/70 mb-8">
                                 No hay estudiantes registrados.
                             </div>
                         )}
 
                         {/* Top coleccionistas */}
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Top Coleccionistas</h3>
-                        <div className="bg-white rounded-xl shadow p-6">
+                        <h3 className="text-xl font-bold text-parchment mb-4">Top Coleccionistas</h3>
+                        <div className="panel-pixel p-6">
                             {(function() {
                                 var ranked = [].concat(students)
                                     .map(function(s) { return { nombre: s.nombreSocial || s.nombre, total: (s.artefactos || []).length }; })
                                     .sort(function(a, b) { return b.total - a.total; })
                                     .filter(function(s) { return s.total > 0; });
                                 if (ranked.length === 0) {
-                                    return <div className="text-center text-gray-400 py-4">Nadie tiene artefactos aun.</div>;
+                                    return <div className="text-center text-arcane/70 py-4">Nadie tiene artefactos aun.</div>;
                                 }
                                 return (
                                     <div className="space-y-2">
                                         {ranked.map(function(r, idx) {
                                             return (
-                                                <div key={idx} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                                <div key={idx} className="flex items-center justify-between bg-dungeon-800 rounded-none p-3">
                                                     <div className="flex items-center gap-3">
                                                         <div className={"w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm " +
-                                                            (idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-orange-400' : 'bg-gray-300')}>
+                                                            (idx === 0 ? 'bg-gold/100' : idx === 1 ? 'bg-stone' : idx === 2 ? 'bg-orange-400' : 'bg-dungeon-600')}>
                                                             {idx + 1}
                                                         </div>
-                                                        <span className="font-semibold text-gray-800">{r.nombre}</span>
+                                                        <span className="font-semibold text-parchment">{r.nombre}</span>
                                                     </div>
-                                                    <span className="font-bold text-purple-600">{r.total} artefactos</span>
+                                                    <span className="font-bold text-arcane">{r.total} artefactos</span>
                                                 </div>
                                             );
                                         })}
@@ -1120,35 +1120,35 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 {/* ================ TAB: HABILIDADES ================ */}
                 {activeTab === 'habilidades' && (
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6">Habilidades Filosoficas</h2>
+                        <h2 className="text-2xl font-bold text-parchment mb-6">Habilidades Filosoficas</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             {HABILIDADES.map(function(hab) {
                                 return (
-                                    <div key={hab.id} className="bg-white rounded-xl shadow p-6">
+                                    <div key={hab.id} className="panel-pixel p-6">
                                         <div className="flex items-center gap-3 mb-4">
                                             <span className="text-3xl">{hab.emoji}</span>
                                             <div>
                                                 <h3 className="text-lg font-bold" style={{ color: hab.color }}>{hab.nombre}</h3>
-                                                <p className="text-sm text-gray-600">{hab.descripcion}</p>
+                                                <p className="text-sm text-arcane">{hab.descripcion}</p>
                                             </div>
                                         </div>
                                         <div className="mb-3">
-                                            <div className="text-xs font-semibold text-gray-500 mb-2 uppercase">Como mejorar</div>
-                                            <p className="text-sm text-gray-600">{hab.comoMejora}</p>
+                                            <div className="text-xs font-semibold text-arcane mb-2 uppercase">Como mejorar</div>
+                                            <p className="text-sm text-arcane">{hab.comoMejora}</p>
                                         </div>
                                         <div>
-                                            <div className="text-xs font-semibold text-gray-500 mb-2 uppercase">Niveles de Progresion</div>
+                                            <div className="text-xs font-semibold text-arcane mb-2 uppercase">Niveles de Progresion</div>
                                             <div className="space-y-1">
                                                 {HABILIDAD_NIVELES.map(function(niv) {
                                                     return (
                                                         <div key={niv.nivel} className="flex items-center gap-2 text-sm">
                                                             <div className="flex gap-0.5">
                                                                 {[1,2,3,4,5].map(function(star) {
-                                                                    return <span key={star} className={star <= niv.nivel ? 'text-yellow-400' : 'text-gray-300'}>&#9733;</span>;
+                                                                    return <span key={star} className={star <= niv.nivel ? 'text-gold' : 'text-arcane/60'}>&#9733;</span>;
                                                                 })}
                                                             </div>
-                                                            <span className="font-semibold text-gray-700">{niv.nombre}</span>
-                                                            <span className="text-gray-400 text-xs">({niv.min}-{niv.max === 9999 ? '...' : niv.max} pts)</span>
+                                                            <span className="font-semibold text-parchment/90">{niv.nombre}</span>
+                                                            <span className="text-arcane/70 text-xs">({niv.min}-{niv.max === 9999 ? '...' : niv.max} pts)</span>
                                                         </div>
                                                     );
                                                 })}
@@ -1160,40 +1160,40 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         </div>
 
                         {/* Explicacion de progresion */}
-                        <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">Como funciona la Progresion</h3>
+                        <div className="panel-pixel p-6">
+                            <h3 className="text-lg font-bold text-parchment mb-4">Como funciona la Progresion</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-blue-50 rounded-lg p-4">
+                                <div className="bg-blue-950/50 rounded-none p-4">
                                     <div className="text-2xl mb-2">📝</div>
-                                    <h4 className="font-bold text-gray-800 mb-1">1. Realizar Actividades</h4>
-                                    <p className="text-sm text-gray-600">Cada actividad otorga puntos en habilidades especificas segun su tipo.</p>
+                                    <h4 className="font-bold text-parchment mb-1">1. Realizar Actividades</h4>
+                                    <p className="text-sm text-arcane">Cada actividad otorga puntos en habilidades especificas segun su tipo.</p>
                                 </div>
-                                <div className="bg-purple-50 rounded-lg p-4">
+                                <div className="bg-arcane/10 rounded-none p-4">
                                     <div className="text-2xl mb-2">📈</div>
-                                    <h4 className="font-bold text-gray-800 mb-1">2. Acumular Puntos</h4>
-                                    <p className="text-sm text-gray-600">Los puntos se acumulan en cada habilidad y determinan el nivel de maestria.</p>
+                                    <h4 className="font-bold text-parchment mb-1">2. Acumular Puntos</h4>
+                                    <p className="text-sm text-arcane">Los puntos se acumulan en cada habilidad y determinan el nivel de maestria.</p>
                                 </div>
-                                <div className="bg-green-50 rounded-lg p-4">
+                                <div className="bg-emerald/10 rounded-none p-4">
                                     <div className="text-2xl mb-2">⭐</div>
-                                    <h4 className="font-bold text-gray-800 mb-1">3. Subir de Nivel</h4>
-                                    <p className="text-sm text-gray-600">Al alcanzar ciertos umbrales, se desbloquean nuevos niveles de habilidad (1 a 5 estrellas).</p>
+                                    <h4 className="font-bold text-parchment mb-1">3. Subir de Nivel</h4>
+                                    <p className="text-sm text-arcane">Al alcanzar ciertos umbrales, se desbloquean nuevos niveles de habilidad (1 a 5 estrellas).</p>
                                 </div>
                             </div>
-                            <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                                <h4 className="font-bold text-gray-800 mb-2">Habilidades por Tipo de Actividad</h4>
+                            <div className="mt-4 bg-dungeon-800 rounded-none p-4">
+                                <h4 className="font-bold text-parchment mb-2">Habilidades por Tipo de Actividad</h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {TIPOS_ACTIVIDAD.map(function(tipo) {
                                         var habRubric = RUBRICS_HABILIDADES[tipo.id];
                                         if (!habRubric) return null;
                                         return (
-                                            <div key={tipo.id} className="bg-white rounded-lg p-3 text-sm">
-                                                <div className="font-semibold text-gray-700 mb-1">{tipo.icon} {tipo.nombre}</div>
+                                            <div key={tipo.id} className="panel-pixel-dark p-3 text-sm">
+                                                <div className="font-semibold text-parchment/90 mb-1">{tipo.icon} {tipo.nombre}</div>
                                                 <div className="flex flex-wrap gap-1">
                                                     {Object.keys(habRubric).map(function(habId) {
                                                         var hab = HABILIDADES.find(function(h) { return h.id === habId; });
                                                         if (!hab) return null;
                                                         return (
-                                                            <span key={habId} className="bg-gray-100 px-2 py-0.5 rounded text-xs">
+                                                            <span key={habId} className="bg-dungeon-800 px-2 py-0.5 rounded text-xs">
                                                                 {hab.emoji} +{habRubric[habId]}
                                                             </span>
                                                         );
@@ -1289,13 +1289,13 @@ export const ProfesorDashboard = function ProfesorDashboard({
             {/* Modal Otorgar Artefacto */}
             {showGrantArtefacto && selectedArtefactoStudent && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                    <div className="panel-pixel-dark p-6 max-w-md w-full">
                         <h3 className="text-xl font-bold mb-4">Otorgar Artefacto a {selectedArtefactoStudent.nombre}</h3>
                         <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
                             {ARTEFACTOS.map(function(art) {
                                 return (
                                     <button key={art.id} onClick={function() { otorgarArtefacto(selectedArtefactoStudent.id, art.id); }}
-                                        className={"p-3 rounded-lg border-2 text-center hover:shadow transition " + getRarezaColor(art.rareza)}>
+                                        className={"p-3 rounded-none border-2 text-center hover:shadow transition " + getRarezaColor(art.rareza)}>
                                         <div className="text-2xl mb-1">{art.emoji}</div>
                                         <div className="text-xs font-semibold">{art.nombre}</div>
                                     </button>
@@ -1303,7 +1303,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                             })}
                         </div>
                         <button onClick={function() { setShowGrantArtefacto(false); setSelectedArtefactoStudent(null); }}
-                            className="w-full mt-4 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-semibold">Cancelar</button>
+                            className="w-full mt-4 bg-dungeon-600 hover:bg-stone text-parchment py-2 rounded-none font-semibold">Cancelar</button>
                     </div>
                 </div>
             )}
@@ -1311,14 +1311,14 @@ export const ProfesorDashboard = function ProfesorDashboard({
             {/* Modal Usar Artefacto */}
             {showUseArtefacto && selectedArtefactoStudent && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                    <div className="panel-pixel-dark p-6 max-w-md w-full">
                         <h3 className="text-xl font-bold mb-4">Usar Artefacto de {selectedArtefactoStudent.nombre}</h3>
                         {(function() {
                             var artsDisponibles = (selectedArtefactoStudent.artefactos || [])
                                 .map(function(a, i) { return Object.assign({}, a, { _idx: i }); })
                                 .filter(function(a) { return !a.usado; });
                             if (artsDisponibles.length === 0) {
-                                return <div className="text-center text-gray-400 py-4">No tiene artefactos disponibles para usar.</div>;
+                                return <div className="text-center text-arcane/70 py-4">No tiene artefactos disponibles para usar.</div>;
                             }
                             return (
                                 <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -1327,11 +1327,11 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                         if (!artDef) return null;
                                         return (
                                             <button key={artInv._idx} onClick={function() { usarArtefacto(selectedArtefactoStudent.id, artInv._idx); }}
-                                                className={"w-full flex items-center gap-3 p-3 rounded-lg border-2 hover:shadow transition text-left " + getRarezaColor(artDef.rareza)}>
+                                                className={"w-full flex items-center gap-3 p-3 rounded-none border-2 hover:shadow transition text-left " + getRarezaColor(artDef.rareza)}>
                                                 <span className="text-2xl">{artDef.emoji}</span>
                                                 <div>
                                                     <div className="font-semibold text-sm">{artDef.nombre}</div>
-                                                    <div className="text-xs text-gray-600">{artDef.efecto}</div>
+                                                    <div className="text-xs text-arcane">{artDef.efecto}</div>
                                                 </div>
                                             </button>
                                         );
@@ -1340,7 +1340,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                             );
                         })()}
                         <button onClick={function() { setShowUseArtefacto(false); setSelectedArtefactoStudent(null); }}
-                            className="w-full mt-4 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-semibold">Cancelar</button>
+                            className="w-full mt-4 bg-dungeon-600 hover:bg-stone text-parchment py-2 rounded-none font-semibold">Cancelar</button>
                     </div>
                 </div>
             )}
@@ -1370,10 +1370,10 @@ function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="panel-pixel-dark p-6 max-w-md w-full">
                 <h3 className="text-xl font-bold mb-4">Regalar Artefacto de {fromStudent.nombre}</h3>
                 {artsDisponibles.length === 0 ? (
-                    <div className="text-center text-gray-400 py-4">No tiene artefactos disponibles para regalar.</div>
+                    <div className="text-center text-arcane/70 py-4">No tiene artefactos disponibles para regalar.</div>
                 ) : (
                     <div>
                         <label className="block text-sm font-semibold mb-2">Seleccionar artefacto</label>
@@ -1384,8 +1384,8 @@ function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
                                 return (
                                     <button key={artInv._idx}
                                         onClick={function() { setSelectedArtIdx(artInv._idx); }}
-                                        className={"w-full flex items-center gap-3 p-3 rounded-lg border-2 text-left transition " +
-                                            (selectedArtIdx === artInv._idx ? 'ring-2 ring-purple-500 ' : '') + getRarezaColor(artDef.rareza)}>
+                                        className={"w-full flex items-center gap-3 p-3 rounded-none border-2 text-left transition " +
+                                            (selectedArtIdx === artInv._idx ? 'ring-2 ring-arcane ' : '') + getRarezaColor(artDef.rareza)}>
                                         <span className="text-2xl">{artDef.emoji}</span>
                                         <div className="text-sm font-semibold">{artDef.nombre}</div>
                                     </button>
@@ -1394,7 +1394,7 @@ function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
                         </div>
                         <label className="block text-sm font-semibold mb-2">Destinatario</label>
                         <select value={toStudentId} onChange={function(e) { setToStudentId(Number(e.target.value)); }}
-                            className="w-full px-4 py-2 border rounded-lg mb-4">
+                            className="input-pixel w-full px-4 py-2 mb-4">
                             <option value="">Seleccionar estudiante</option>
                             {otherStudents.map(function(s) {
                                 return <option key={s.id} value={s.id}>{s.nombreSocial || s.nombre}</option>;
@@ -1407,13 +1407,13 @@ function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
                                     alert('Selecciona artefacto y destinatario.');
                                 }
                             }}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-bold mb-2">
+                            className="w-full bg-arcane hover:bg-arcane/80 text-white py-2 rounded-none font-bold mb-2">
                             Regalar
                         </button>
                     </div>
                 )}
                 <button onClick={onClose}
-                    className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-semibold">Cancelar</button>
+                    className="w-full bg-dungeon-600 hover:bg-stone text-parchment py-2 rounded-none font-semibold">Cancelar</button>
             </div>
         </div>
     );

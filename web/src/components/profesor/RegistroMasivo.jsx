@@ -2,6 +2,8 @@ import React from 'react';
 import { CATEGORIAS_ACTIVIDAD, RUBRICS_HABILIDADES, RUBRICS_XP, TIPOS_ACTIVIDAD } from '../../domain/tipos-actividad.js';
 import { CLASES_FILOSOFICAS } from '../../domain/clases-filosoficas.js';
 import { COFRES, getCofre } from '../../domain/artefactos.js';
+import { PixelSprite } from '../pixel/PixelSprite.jsx';
+import { catIcon } from '../pixel/icons.js';
 
 // Registro masivo de actividades
 export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, activities, unidadActual, claseActual }) => {
@@ -87,30 +89,30 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">Registro Masivo de Actividades</h2>
-            <p className="text-gray-600">Registra actividades para multiples estudiantes a la vez. Ideal para participacion en clase y actividades grupales.</p>
+            <h2 className="text-2xl font-bold text-parchment">Registro Masivo de Actividades</h2>
+            <p className="text-arcane">Registra actividades para multiples estudiantes a la vez. Ideal para participacion en clase y actividades grupales.</p>
 
             {registroExitoso && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                <div className="bg-emerald/20 border border-emerald text-emerald px-4 py-3 rounded-none">
                     Actividades registradas exitosamente para {registroCount} estudiante{registroCount !== 1 ? 's' : ''}.
                 </div>
             )}
 
             {/* Configuracion de actividad */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Configuracion de la Actividad</h3>
+            <div className="panel-pixel p-6">
+                <h3 className="text-lg font-bold text-parchment mb-4">Configuracion de la Actividad</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold mb-1">Unidad</label>
                         <select value={unidadId} onChange={(e) => { setUnidadId(e.target.value); setClaseNum(1); }}
-                            className="w-full px-4 py-2 border rounded-lg">
+                            className="input-pixel w-full px-4 py-2">
                             {unidades.map(u => <option key={u.id} value={u.id}>{u.emoji} {u.nombre}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-sm font-semibold mb-1">Clase</label>
                         <select value={claseNum} onChange={(e) => setClaseNum(Number(e.target.value))}
-                            className="w-full px-4 py-2 border rounded-lg">
+                            className="input-pixel w-full px-4 py-2">
                             {(currentUnidad?.clases || []).map(c => (
                                 <option key={c.num} value={c.num}>Clase {c.num}: {c.titulo.substring(0, 35)}</option>
                             ))}
@@ -119,7 +121,7 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                     <div>
                         <label className="block text-sm font-semibold mb-1">Tipo de Actividad</label>
                         <select value={tipo} onChange={(e) => setTipo(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-lg">
+                            className="input-pixel w-full px-4 py-2">
                             <option value="">Seleccionar...</option>
                             {categorias.map(cat => (
                                 <optgroup key={cat.id} label={cat.emoji + ' ' + cat.nombre}>
@@ -132,17 +134,17 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                     </div>
                     <div>
                         <label className="block text-sm font-semibold mb-1">
-                            Nivel de Desempeno {!nivelIndividual && <span className="text-gray-400">(para todos)</span>}
+                            Nivel de Desempeno {!nivelIndividual && <span className="text-arcane/70">(para todos)</span>}
                         </label>
                         <div className="flex gap-2">
                             <select value={nivel} onChange={(e) => setNivel(e.target.value)}
-                                className="flex-1 px-4 py-2 border rounded-lg" disabled={nivelIndividual}>
+                                className="flex-1 input-pixel px-4 py-2" disabled={nivelIndividual}>
                                 <option value="basico">Basico</option>
                                 <option value="competente">Competente</option>
                                 <option value="avanzado">Avanzado</option>
                                 <option value="excepcional">Excepcional</option>
                             </select>
-                            <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+                            <label className="flex items-center gap-1 text-xs text-arcane cursor-pointer">
                                 <input type="checkbox" checked={nivelIndividual}
                                     onChange={(e) => setNivelIndividual(e.target.checked)} />
                                 Individual
@@ -151,22 +153,27 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                     </div>
                 </div>
                 {tipo && !nivelIndividual && (
-                    <div className="mt-4 bg-purple-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
+                    <div className="mt-4 bg-arcane/10 rounded-none p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <span className="text-sm text-gray-600">XP por estudiante: </span>
-                                <span className="text-2xl font-bold text-purple-600">{xpBase} XP</span>
+                                <span className="text-sm text-arcane">XP por estudiante: </span>
+                                <span className="text-2xl font-bold text-gold">{xpBase} XP</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 {categoriaActual && (
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                        categoriaActual.id === 'cotidiana' ? 'bg-gray-200 text-gray-600' :
-                                        categoriaActual.id === 'proceso' ? 'bg-amber-100 text-amber-700' :
-                                        'bg-blue-100 text-blue-700'
-                                    }`}>{categoriaActual.emoji} {categoriaActual.nombre}</span>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${
+                                        categoriaActual.id === 'cotidiana' ? 'bg-dungeon-600 text-arcane' :
+                                        categoriaActual.id === 'proceso' ? 'bg-gold/15 text-gold' :
+                                        'bg-blue-950/60 text-blue-300'
+                                    }`}>
+                                        {catIcon(categoriaActual.id)
+                                            ? <PixelSprite sprite={catIcon(categoriaActual.id)} size={14} />
+                                            : categoriaActual.emoji}{' '}
+                                        {categoriaActual.nombre}
+                                    </span>
                                 )}
                                 {cofreInfo && (
-                                    <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+                                    <span className="px-2 py-1 rounded-full bg-gold/15 text-gold text-xs font-semibold">
                                         {COFRES[cofreInfo].emoji} {COFRES[cofreInfo].nombre}
                                     </span>
                                 )}
@@ -175,7 +182,7 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                     </div>
                 )}
                 <textarea value={notas} onChange={(e) => setNotas(e.target.value)}
-                    placeholder="Notas adicionales (opcional)" className="w-full px-4 py-2 border rounded-lg mt-4 h-16" />
+                    placeholder="Notas adicionales (opcional)" className="input-pixel w-full px-4 py-2 mt-4 h-16" />
 
                 {/* Vocabulario a otorgar */}
                 {currentUnidad && currentUnidad.vocabulario.length > 0 && (
@@ -191,8 +198,8 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                                     }}
                                     className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
                                         vocabularioTerminos.includes(v.termino)
-                                            ? 'bg-indigo-500 text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-arcane/150 text-white'
+                                            : 'bg-dungeon-800 text-parchment/90 hover:bg-dungeon-600'
                                     }`}>
                                     {v.termino}
                                 </button>
@@ -203,16 +210,16 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
             </div>
 
             {/* Seleccion de estudiantes */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-gray-800">
+            <div className="panel-pixel p-6">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+                    <h3 className="text-lg font-bold text-parchment">
                         Estudiantes ({selectedStudents.length}/{students.length} seleccionados)
                     </h3>
                     <div className="flex gap-2">
-                        <button onClick={selectAll} className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200">
+                        <button onClick={selectAll} className="text-sm bg-indigo-950/60 text-indigo-300 px-3 py-1 rounded hover:bg-indigo-900/60">
                             Todos
                         </button>
-                        <button onClick={selectNone} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200">
+                        <button onClick={selectNone} className="text-sm bg-dungeon-800 text-parchment/90 px-3 py-1 rounded hover:bg-dungeon-600">
                             Ninguno
                         </button>
                     </div>
@@ -224,18 +231,18 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                         return (
                             <div key={student.id}
                                 onClick={() => toggleStudent(student.id)}
-                                className={`p-3 rounded-lg border-2 cursor-pointer transition ${
-                                    isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                                className={`p-3 rounded-none border-2 cursor-pointer transition ${
+                                    isSelected ? 'border-gold bg-arcane/15' : 'border-stone-dark hover:border-stone'
                                 }`}>
                                 <div className="flex items-center gap-3">
                                     <input type="checkbox" checked={isSelected} onChange={() => {}} className="pointer-events-none" />
                                     <div className="flex-1">
-                                        <span className="font-semibold text-sm text-gray-800">{student.nombre}</span>
+                                        <span className="font-semibold text-sm text-parchment">{student.nombre}</span>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className={`text-xs px-2 py-0.5 rounded-full text-white ${clase?.color}`}>
                                                 {clase?.emoji} {clase?.nombre}
                                             </span>
-                                            <span className="text-xs text-gray-500">{student.xp} XP</span>
+                                            <span className="text-xs text-arcane">{student.xp} XP</span>
                                             {tipo === 'participacion' && (() => {
                                                 var hoy = new Date().toISOString().split('T')[0];
                                                 var count = (activities || []).filter(a =>
@@ -244,9 +251,9 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                                                     a.date && a.date.split('T')[0] === hoy
                                                 ).length;
                                                 return count >= 2 ? (
-                                                    <span className="text-xs text-amber-600 font-semibold ml-2">⚠️ {count}/2 hoy</span>
+                                                    <span className="text-xs text-gold font-semibold ml-2">⚠️ {count}/2 hoy</span>
                                                 ) : count > 0 ? (
-                                                    <span className="text-xs text-gray-400 ml-2">{count}/2 hoy</span>
+                                                    <span className="text-xs text-arcane/70 ml-2">{count}/2 hoy</span>
                                                 ) : null;
                                             })()}
                                         </div>
@@ -275,10 +282,10 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
             {/* Boton de registro */}
             <button onClick={handleRegister}
                 disabled={selectedStudents.length === 0 || !tipo}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition ${
+                className={`w-full py-4 rounded-none font-bold text-lg transition ${
                     selectedStudents.length > 0 && tipo
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        ? 'bg-emerald hover:bg-emerald/80 text-white'
+                        : 'bg-dungeon-600 text-arcane cursor-not-allowed'
                 }`}>
                 Registrar Actividad para {selectedStudents.length} estudiante{selectedStudents.length !== 1 ? 's' : ''}
             </button>
