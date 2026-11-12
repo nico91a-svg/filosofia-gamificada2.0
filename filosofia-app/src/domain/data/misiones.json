@@ -1,0 +1,112 @@
+[
+  {
+    "id": "M01",
+    "nombre": "Voz Filosofica",
+    "descripcion": "Participa al menos 1 vez en la clase de hoy",
+    "tipo": "clase",
+    "emoji": "🗣️",
+    "recompensa": {
+      "xp": 10
+    },
+    "verificacion": "auto"
+  },
+  {
+    "id": "M02",
+    "nombre": "Excelencia Filosofica",
+    "descripcion": "Logra nivel \"avanzado\" o \"excepcional\" en alguna actividad de hoy",
+    "tipo": "clase",
+    "emoji": "🌟",
+    "recompensa": {
+      "xp": 15
+    },
+    "verificacion": "auto"
+  },
+  {
+    "id": "M03",
+    "nombre": "Cazador de Palabras",
+    "descripcion": "Descubre al menos 1 nuevo termino de vocabulario",
+    "tipo": "clase",
+    "emoji": "📖",
+    "recompensa": {
+      "xp": 10
+    },
+    "verificacion": "auto"
+  },
+  {
+    "id": "M04",
+    "nombre": "Debatiente Activo",
+    "descripcion": "Participa en un debate o dialogo filosofico grupal",
+    "tipo": "clase",
+    "emoji": "⚔️",
+    "recompensa": {
+      "xp": 15
+    },
+    "verificacion": "auto"
+  },
+  {
+    "id": "M05",
+    "nombre": "Doble Esfuerzo",
+    "descripcion": "Completa 2 actividades distintas en la clase de hoy",
+    "tipo": "clase",
+    "emoji": "💪",
+    "recompensa": {
+      "xp": 15
+    },
+    "verificacion": "auto"
+  },
+  {
+    "id": "M06",
+    "nombre": "Pensador Autonomo",
+    "descripcion": "Trae una reflexion escrita sobre el tema de la clase anterior",
+    "tipo": "entre-clases",
+    "emoji": "✍️",
+    "recompensa": {
+      "xp": 20
+    },
+    "verificacion": "manual"
+  },
+  {
+    "id": "M07",
+    "nombre": "Conexion con lo Real",
+    "descripcion": "Encuentra un ejemplo de la vida cotidiana relacionado con el tema visto",
+    "tipo": "entre-clases",
+    "emoji": "🔗",
+    "recompensa": {
+      "xp": 15
+    },
+    "verificacion": "manual"
+  },
+  {
+    "id": "M08",
+    "nombre": "Filosofo Investigador",
+    "descripcion": "Investiga un filosofo mencionado en clase y comparte un dato nuevo",
+    "tipo": "entre-clases",
+    "emoji": "🔍",
+    "recompensa": {
+      "xp": 20
+    },
+    "verificacion": "manual"
+  },
+  {
+    "id": "M09",
+    "nombre": "Pregunta Profunda",
+    "descripcion": "Formula una pregunta filosofica original sobre el tema visto",
+    "tipo": "entre-clases",
+    "emoji": "❓",
+    "recompensa": {
+      "xp": 15
+    },
+    "verificacion": "manual"
+  },
+  {
+    "id": "M10",
+    "nombre": "Embajador Filosofico",
+    "descripcion": "Explica a alguien fuera de clase un concepto filosofico aprendido y cuenta la experiencia",
+    "tipo": "entre-clases",
+    "emoji": "🌍",
+    "recompensa": {
+      "xp": 20
+    },
+    "verificacion": "manual"
+  }
+]

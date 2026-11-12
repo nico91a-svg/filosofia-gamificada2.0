@@ -1,0 +1,32 @@
+{
+  "bronce": {
+    "nombre": "Cofre de Bronce",
+    "emoji": "🥉",
+    "probabilidades": {
+      "comun": 70,
+      "raro": 22,
+      "epico": 7,
+      "legendario": 1
+    }
+  },
+  "plata": {
+    "nombre": "Cofre de Plata",
+    "emoji": "🥈",
+    "probabilidades": {
+      "comun": 50,
+      "raro": 30,
+      "epico": 15,
+      "legendario": 5
+    }
+  },
+  "oro": {
+    "nombre": "Cofre de Oro",
+    "emoji": "🥇",
+    "probabilidades": {
+      "comun": 30,
+      "raro": 35,
+      "epico": 25,
+      "legendario": 10
+    }
+  }
+}
