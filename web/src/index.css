@@ -5,6 +5,7 @@
 html, body {
     font-family: 'Silkscreen', monospace;
     background: #0e0b1e; /* dungeon-950 */
+    color: #e8d9a0;      /* parchment: color por defecto sobre los paneles oscuros */
     -webkit-tap-highlight-color: transparent;
 }
 
