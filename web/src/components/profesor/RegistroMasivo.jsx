@@ -204,7 +204,7 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
 
             {/* Seleccion de estudiantes */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
                     <h3 className="text-lg font-bold text-gray-800">
                         Estudiantes ({selectedStudents.length}/{students.length} seleccionados)
                     </h3>

@@ -621,7 +621,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         {/* Unidad y Clase Actual */}
                         <div className="bg-white rounded-xl shadow p-6 mb-6">
                             <h2 className="text-lg font-bold text-gray-800 mb-4">Clase Actual</h2>
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
                                 <button onClick={prevClase}
                                     className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg text-gray-700 font-bold transition">
                                     &#8592; Anterior
@@ -688,7 +688,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 {/* ================ TAB: ESTUDIANTES ================ */}
                 {activeTab === 'estudiantes' && (
                     <div>
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                             <h2 className="text-2xl font-bold text-gray-800">Ranking de Estudiantes</h2>
                             <button onClick={function() { setShowAddStudent(true); }}
                                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold transition">
