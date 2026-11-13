@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+        // Evita el parpadeo claro->oscuro al recargar: el tema por defecto es
+        // claro (ver :root en src/index.css), esto solo adelanta la eleccion
+        // guardada si el usuario paso a oscuro con ThemeToggle.jsx.
+        try {
+            if (localStorage.getItem('filosofo_theme') === 'dark') {
+                document.documentElement.dataset.theme = 'dark';
+            }
+        } catch (e) { /* localStorage no disponible: queda el tema claro por defecto */ }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#3b0764">
+    <meta name="theme-color" content="#1c1538">
     <meta name="description" content="Filósofo en Formación: sistema gamificado para clases de Filosofía.">
     <meta name="author" content="Nicolás Aldunate Gaete">
     <link rel="icon" type="image/svg+xml" href="/icon.svg">

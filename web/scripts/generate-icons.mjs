@@ -17,7 +17,7 @@ const foregroundOnly = svg
     .replace(/<rect width="512"[^>]*\/>/, '')
     .replace('<g fill="#fff">', '<g fill="#fff" transform="translate(256 256) scale(.6) translate(-256 -256)">');
 const splash = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
-  <rect width="2732" height="2732" fill="#0f172a"/>
+  <rect width="2732" height="2732" fill="#1c1538"/>
   <svg x="1116" y="1116" width="500" height="500" viewBox="0 0 512 512">${svg.replace(/<\/?svg[^>]*>/g, '')}</svg>
 </svg>`;
 
