@@ -2,29 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Variables de tema: claro por defecto (preferencia del profesor), oscuro
+   opcional via [data-theme='dark'] en <html> (ver ThemeToggle.jsx). Formato
+   "r g b" sin funcion, para que tailwind.config.js arme rgb(var(..) / a). */
+:root {
+    --c-dungeon-950: 244 234 212;
+    --c-dungeon-900: 236 223 189;
+    --c-dungeon-800: 226 209 165;
+    --c-dungeon-700: 216 196 146;
+    --c-dungeon-600: 203 180 125;
+    --c-stone-light: 255 250 235;
+    --c-stone: 138 122 74;
+    --c-stone-dark: 58 45 20;
+    --c-gold-light: 255 231 154;
+    --c-gold: 201 149 23;
+    --c-gold-dark: 140 96 10;
+    --c-parchment: 42 32 16;
+    --c-ruby: 184 42 66;
+    --c-emerald: 20 120 85;
+    --c-arcane: 107 69 168;
+}
+
+:root[data-theme='dark'] {
+    --c-dungeon-950: 14 11 30;
+    --c-dungeon-900: 22 18 50;
+    --c-dungeon-800: 34 26 69;
+    --c-dungeon-700: 46 36 88;
+    --c-dungeon-600: 59 47 110;
+    --c-stone-light: 107 95 163;
+    --c-stone: 74 63 122;
+    --c-stone-dark: 28 21 56;
+    --c-gold-light: 255 231 154;
+    --c-gold: 242 195 61;
+    --c-gold-dark: 176 125 24;
+    --c-parchment: 232 217 160;
+    --c-ruby: 224 80 106;
+    --c-emerald: 63 178 127;
+    --c-arcane: 157 107 216;
+}
+
 html, body {
     font-family: 'Silkscreen', monospace;
-    background: #0e0b1e; /* dungeon-950 */
-    color: #e8d9a0;      /* parchment: color por defecto sobre los paneles oscuros */
+    background: rgb(var(--c-dungeon-950));
+    color: rgb(var(--c-parchment));
     -webkit-tap-highlight-color: transparent;
 }
 
 /* Sistema pixel "mazmorra": mismas recetas que PixelPanel/Button de la app
    movil (bisel claro arriba/izq, oscuro abajo/der, sombra dura sin blur).
-   Ver docs/design/estetica-pixel-web.md. */
+   Ver docs/design/estetica-pixel-web.md. theme('colors.x') no sirve aqui
+   (arrastraria el placeholder <alpha-value> sin resolver), por eso se usa
+   rgb(var(..)) directo. */
 @layer components {
     .panel-pixel {
         @apply bg-dungeon-700 border-[3px] border-stone-dark;
         box-shadow:
-            inset 2px 2px 0 0 theme('colors.stone.light'),
-            inset -2px -2px 0 0 theme('colors.stone.dark'),
+            inset 2px 2px 0 0 rgb(var(--c-stone-light)),
+            inset -2px -2px 0 0 rgb(var(--c-stone-dark)),
             4px 4px 0 0 rgba(0, 0, 0, 0.8);
     }
     .panel-pixel-dark {
         @apply bg-dungeon-800 border-[3px] border-stone-dark;
         box-shadow:
-            inset 2px 2px 0 0 theme('colors.stone.light'),
-            inset -2px -2px 0 0 theme('colors.stone.dark'),
+            inset 2px 2px 0 0 rgb(var(--c-stone-light)),
+            inset -2px -2px 0 0 rgb(var(--c-stone-dark)),
             4px 4px 0 0 rgba(0, 0, 0, 0.8);
     }
 
@@ -36,23 +77,23 @@ html, body {
     .btn-pixel-primary {
         @apply btn-pixel bg-gold text-[#3a2a06];
         box-shadow:
-            inset 2px 2px 0 0 theme('colors.gold.light'),
-            inset -2px -2px 0 0 theme('colors.gold.dark'),
-            0 3px 0 0 theme('colors.stone.dark');
+            inset 2px 2px 0 0 rgb(var(--c-gold-light)),
+            inset -2px -2px 0 0 rgb(var(--c-gold-dark)),
+            0 3px 0 0 rgb(var(--c-stone-dark));
     }
     .btn-pixel-ghost {
         @apply btn-pixel bg-dungeon-600 text-parchment;
         box-shadow:
-            inset 2px 2px 0 0 theme('colors.stone.light'),
-            inset -2px -2px 0 0 theme('colors.stone.dark'),
-            0 3px 0 0 theme('colors.stone.dark');
+            inset 2px 2px 0 0 rgb(var(--c-stone-light)),
+            inset -2px -2px 0 0 rgb(var(--c-stone-dark)),
+            0 3px 0 0 rgb(var(--c-stone-dark));
     }
     .btn-pixel-danger {
         @apply btn-pixel bg-ruby text-white;
         box-shadow:
             inset 2px 2px 0 0 #f08a9c,
             inset -2px -2px 0 0 #a83246,
-            0 3px 0 0 theme('colors.stone.dark');
+            0 3px 0 0 rgb(var(--c-stone-dark));
     }
 
     .input-pixel {
@@ -73,10 +114,19 @@ html, body {
 }
 .animate-fade-in { animation: fade-in .35s ease-out both; }
 
+/* Iconos "protagonista" (artefactos en inventario/catalogo/revelacion de
+   cofre): flotan suavemente y se detienen al pasar el mouse. */
+@keyframes float-icon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+.animate-float { animation: float-icon 2.6s ease-in-out infinite; }
+.animate-float:hover { animation-play-state: paused; }
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #1c1538; }
-::-webkit-scrollbar-thumb { background: #4a3f7a; border: 1px solid #1c1538; }
-::-webkit-scrollbar-thumb:hover { background: #f2c33d; }
+::-webkit-scrollbar-track { background: rgb(var(--c-stone-dark)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-stone)); border: 1px solid rgb(var(--c-stone-dark)); }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-gold)); }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

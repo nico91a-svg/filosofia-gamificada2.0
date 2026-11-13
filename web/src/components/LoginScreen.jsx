@@ -4,6 +4,7 @@ import { APP_CONFIG } from '../config.js';
 import { getPaleta, loadCursoSelection } from '../data/cursos.js';
 import { Icons } from './shared/Icons.jsx';
 import { Logo } from './shared/Status.jsx';
+import { ThemeToggle } from './shared/ThemeToggle.jsx';
 
 const ROLES = {
     profesor: { titulo: 'Profesor', detalle: 'Gestión, XP y misiones', Icon: 'Users' },
@@ -56,6 +57,7 @@ export function LoginScreen({ cursos, cursoId, onCursoChange, onLogin, error, on
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-dungeon-950 flex items-center justify-center p-4">
+            <div className="absolute top-4 right-4 z-10"><ThemeToggle /></div>
             {/* cuadricula de piedra sutil */}
             <div className="absolute inset-0 opacity-[0.05]" style={{
                 backgroundImage: 'linear-gradient(rgba(107,95,163,.6) 2px, transparent 2px), linear-gradient(90deg, rgba(107,95,163,.6) 2px, transparent 2px)',

@@ -14,6 +14,8 @@ import { MISIONES_DB, getMisionesDeClase } from '../../domain/misiones.js';
 import { RUBRICS_HABILIDADES, RUBRICS_XP, TIPOS_ACTIVIDAD } from '../../domain/tipos-actividad.js';
 import { RegistroMasivo } from './RegistroMasivo.jsx';
 import { getNivel } from '../../domain/niveles.js';
+import { ThemeToggle } from '../shared/ThemeToggle.jsx';
+import { ArtefactoIcon } from '../pixel/ArtefactoIcon.jsx';
 
 // ProfesorDashboard.jsx - Dashboard principal del profesor
 const { useState, useEffect } = React;
@@ -537,6 +539,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         )}
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <ThemeToggle />
                         <button onClick={onImportData} aria-label="Importar" title="Importar un respaldo"
                             className="flex items-center gap-2 bg-dungeon-700 bg-opacity-20 hover:bg-opacity-30 px-3 sm:px-4 py-2 rounded-none text-sm font-semibold transition">
                             <span aria-hidden="true">📥</span><span className="hidden sm:inline">Importar</span>
@@ -1013,7 +1016,9 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                 var rarezaColor = getRarezaColor(art.rareza);
                                 return (
                                     <div key={art.id} className={"panel-pixel p-5 border-2 " + rarezaColor}>
-                                        <div className="text-4xl text-center mb-3">{art.emoji}</div>
+                                        <div className="mb-3 flex justify-center">
+                                            <ArtefactoIcon art={art} size={40} className="animate-float" />
+                                        </div>
                                         <div className="text-center font-bold text-parchment mb-1">{art.nombre}</div>
                                         <div className="text-center text-xs text-arcane capitalize mb-2">
                                             <span className={"px-2 py-0.5 rounded-full text-xs font-semibold " +
@@ -1296,7 +1301,9 @@ export const ProfesorDashboard = function ProfesorDashboard({
                                 return (
                                     <button key={art.id} onClick={function() { otorgarArtefacto(selectedArtefactoStudent.id, art.id); }}
                                         className={"p-3 rounded-none border-2 text-center hover:shadow transition " + getRarezaColor(art.rareza)}>
-                                        <div className="text-2xl mb-1">{art.emoji}</div>
+                                        <div className="mb-1 flex justify-center">
+                                            <ArtefactoIcon art={art} size={28} className="animate-float" />
+                                        </div>
                                         <div className="text-xs font-semibold">{art.nombre}</div>
                                     </button>
                                 );

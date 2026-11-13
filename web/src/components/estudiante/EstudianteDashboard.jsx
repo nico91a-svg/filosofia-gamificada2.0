@@ -9,8 +9,10 @@ import { RadarChart } from '../shared/RadarChart.jsx';
 import { getMisionesDeClase } from '../../domain/misiones.js';
 import { getNivel } from '../../domain/niveles.js';
 import { PixelSprite } from '../pixel/PixelSprite.jsx';
+import { ArtefactoIcon } from '../pixel/ArtefactoIcon.jsx';
 import { GEM_SPRITE, chestOpenSprite, chestSprite, gemColor } from '../pixel/sprites.js';
 import { skillIcon } from '../pixel/icons.js';
+import { ThemeToggle } from '../shared/ThemeToggle.jsx';
 
 // Dashboard del Estudiante - Vista gamificada completa
 // Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
@@ -1034,7 +1036,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                     <div className="flex items-start gap-3">
                                         <div className="relative shrink-0">
                                             <PixelSprite sprite={GEM_SPRITE} size={44} tint={gemColor(art.rareza)} tintKey="c" />
-                                            <span className="absolute -bottom-1 -right-1 text-base">{art.emoji}</span>
+                                            <span className="absolute -bottom-1 -right-1">
+                                                <ArtefactoIcon art={art} size={18} />
+                                            </span>
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
@@ -1086,7 +1090,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                     className={`rounded-xl p-3 text-center border transition-all ${
                                         owned ? 'border-yellow-400/30 bg-yellow-500/10' : 'border-gray-600/30 bg-gray-800/30 opacity-50'
                                     }`}>
-                                    <div className="text-2xl mb-1">{owned ? art.emoji : '❓'}</div>
+                                    <div className="mb-1 flex items-center justify-center" style={{ height: 32 }}>
+                                        {owned ? <ArtefactoIcon art={art} size={32} className="animate-float" /> : <span className="text-2xl">❓</span>}
+                                    </div>
                                     <p className={`text-xs font-semibold ${owned ? 'text-white' : 'text-gray-500'}`}>
                                         {owned ? art.nombre : '???'}
                                     </p>
@@ -1130,6 +1136,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                        <ThemeToggle />
                         <span className="bg-yellow-500/20 text-gold text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full">
                             {currentUser.xp || 0} XP
                         </span>
@@ -1235,7 +1242,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 <div className="mb-2 inline-block">
                                     <PixelSprite sprite={chestOpenSprite(chestOpening ? chestOpening.tipo : 'bronce')} size={96} />
                                 </div>
-                                <div className="text-5xl mb-3" style={{animation: 'pulse 1s ease-in-out infinite'}}>{chestResult.emoji}</div>
+                                <div className="mb-3 flex justify-center">
+                                    <ArtefactoIcon art={chestResult} size={56} className="animate-float" />
+                                </div>
                                 <h3 className="text-lg font-bold text-parchment mb-2">Obtuviste: {chestResult.nombre}</h3>
                                 <span className="inline-block px-3 py-1 border-2 text-xs font-bold mb-3 uppercase"
                                     style={{ color: gemColor(chestResult.rareza), borderColor: gemColor(chestResult.rareza) }}>
@@ -1271,7 +1280,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         <div className="bg-gray-900 border border-green-500/30 rounded-2xl p-6 max-w-sm w-full text-center">
                             {artDef && (
                                 <>
-                                    <div className="text-5xl mb-3">{artDef.emoji}</div>
+                                    <div className="mb-3 flex justify-center">
+                                        <ArtefactoIcon art={artDef} size={56} className="animate-float" />
+                                    </div>
                                     <h3 className="text-xl font-bold text-white mb-2">Usar {artDef.nombre}</h3>
                                     <p className="text-green-300 text-sm mb-1">Efecto: {artDef.efecto}</p>
                                     <p className="text-gold text-xs mb-4">Una vez usado, no se puede recuperar. Tu profesor aplicara el efecto.</p>

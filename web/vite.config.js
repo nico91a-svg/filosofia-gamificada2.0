@@ -28,8 +28,8 @@ export default defineConfig(({ mode }) => ({
                 scope: './',
                 display: 'standalone',
                 orientation: 'portrait',
-                background_color: '#0f172a',
-                theme_color: '#3b0764',
+                background_color: '#1c1538',
+                theme_color: '#1c1538',
                 icons: [
                     { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
                     { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },

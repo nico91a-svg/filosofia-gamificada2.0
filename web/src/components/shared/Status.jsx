@@ -9,14 +9,7 @@ export function Logo({ size = 80 }) {
             className="inline-flex items-center justify-center bg-dungeon-600 border-[3px] border-stone-dark"
             style={{ width: size, height: size, boxShadow: 'inset 2px 2px 0 0 #6b5fa3, inset -2px -2px 0 0 #1c1538, 4px 4px 0 0 rgba(0,0,0,.8)' }}
         >
-            <svg viewBox="0 0 64 64" width={size * 0.62} height={size * 0.62} fill="none" aria-hidden="true" shapeRendering="crispEdges">
-                <path d="M32 9 8 22v4h48v-4L32 9Z" fill="#f2c33d" />
-                <rect x="13" y="29" width="6" height="19" fill="#e8d9a0" />
-                <rect x="24" y="29" width="6" height="19" fill="#e8d9a0" />
-                <rect x="34" y="29" width="6" height="19" fill="#e8d9a0" />
-                <rect x="45" y="29" width="6" height="19" fill="#e8d9a0" />
-                <rect x="8" y="50" width="48" height="5" fill="#f2c33d" />
-            </svg>
+            <PixelSprite sprite={OWL_SPRITE} size={size * 0.72} />
         </div>
     );
 }
