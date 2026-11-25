@@ -6,7 +6,7 @@ import { PixelSprite } from '../pixel/PixelSprite.jsx';
 import { catIcon } from '../pixel/icons.js';
 
 // Registro masivo de actividades
-export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, activities, unidadActual, claseActual }) => {
+export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, activities, unidadActual, claseActual, ruleset }) => {
     const { useState } = React;
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [tipo, setTipo] = useState('');
@@ -21,14 +21,15 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
     const [registroExitoso, setRegistroExitoso] = useState(false);
     const [registroCount, setRegistroCount] = useState(0);
 
-    const tiposActividad = TIPOS_ACTIVIDAD;
-    const categorias = CATEGORIAS_ACTIVIDAD || [];
-    const rubrics = RUBRICS_XP;
+    const tiposActividad = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD;
+    const categorias = (ruleset && ruleset.categorias) || CATEGORIAS_ACTIVIDAD || [];
+    const rubrics = (ruleset && ruleset.rubricsXP) || RUBRICS_XP;
+    const rubricsHab = (ruleset && ruleset.rubricsHabilidades) || RUBRICS_HABILIDADES;
     const currentUnidad = unidades.find(u => u.id === unidadId);
     const xpBase = rubrics[tipo]?.[nivel] || 0;
     const tipoSeleccionado = tiposActividad.find(t => t.id === tipo);
     const categoriaActual = tipoSeleccionado ? (categorias.find(c => c.id === tipoSeleccionado.categoria) || null) : null;
-    const cofreInfo = tipo ? getCofre(tipo, nivel) : null;
+    const cofreInfo = tipo ? getCofre(tipo, nivel, tiposActividad) : null;
 
     const toggleStudent = (id) => {
         setSelectedStudents(prev =>
@@ -63,7 +64,7 @@ export const RegistroMasivo = ({ students, unidades, addActivity, setStudents, a
                 unidadId,
                 claseNum,
                 notas,
-                habilidades: RUBRICS_HABILIDADES[tipo] || {}
+                habilidades: rubricsHab[tipo] || {}
             });
         });
 

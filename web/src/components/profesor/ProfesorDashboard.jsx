@@ -6,23 +6,28 @@ import { crearCurso, getPaleta } from '../../data/cursos.js';
 import { getContentPack } from '../../content/index.js';
 import { crearEstudiante } from '../../domain/estudiantes.js';
 import { nextId } from '../../domain/ids.js';
+import { Analitica } from './Analitica.jsx';
+import { GestionArcade } from './GestionArcade.jsx';
 import { GestionCursos } from './GestionCursos.jsx';
+import { GestionRuleset } from './GestionRuleset.jsx';
 import { GestionUnidades } from './GestionUnidades.jsx';
-import { HABILIDADES, HABILIDAD_NIVELES, getHabilidadNivel } from '../../domain/habilidades.js';
+import { HABILIDADES as HABILIDADES_D, HABILIDAD_NIVELES as HABILIDAD_NIVELES_D, getHabilidadNivel as getHabilidadNivel_D } from '../../domain/habilidades.js';
 import { Icons } from '../shared/Icons.jsx';
 import { MISIONES_DB, getMisionesDeClase } from '../../domain/misiones.js';
-import { RUBRICS_HABILIDADES, RUBRICS_XP, TIPOS_ACTIVIDAD } from '../../domain/tipos-actividad.js';
+import { RUBRICS_HABILIDADES as RUBRICS_HABILIDADES_D, RUBRICS_XP as RUBRICS_XP_D, TIPOS_ACTIVIDAD as TIPOS_ACTIVIDAD_D } from '../../domain/tipos-actividad.js';
 import { RegistroMasivo } from './RegistroMasivo.jsx';
 import { getNivel } from '../../domain/niveles.js';
 import { ThemeToggle } from '../shared/ThemeToggle.jsx';
 import { ArtefactoIcon } from '../pixel/ArtefactoIcon.jsx';
 
 // ProfesorDashboard.jsx - Dashboard principal del profesor
-const { useState, useEffect } = React;
+const { useState, useEffect, useMemo } = React;
 
 export const ProfesorDashboard = function ProfesorDashboard({
-    students, setStudents, setNombreLegal,
+    students, setStudents, setNombreLegal, resetNombresLegales,
     activities, setActivities,
+    arcade, setArcade,
+    ruleset, setRuleset, resetRuleset, rulesetEsPersonalizado,
     unidades, setUnidades,
     currentUnidad, setCurrentUnidad,
     currentClase, setCurrentClase,
@@ -31,6 +36,16 @@ export const ProfesorDashboard = function ProfesorDashboard({
     curso, cursos, setCursos, currentCursoId, setCurrentCursoId,
     backendKind
 }) {
+    // Habilidades, tipos de actividad y rúbricas salen del ruleset del curso
+    // (ver domain/rulesets.js). Si no llega ruleset, se usan los valores por
+    // defecto (comportamiento idéntico al anterior).
+    const HABILIDADES = (ruleset && ruleset.habilidades) || HABILIDADES_D;
+    const HABILIDAD_NIVELES = (ruleset && ruleset.habilidadNiveles) || HABILIDAD_NIVELES_D;
+    const getHabilidadNivel = (ruleset && ruleset.getHabilidadNivel) || getHabilidadNivel_D;
+    const TIPOS_ACTIVIDAD = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD_D;
+    const RUBRICS_XP = (ruleset && ruleset.rubricsXP) || RUBRICS_XP_D;
+    const RUBRICS_HABILIDADES = (ruleset && ruleset.rubricsHabilidades) || RUBRICS_HABILIDADES_D;
+
     // ---- Estado interno ----
     const [activeTab, setActiveTab] = useState('dashboard');
     const [showAddStudent, setShowAddStudent] = useState(false);
@@ -41,6 +56,23 @@ export const ProfesorDashboard = function ProfesorDashboard({
     const [showUseArtefacto, setShowUseArtefacto] = useState(false);
     const [showGiftArtefacto, setShowGiftArtefacto] = useState(false);
     const [selectedArtefactoStudent, setSelectedArtefactoStudent] = useState(null);
+    // Filtros del historial de actividades.
+    const [actQuery, setActQuery] = useState('');
+    const [actTipo, setActTipo] = useState('');
+    const [actUnidad, setActUnidad] = useState('');
+    const actividadesFiltradas = useMemo(function() {
+        var q = actQuery.trim().toLowerCase();
+        return activities.filter(function(a) {
+            if (actTipo && a.tipo !== actTipo) return false;
+            if (actUnidad && a.unidadId !== actUnidad) return false;
+            if (q) {
+                var st = students.find(function(s) { return s.id === a.studentId; });
+                var nombre = (st ? (st.nombreSocial || st.nombre || '') : '').toLowerCase();
+                if (nombre.indexOf(q) === -1) return false;
+            }
+            return true;
+        });
+    }, [activities, students, actQuery, actTipo, actUnidad]);
 
     // NOTA: la persistencia la maneja la capa de datos (services/SyncedResource).
     // Aqui solo se modifica el estado con setStudents / setActivities.
@@ -192,6 +224,26 @@ export const ProfesorDashboard = function ProfesorDashboard({
         });
     }
 
+    // Elimina una actividad y revierte su XP y puntos de habilidad al estudiante.
+    function eliminarActividad(activityId) {
+        var act = activities.find(function(a) { return a.id === activityId; });
+        if (!act) return;
+        if (!confirm('Eliminar esta actividad y restar ' + (act.xp || 0) + ' XP al estudiante?')) return;
+        setStudents(function(prev) {
+            return prev.map(function(s) {
+                if (s.id !== act.studentId) return s;
+                var newXP = Math.max(0, (s.xp || 0) - (act.xp || 0));
+                var newHabs = Object.assign({}, s.habilidades || {});
+                var habPoints = act.habilidades || (RUBRICS_HABILIDADES[act.tipo] || {});
+                Object.keys(habPoints).forEach(function(habId) {
+                    newHabs[habId] = Math.max(0, (newHabs[habId] || 0) - habPoints[habId]);
+                });
+                return Object.assign({}, s, { xp: newXP, habilidades: newHabs });
+            });
+        });
+        setActivities(function(prev) { return prev.filter(function(a) { return a.id !== activityId; }); });
+    }
+
     function addActivity(data) {
         var xpFinal = data.xp;
         var notasExtra = data.notas || '';
@@ -246,7 +298,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
         checkAndGrantBadges(data.studentId, data.tipo, updatedActivities);
 
         // --- OTORGAR COFRE si la actividad lo merece ---
-        var tipoCofre = getCofre(data.tipo, data.nivel);
+        var tipoCofre = getCofre(data.tipo, data.nivel, TIPOS_ACTIVIDAD);
         if (tipoCofre) {
             addArtefacto(data.studentId, 'cofre_' + tipoCofre);
         }
@@ -464,6 +516,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
     // ---- Tabs config ----
     var tabs = [
         { id: 'dashboard', label: 'Dashboard', emoji: '📊' },
+        { id: 'analitica', label: 'Analítica', emoji: '📈' },
         { id: 'estudiantes', label: 'Estudiantes', emoji: '👥' },
         { id: 'actividades', label: 'Actividades', emoji: '📝' },
         { id: 'unidades', label: 'Unidades', emoji: '📚' },
@@ -471,8 +524,26 @@ export const ProfesorDashboard = function ProfesorDashboard({
         { id: 'misiones', label: 'Misiones', emoji: '🎯' },
         { id: 'artefactos', label: 'Artefactos', emoji: '🏺' },
         { id: 'habilidades', label: 'Habilidades', emoji: '🎯' },
+        { id: 'progresion', label: 'Progresión', emoji: '🧠' },
+        { id: 'arcade', label: 'Arcade', emoji: '🕹️' },
         { id: 'cursos', label: 'Cursos', emoji: '🏛️' }
     ];
+
+    // ---- Gestion del arcade (biblioteca de juegos) ----
+    function guardarEnlace(enlace) {
+        setArcade(function(prev) {
+            var lista = Array.isArray(prev) ? prev : [];
+            var existe = lista.some(function(e) { return e.id === enlace.id; });
+            return existe
+                ? lista.map(function(e) { return e.id === enlace.id ? enlace : e; })
+                : lista.concat([enlace]);
+        });
+    }
+    function eliminarEnlace(id) {
+        setArcade(function(prev) {
+            return (Array.isArray(prev) ? prev : []).filter(function(e) { return e.id !== id; });
+        });
+    }
 
     // ---- Gestion de cursos ----
     function addCurso() {
@@ -493,6 +564,16 @@ export const ProfesorDashboard = function ProfesorDashboard({
         setCursos(function(prev) {
             return prev.map(function(c) { return c.id === cursoId ? Object.assign({}, c, updates) : c; });
         });
+    }
+    function vaciarCurso() {
+        if (!confirm('¿Vaciar el curso "' + curso.nombre + ' ' + curso.anio + '"?\n\nSe borrarán TODOS sus estudiantes y actividades. El contenido (unidades), la progresión y el Arcade se conservan.')) return;
+        if (!confirm('Esta acción no se puede deshacer.\n\nPrimero se descargará un respaldo automático con los datos actuales. ¿Continuar?')) return;
+        onExportData();
+        setStudents([]);
+        setActivities([]);
+        if (resetNombresLegales) resetNombresLegales();
+        if (unidades && unidades[0]) { setCurrentUnidad(unidades[0].id); setCurrentClase(1); }
+        alert('Curso vaciado. Se descargó un respaldo con los datos anteriores.');
     }
     function deleteCurso(cursoId) {
         var c = cursos.find(function(x) { return x.id === cursoId; });
@@ -576,7 +657,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
             </div>
 
             {/* ---- CONTENIDO ---- */}
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div key={activeTab} className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
 
                 {/* ================ TAB: DASHBOARD ================ */}
                 {activeTab === 'dashboard' && (
@@ -827,39 +908,67 @@ export const ProfesorDashboard = function ProfesorDashboard({
                             </div>
                         </div>
 
-                        {/* Historial */}
+                        {/* Historial con búsqueda y filtros */}
                         <div className="panel-pixel p-6">
-                            <h3 className="text-lg font-bold text-parchment mb-4">Historial de Actividades</h3>
-                            {activities.length > 0 ? (
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                                <h3 className="text-lg font-bold text-parchment">Historial de Actividades</h3>
+                                <span className="text-xs text-arcane">{actividadesFiltradas.length} de {activities.length}</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                                <input type="search" value={actQuery} onChange={function(e) { setActQuery(e.target.value); }}
+                                    placeholder="Buscar por estudiante…" aria-label="Buscar por estudiante"
+                                    className="input-pixel px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold" />
+                                <select value={actTipo} onChange={function(e) { setActTipo(e.target.value); }} aria-label="Filtrar por tipo"
+                                    className="input-pixel px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold">
+                                    <option value="">Todos los tipos</option>
+                                    {TIPOS_ACTIVIDAD.map(function(t) { return <option key={t.id} value={t.id}>{t.icon} {t.nombre}</option>; })}
+                                </select>
+                                <select value={actUnidad} onChange={function(e) { setActUnidad(e.target.value); }} aria-label="Filtrar por unidad"
+                                    className="input-pixel px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold">
+                                    <option value="">Todas las unidades</option>
+                                    {unidades.map(function(u) { return <option key={u.id} value={u.id}>{u.emoji} {u.id} · {u.nombre}</option>; })}
+                                </select>
+                            </div>
+
+                            {activities.length === 0 ? (
+                                <div className="text-center text-arcane/70 py-8">No hay actividades registradas aún.</div>
+                            ) : actividadesFiltradas.length === 0 ? (
+                                <div className="text-center text-arcane/70 py-8">Ninguna actividad coincide con el filtro.</div>
+                            ) : (
                                 <div className="space-y-2">
-                                    {activities.slice(0, 50).map(function(act) {
+                                    {actividadesFiltradas.slice(0, 100).map(function(act) {
                                         var tipo = TIPOS_ACTIVIDAD.find(function(t) { return t.id === act.tipo; });
                                         var student = students.find(function(s) { return s.id === act.studentId; });
                                         var unidad = unidades.find(function(u) { return u.id === act.unidadId; });
                                         return (
                                             <div key={act.id} className="flex items-center justify-between bg-dungeon-800 rounded-none p-3">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-2xl">{tipo ? tipo.icon : '📌'}</span>
-                                                    <div>
-                                                        <div className="font-semibold text-sm text-parchment">
-                                                            {student ? student.nombre : 'Desconocido'}
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className="text-2xl shrink-0">{tipo ? tipo.icon : '📌'}</span>
+                                                    <div className="min-w-0">
+                                                        <div className="font-semibold text-sm text-parchment truncate">
+                                                            {student ? (student.nombreSocial || student.nombre) : 'Desconocido'}
                                                         </div>
                                                         <div className="text-xs text-arcane">
                                                             {tipo ? tipo.nombre : act.tipo} | {unidad ? unidad.emoji + ' ' + unidad.id : ''} Clase {act.claseNum || '?'} | {new Date(act.date).toLocaleDateString()}
                                                         </div>
-                                                        {act.notas && <div className="text-xs text-arcane/70 mt-0.5 italic">{act.notas}</div>}
+                                                        {act.notas && <div className="text-xs text-arcane/70 mt-0.5 italic truncate">{act.notas}</div>}
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <div className="font-bold text-arcane">+{act.xp} XP</div>
-                                                    <div className="text-xs text-arcane capitalize">{act.nivel}</div>
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    <div className="text-right">
+                                                        <div className="font-bold text-arcane">+{act.xp} XP</div>
+                                                        <div className="text-xs text-arcane capitalize">{act.nivel}</div>
+                                                    </div>
+                                                    <button onClick={function() { eliminarActividad(act.id); }} aria-label="Eliminar actividad"
+                                                        className="text-ruby hover:bg-ruby/20 p-2 rounded-none transition">
+                                                        <Icons.Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            ) : (
-                                <div className="text-center text-arcane/70 py-8">No hay actividades registradas aun.</div>
                             )}
                         </div>
                     </div>
@@ -890,6 +999,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         activities={activities}
                         unidadActual={currentUnidad}
                         claseActual={currentClase}
+                        ruleset={ruleset}
                     />
                 )}
 
@@ -1214,6 +1324,35 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 )}
 
                 {/* ================ TAB: CURSOS ================ */}
+                {activeTab === 'analitica' && (
+                    <Analitica
+                        students={students}
+                        activities={activities}
+                        unidades={unidades}
+                        ruleset={ruleset}
+                    />
+                )}
+
+                {activeTab === 'progresion' && (
+                    <GestionRuleset
+                        cursoId={curso.id}
+                        ruleset={ruleset}
+                        esPersonalizado={rulesetEsPersonalizado}
+                        onGuardar={setRuleset}
+                        onReset={resetRuleset}
+                    />
+                )}
+
+                {activeTab === 'arcade' && (
+                    <GestionArcade
+                        enlaces={arcade}
+                        unidades={unidades}
+                        habilidades={HABILIDADES}
+                        onSave={guardarEnlace}
+                        onDelete={eliminarEnlace}
+                    />
+                )}
+
                 {activeTab === 'cursos' && (
                     <GestionCursos
                         cursos={cursos}
@@ -1223,6 +1362,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         onDuplicar={duplicarCurso}
                         onUpdate={updateCurso}
                         onDelete={deleteCurso}
+                        onVaciar={vaciarCurso}
                     />
                 )}
 
@@ -1247,6 +1387,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     onAddHabilidadPoints={addHabilidadPoints}
                     onAddBadge={addBadge}
                     onAddArtefacto={addArtefacto}
+                    ruleset={ruleset}
                 />
             )}
 
@@ -1254,29 +1395,10 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 <StudentDetailModal
                     student={showStudentDetail}
                     activities={activities}
+                    students={students}
+                    ruleset={ruleset}
                     onClose={function() { setShowStudentDetail(null); }}
-                    onDeleteActivity={function(activityId) {
-                        var act = activities.find(function(a) { return a.id === activityId; });
-                        if (!act) return;
-                        if (!confirm('Eliminar esta actividad y restar ' + (act.xp || 0) + ' XP al estudiante?')) return;
-                        // Restar XP y habilidades al estudiante
-                        setStudents(function(prev) {
-                            return prev.map(function(s) {
-                                if (s.id !== act.studentId) return s;
-                                var newXP = Math.max(0, (s.xp || 0) - (act.xp || 0));
-                                var newHabs = Object.assign({}, s.habilidades || {});
-                                var habPoints = act.habilidades || (RUBRICS_HABILIDADES[act.tipo] || {});
-                                Object.keys(habPoints).forEach(function(habId) {
-                                    newHabs[habId] = Math.max(0, (newHabs[habId] || 0) - habPoints[habId]);
-                                });
-                                return Object.assign({}, s, { xp: newXP, habilidades: newHabs });
-                            });
-                        });
-                        // Eliminar la actividad
-                        setActivities(function(prev) {
-                            return prev.filter(function(a) { return a.id !== activityId; });
-                        });
-                    }}
+                    onDeleteActivity={eliminarActividad}
                 />
             )}
 
@@ -1288,6 +1410,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     claseActual={currentClase}
                     onClose={function() { setShowAddActivity(false); }}
                     onAdd={addActivity}
+                    ruleset={ruleset}
                 />
             )}
 
@@ -1367,8 +1490,8 @@ export const ProfesorDashboard = function ProfesorDashboard({
 
 // Sub-componente modal para regalar artefactos
 function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
-    var _useState = useState(null), selectedArtIdx = _useState[0], setSelectedArtIdx = _useState[1];
-    var _useState2 = useState(''), toStudentId = _useState2[0], setToStudentId = _useState2[1];
+    const [selectedArtIdx, setSelectedArtIdx] = useState(null);
+    const [toStudentId, setToStudentId] = useState('');
 
     var artsDisponibles = (fromStudent.artefactos || [])
         .map(function(a, i) { return Object.assign({}, a, { _idx: i }); })

@@ -5,9 +5,12 @@ import { useResource } from './useResource.js';
 import { cursoPath } from '../data/cursos.js';
 import { getContentPack, normalizeUnidades } from '../content/index.js';
 import { normalizeStudent } from '../domain/estudiantes.js';
+import { normalizeEnlace } from '../domain/arcade.js';
+import { getRuleset, normalizeRuleset } from '../domain/rulesets.js';
 
 const STUDENTS = { kind: 'collection', normalize: normalizeStudent };
 const ACTIVITIES = { kind: 'collection' };
+const ARCADE = { kind: 'collection', normalize: normalizeEnlace };
 const STUDENTS_PRIVADO = { kind: 'value', fallback: {} };
 
 // `enabled=false` (sin sesion) deja los recursos en pausa: no tiene sentido
@@ -21,10 +24,20 @@ const STUDENTS_PRIVADO = { kind: 'value', fallback: {} };
 // "sin permiso a proposito".
 export function useCourseData(backend, curso, enabled = true, esDocente = false) {
     const pack = getContentPack(curso.contentPackId);
+    const preset = getRuleset(curso.rulesetId);
     const firstUnidad = pack.unidades[0].id;
 
     const students = useResource(backend, cursoPath(curso, 'students'), STUDENTS, [], enabled);
     const activities = useResource(backend, cursoPath(curso, 'activities'), ACTIVITIES, [], enabled);
+    const arcade = useResource(backend, cursoPath(curso, 'arcade'), ARCADE, [], enabled);
+    // Progresión personalizada del curso (editada por el docente). Si no hay,
+    // se usa el preset elegido en el curso. Fuera de `status`/`blockedWrites`
+    // por el mismo motivo que arcade/students_privado.
+    const rulesetCustom = useResource(backend, cursoPath(curso, 'ruleset'),
+        { kind: 'value', fallback: null }, [curso.rulesetId], enabled);
+    const ruleset = useMemo(
+        () => (rulesetCustom.value ? normalizeRuleset(rulesetCustom.value) : preset),
+        [rulesetCustom.value, preset]);
     // Sin unidades guardadas se usan las del pack; solo se guardan si el docente las edita.
     const unidades = useResource(backend, cursoPath(curso, 'unidades'),
         { kind: 'value', normalize: normalizeUnidades, fallback: pack.unidades }, [pack.id], enabled);
@@ -42,6 +55,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
     const setNombreLegal = useCallback((studentId, nombreLegal) => {
         studentsPrivado.set((prev) => ({ ...(prev || {}), [studentId]: nombreLegal }));
     }, [studentsPrivado.set]);
+    const resetNombresLegales = studentsPrivado.reset;
 
     const statuses = [students.status, activities.status, unidades.status, position.status];
     const status = statuses.includes('loading') ? 'loading'
@@ -70,11 +84,21 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         status,
         blockedWrites,
         pack,
+        ruleset,
+        setRuleset: rulesetCustom.set,
+        resetRuleset: rulesetCustom.reset,
+        rulesetEsPersonalizado: !!rulesetCustom.value,
         students: studentsConNombreLegal,
         setStudents: students.set,
         setNombreLegal,
+        resetNombresLegales,
         activities: activities.value,
         setActivities: activities.set,
+        // El arcade no entra en `status` ni `blockedWrites`: si las reglas aun
+        // no permiten leerlo, la seccion queda vacia sin marcar toda la app
+        // como "sin conexion" (mismo criterio que students_privado).
+        arcade: arcade.value,
+        setArcade: arcade.set,
         unidades: unidadesValue,
         setUnidades: unidades.set,
         resetUnidades: unidades.reset,
@@ -84,7 +108,8 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         setCurrentUnidad,
         setCurrentClase,
         setPosition
-    }), [status, blockedWrites, pack, studentsConNombreLegal, students.set, setNombreLegal, activities.value,
-        activities.set, unidadesValue, unidades.set, unidades.reset, unidades.usingFallback, currentUnidad,
-        pos.clase, setCurrentUnidad, setCurrentClase, setPosition]);
+    }), [status, blockedWrites, pack, ruleset, rulesetCustom.set, rulesetCustom.reset, rulesetCustom.value,
+        studentsConNombreLegal, students.set, setNombreLegal, resetNombresLegales, activities.value,
+        activities.set, arcade.value, arcade.set, unidadesValue, unidades.set, unidades.reset, unidades.usingFallback,
+        currentUnidad, pos.clase, setCurrentUnidad, setCurrentClase, setPosition]);
 }

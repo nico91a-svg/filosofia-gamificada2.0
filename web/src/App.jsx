@@ -13,6 +13,8 @@ import {
     CURSOS_BASE, CURSO_ORIGINAL_ID, getCurso, loadCursoSelection, normalizeCursos, saveCursoSelection
 } from './data/cursos.js';
 import { findStudentByCredentials, normalizeStudent } from './domain/estudiantes.js';
+import { normalizeEnlace } from './domain/arcade.js';
+import { normalizeRuleset, rulesetEditable } from './domain/rulesets.js';
 import { normalizeUnidades } from './content/index.js';
 import { LoginScreen } from './components/LoginScreen.jsx';
 import { ProfesorDashboard } from './components/profesor/ProfesorDashboard.jsx';
@@ -159,10 +161,12 @@ export function App() {
     // ---- respaldo ----
     const handleExportData = () => {
         const payload = {
-            curso: { id: curso.id, nombre: curso.nombre, anio: curso.anio, contentPackId: curso.contentPackId },
+            curso: { id: curso.id, nombre: curso.nombre, anio: curso.anio, contentPackId: curso.contentPackId, rulesetId: curso.rulesetId },
             exportado: new Date().toISOString(),
             students: data.students,
             activities: data.activities,
+            arcade: data.arcade,
+            rulesetPersonalizado: data.rulesetEsPersonalizado ? rulesetEditable(data.ruleset) : null,
             unidades: data.unidades,
             position: { unidad: data.currentUnidad, clase: data.currentClase }
         };
@@ -204,21 +208,38 @@ export function App() {
                         return resto;
                     });
                     const activities = imported.activities ? toList(imported.activities) : null;
+                    const arcade = imported.arcade ? toList(imported.arcade).map(normalizeEnlace) : null;
+                    const rulesetImp = imported.rulesetPersonalizado
+                        ? rulesetEditable(normalizeRuleset(imported.rulesetPersonalizado)) : null;
                     const unidades = imported.unidades ? normalizeUnidades(imported.unidades) : null;
 
-                    const resumen = (students ? students.length : 0) + ' estudiantes y ' +
-                        (activities ? activities.length : 0) + ' actividades';
+                    // El docente elige si trae también a los estudiantes o solo
+                    // el contenido/configuración (unidades, progresión y Arcade).
+                    const hayEstudiantes = !!(students && students.length);
+                    const incluirEstudiantes = hayEstudiantes && window.confirm(
+                        '¿Incluir estudiantes y actividades del respaldo?\n\n' +
+                        'Aceptar = importar TODO (' + (students ? students.length : 0) + ' estudiantes y ' +
+                        (activities ? activities.length : 0) + ' actividades).\n' +
+                        'Cancelar = importar SOLO contenido, progresión y Arcade (sin estudiantes).');
+
+                    const resumen = incluirEstudiantes
+                        ? ((students ? students.length : 0) + ' estudiantes y ' + (activities ? activities.length : 0) + ' actividades')
+                        : 'contenido, progresión y Arcade (sin estudiantes)';
                     if (!window.confirm('Importar ' + resumen + ' al curso "' + curso.nombre + ' ' + curso.anio +
-                        '"?\n\nEsto REEMPLAZA los datos actuales de ese curso. Exporta un respaldo antes si no lo has hecho.')) {
+                        '"?\n\nEsto REEMPLAZA esos datos del curso. Exporta un respaldo antes si no lo has hecho.')) {
                         return;
                     }
-                    if (students) data.setStudents(students);
-                    if (normalizados) {
-                        normalizados.forEach((s) => {
-                            if (s.nombreLegal && s.nombreLegal !== s.nombre) data.setNombreLegal(s.id, s.nombreLegal);
-                        });
+                    if (incluirEstudiantes) {
+                        if (students) data.setStudents(students);
+                        if (normalizados) {
+                            normalizados.forEach((s) => {
+                                if (s.nombreLegal && s.nombreLegal !== s.nombre) data.setNombreLegal(s.id, s.nombreLegal);
+                            });
+                        }
+                        if (activities) data.setActivities(activities);
                     }
-                    if (activities) data.setActivities(activities);
+                    if (arcade) data.setArcade(arcade);
+                    if (rulesetImp) data.setRuleset(rulesetImp);
                     if (unidades && unidades.length) data.setUnidades(unidades);
                     if (imported.position && imported.position.unidad) {
                         data.setPosition({ unidad: imported.position.unidad, clase: Number(imported.position.clase) || 1 });
@@ -272,8 +293,15 @@ export function App() {
                 students={data.students}
                 setStudents={data.setStudents}
                 setNombreLegal={data.setNombreLegal}
+                resetNombresLegales={data.resetNombresLegales}
                 activities={data.activities}
                 setActivities={data.setActivities}
+                arcade={data.arcade}
+                setArcade={data.setArcade}
+                ruleset={data.ruleset}
+                setRuleset={data.setRuleset}
+                resetRuleset={data.resetRuleset}
+                rulesetEsPersonalizado={data.rulesetEsPersonalizado}
                 unidades={data.unidades}
                 setUnidades={data.setUnidades}
                 onResetUnidades={data.resetUnidades}
@@ -300,6 +328,8 @@ export function App() {
                 students={data.students}
                 setStudents={data.setStudents}
                 activities={data.activities}
+                arcade={data.arcade}
+                ruleset={data.ruleset}
                 unidades={data.unidades}
                 currentUnidad={data.currentUnidad}
                 currentClase={data.currentClase}

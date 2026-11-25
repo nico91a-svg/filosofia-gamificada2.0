@@ -28,10 +28,19 @@ export const HABILIDAD_NIVELES = [
     { nivel: 5, nombre: 'Filósofo', min: 100, max: 9999 }
 ];
 
-export const getHabilidadNivel = function(puntos) {
-    if (puntos >= 100) return 5;
-    if (puntos >= 60) return 4;
-    if (puntos >= 30) return 3;
-    if (puntos >= 10) return 2;
-    return 1;
-};
+// Construye la función "puntos -> nivel" a partir de una tabla de niveles.
+// Cada ruleset (ver domain/rulesets.js) puede tener sus propios umbrales; esta
+// factory evita repetir la lógica y que queden umbrales cableados a mano.
+export function makeGetHabilidadNivel(niveles = HABILIDAD_NIVELES) {
+    const ordenados = [...niveles].sort((a, b) => a.min - b.min);
+    return function getNivel(puntos) {
+        const p = Number(puntos) || 0;
+        let nivel = ordenados.length ? ordenados[0].nivel : 1;
+        for (const n of ordenados) {
+            if (p >= n.min) nivel = n.nivel;
+        }
+        return nivel;
+    };
+}
+
+export const getHabilidadNivel = makeGetHabilidadNivel(HABILIDAD_NIVELES);

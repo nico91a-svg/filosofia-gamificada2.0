@@ -9,6 +9,7 @@
 // El curso original (III Medio B 2026) conserva las rutas planas historicas
 // (`students`, `activities`, ...) para no mover los datos que ya existen.
 import { DEFAULT_PACK_ID } from '../content/index.js';
+import { DEFAULT_RULESET_ID } from '../domain/rulesets.js';
 import { nextId } from '../domain/ids.js';
 
 // Gradientes re-tonados a la gama "mazmorra" (mas oscuros y menos saturados)
@@ -35,6 +36,7 @@ export const CURSOS_BASE = [
         emoji: '🏛️',
         paleta: 'violeta',
         contentPackId: DEFAULT_PACK_ID,
+        rulesetId: DEFAULT_RULESET_ID,
         activo: true,
         esDefault: true
     }
@@ -46,6 +48,7 @@ export function normalizeCurso(c) {
         emoji: '🎓',
         paleta: 'violeta',
         contentPackId: DEFAULT_PACK_ID,
+        rulesetId: DEFAULT_RULESET_ID,
         activo: true,
         esDefault: false,
         ...c,

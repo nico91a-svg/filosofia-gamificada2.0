@@ -2,12 +2,13 @@
 import React from 'react';
 import { CONTENT_PACKS, getContentPack } from '../../content/index.js';
 import { PALETAS, getPaleta } from '../../data/cursos.js';
+import { RULESETS, getRuleset } from '../../domain/rulesets.js';
 import { Icons } from '../shared/Icons.jsx';
 
 const inputClass = 'input-pixel w-full px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold';
 const labelClass = 'block text-xs font-semibold uppercase text-arcane mb-1';
 
-export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDuplicar, onUpdate, onDelete }) {
+export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDuplicar, onUpdate, onDelete, onVaciar }) {
     return (
         <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -27,6 +28,7 @@ export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDupl
                 {cursos.map((c) => {
                     const paleta = getPaleta(c.paleta);
                     const pack = getContentPack(c.contentPackId);
+                    const ruleset = getRuleset(c.rulesetId);
                     const activo = c.id === currentCursoId;
                     return (
                         <div key={c.id} data-testid={'curso-' + c.id}
@@ -84,6 +86,17 @@ export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDupl
                                 </div>
 
                                 <div className="mb-3">
+                                    <label className={labelClass}>Progresión de habilidades</label>
+                                    <select value={ruleset.id} aria-label="Progresión de habilidades"
+                                        onChange={(e) => onUpdate(c.id, { rulesetId: e.target.value })} className={inputClass}>
+                                        {RULESETS.map((r) => (
+                                            <option key={r.id} value={r.id}>{r.nombre}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-arcane mt-1">{ruleset.grupoEtario} · {ruleset.descripcion}</p>
+                                </div>
+
+                                <div className="mb-3">
                                     <label className={labelClass}>Paleta</label>
                                     <div className="flex flex-wrap gap-2">
                                         {PALETAS.map((p) => (
@@ -109,9 +122,17 @@ export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDupl
                                         </button>
                                     )}
                                     <button onClick={() => onDuplicar(c.id)}
-                                        className="text-xs bg-dungeon-800 hover:bg-dungeon-600 text-parchment/90 font-semibold px-3 py-1.5 rounded-none transition">
+                                        className="text-xs bg-dungeon-800 hover:bg-dungeon-600 text-parchment/90 font-semibold px-3 py-1.5 rounded-none transition"
+                                        title="Crea otro curso con el mismo nombre, paleta, contenido y progresión, pero sin estudiantes">
                                         Duplicar configuración
                                     </button>
+                                    {activo && onVaciar && (
+                                        <button onClick={onVaciar}
+                                            className="text-xs bg-gold/15 hover:bg-gold/25 text-gold font-semibold px-3 py-1.5 rounded-none transition"
+                                            title="Borra estudiantes y actividades de este curso; conserva contenido y progresión. Descarga un respaldo antes.">
+                                            Vaciar curso
+                                        </button>
+                                    )}
                                     {!c.esDefault && (
                                         <button onClick={() => onDelete(c.id)}
                                             className="text-xs bg-ruby/10 hover:bg-ruby/20 text-ruby font-semibold px-3 py-1.5 rounded-none transition ml-auto flex items-center gap-1">
@@ -129,8 +150,10 @@ export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDupl
                 <div className="font-semibold mb-1">Cómo funcionan los cursos</div>
                 <ul className="list-disc pl-5 space-y-1 text-indigo-300">
                     <li>Un curso nuevo empieza sin estudiantes: agrégalos en <strong>Estudiantes</strong> o importa un respaldo.</li>
-                    <li>El <strong>contenido</strong> (unidades, clases y vocabulario) viene del pack elegido; puedes ajustarlo en <strong>Unidades</strong>.</li>
-                    <li>&quot;Duplicar configuración&quot; copia nombre, paleta y contenido, no los estudiantes.</li>
+                    <li>El <strong>contenido</strong> (unidades, clases y vocabulario) viene del pack elegido; puedes ajustarlo en <strong>Unidades</strong>, y la <strong>progresión</strong> en <strong>Progresión</strong>.</li>
+                    <li>&quot;Duplicar configuración&quot; copia nombre, paleta, contenido y progresión, no los estudiantes.</li>
+                    <li>&quot;Vaciar curso&quot; (solo en el curso activo) borra estudiantes y actividades y conserva el resto; descarga un respaldo automático antes.</li>
+                    <li>Al <strong>importar</strong> un respaldo puedes elegir traer todo o solo el contenido y la progresión (sin estudiantes).</li>
                     <li>Los estudiantes eligen su curso al entrar; los cursos ocultos no aparecen en esa lista.</li>
                 </ul>
             </div>

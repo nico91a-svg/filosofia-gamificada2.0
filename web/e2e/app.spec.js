@@ -63,7 +63,7 @@ test.describe('panel docente', () => {
     test('todas las pestañas cargan sin errores', async ({ page }) => {
         const errores = vigilarErrores(page);
         await entrarComoProfesor(page);
-        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Cursos', 'Dashboard']) {
+        for (const tab of ['Analítica', 'Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Progresión', 'Arcade', 'Cursos', 'Dashboard']) {
             await irA(page, tab);
             await expect(page.locator('main, .max-w-7xl').last()).toBeVisible();
         }
@@ -73,7 +73,7 @@ test.describe('panel docente', () => {
     test('en un celular ninguna pestaña se desborda @movil', async ({ page }) => {
         await entrarComoProfesor(page);
         await expect(page.getByRole('button', { name: 'Salir' })).toBeInViewport();
-        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Cursos', 'Dashboard']) {
+        for (const tab of ['Analítica', 'Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Progresión', 'Arcade', 'Cursos', 'Dashboard']) {
             await irA(page, tab);
             const desborde = await page.evaluate(() =>
                 document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -106,6 +106,34 @@ test.describe('panel docente', () => {
         // El progreso de los demas estudiantes no cambio.
         expect(progreso(await readDb(page, 'students')).filter((s) => s.id !== 3))
             .toEqual(progreso(ESTUDIANTES).filter((s) => s.id !== 3));
+    });
+
+    test('historial de actividades: busca, filtra y borra', async ({ page }) => {
+        page.on('dialog', (d) => d.accept());
+        await entrarComoProfesor(page);
+        await irA(page, 'Actividades');
+        await page.getByRole('button', { name: 'Registrar Actividad' }).click();
+        const modal = page.locator('div.fixed').filter({ hasText: 'Registrar Actividad' });
+        await modal.locator('select').nth(0).selectOption({ label: 'CaroS' });
+        await modal.locator('select').nth(3).selectOption('debate');
+        await modal.getByRole('button', { name: 'Registrar', exact: true }).click();
+
+        const historial = page.locator('div.panel-pixel').filter({ hasText: 'Historial de Actividades' });
+        await expect(historial.getByText('CaroS', { exact: true })).toBeVisible();
+
+        // Buscar un nombre que no existe -> sin coincidencias.
+        await page.getByLabel('Buscar por estudiante').fill('Zzz');
+        await expect(historial.getByText('Ninguna actividad coincide con el filtro.')).toBeVisible();
+
+        // Buscar el nombre real -> aparece.
+        await page.getByLabel('Buscar por estudiante').fill('Caro');
+        await expect(historial.getByText('CaroS', { exact: true })).toBeVisible();
+
+        // Borrar (confirma el diálogo): resta el XP y vacía el historial.
+        await historial.getByRole('button', { name: 'Eliminar actividad' }).click();
+        await page.waitForTimeout(200);
+        expect(await readDb(page, 'activities')).toBe(null);
+        expect((await readDb(page, 'students'))[2].xp).toBe(45); // vuelve a su XP inicial
     });
 
     test('registro masivo: guarda una actividad por estudiante y respeta el limite diario', async ({ page }) => {
@@ -190,13 +218,21 @@ test.describe('panel del estudiante', () => {
     test('recorre todas las pestañas sin errores @movil', async ({ page }) => {
         const errores = vigilarErrores(page);
         await entrarComoEstudiante(page, 'AnaP');
-        for (const tab of ['Aventura', 'Ranking', 'Vocabul', 'Activid', 'Artefact', 'Mi Perfil']) {
+        for (const tab of ['Aventura', 'Ranking', 'Vocabul', 'Activid', 'Artefact', 'Arcade', 'Mi Perfil']) {
             await page.getByRole('button', { name: new RegExp(tab) }).last().click();
             const desborde = await page.evaluate(() =>
                 document.documentElement.scrollWidth - document.documentElement.clientWidth);
             expect(desborde, 'desborde horizontal en ' + tab).toBeLessThanOrEqual(0);
         }
         expect(errores).toEqual([]);
+    });
+
+    test('el radar del perfil compara contra el promedio del curso', async ({ page }) => {
+        await entrarComoEstudiante(page, 'AnaP');
+        // La pestaña "Mi Perfil" es la inicial; el radar y su leyenda del promedio se ven.
+        await expect(page.getByRole('img', { name: /Radar de habilidades de AnaP/ })).toBeVisible();
+        // El texto aparece en el <title> del SVG (oculto) y en la leyenda (visible): la leyenda va al final.
+        await expect(page.getByText('Promedio del curso').last()).toBeVisible();
     });
 });
 
@@ -294,6 +330,95 @@ test.describe('cursos y contenido', () => {
         await expect(page.getByRole('heading', { name: 'AnaP' }).first()).toBeVisible();
         expect(errores).toEqual([]);
     });
+
+    test('un curso puede usar otra progresión de habilidades (ruleset) por grupo etario', async ({ page }) => {
+        const errores = vigilarErrores(page);
+        await entrarComoProfesor(page);
+        await irA(page, 'Cursos');
+        await page.getByRole('button', { name: 'Nuevo curso' }).click();
+
+        const cursos = await readDb(page, 'cursos_registro');
+        const nuevo = cursos[cursos.length - 1];
+        const tarjeta = page.getByTestId('curso-' + nuevo.id);
+        await tarjeta.getByLabel('Nombre del curso').fill('7° Básico');
+        await tarjeta.getByLabel('Progresión de habilidades').selectOption('basica-introduccion');
+        await tarjeta.getByRole('button', { name: 'Activar' }).click();
+        await expect(page.getByTestId('curso-activo')).toContainText('7° Básico');
+        expect((await readDb(page, 'cursos_registro')).find((c) => c.id === nuevo.id).rulesetId).toBe('basica-introduccion');
+
+        // La pestaña Habilidades muestra las del ruleset básico, no las de 3° medio.
+        await irA(page, 'Habilidades');
+        await expect(page.getByText('Observar', { exact: true }).first()).toBeVisible();
+        await expect(page.getByText('Análisis', { exact: true })).toHaveCount(0);
+
+        // La pestaña Actividades muestra los tipos del ruleset básico.
+        await irA(page, 'Actividades');
+        await expect(page.getByText('Pregunta del Día', { exact: true }).first()).toBeVisible();
+        expect(errores).toEqual([]);
+    });
+});
+
+test.describe('editor de progresión (ruleset)', () => {
+    test('el docente personaliza la progresión, renombra una habilidad y se refleja', async ({ page }) => {
+        const errores = vigilarErrores(page);
+        await entrarComoProfesor(page);
+        await irA(page, 'Progresión');
+
+        // Parte del preset: personalizar crea una copia editable.
+        await page.getByRole('button', { name: /Personalizar esta progresión/ }).click();
+        const primerNombre = page.getByLabel('Nombre de habilidad', { exact: true }).first();
+        await primerNombre.fill('Pensamiento Lúdico');
+        await page.getByRole('button', { name: 'Guardar cambios' }).click();
+        await expect(page.getByRole('status')).toContainText('guardados');
+
+        // Quedó guardado como progresión del curso.
+        await page.waitForTimeout(200);
+        const guardado = await readDb(page, 'ruleset');
+        expect(guardado).toBeTruthy();
+        const habs = Array.isArray(guardado.habilidades) ? guardado.habilidades : Object.values(guardado.habilidades || {});
+        expect(habs.some((h) => h.nombre === 'Pensamiento Lúdico')).toBe(true);
+
+        // La pestaña Habilidades muestra el nombre nuevo.
+        await irA(page, 'Habilidades');
+        await expect(page.getByText('Pensamiento Lúdico', { exact: true }).first()).toBeVisible();
+        expect(errores).toEqual([]);
+    });
+});
+
+test.describe('vaciar curso', () => {
+    test('descarga un respaldo y deja el curso sin estudiantes ni actividades', async ({ page }) => {
+        page.on('dialog', (d) => d.accept()); // confirma los dos avisos y el alert final
+        await entrarComoProfesor(page);
+        await irA(page, 'Cursos');
+        const tarjeta = page.getByTestId('curso-3B-2026');
+
+        const [download] = await Promise.all([
+            page.waitForEvent('download'),
+            tarjeta.getByRole('button', { name: 'Vaciar curso' }).click()
+        ]);
+        expect(download.suggestedFilename()).toContain('filosofo_backup');
+
+        await page.waitForTimeout(300);
+        expect(await readDb(page, 'students')).toBe(null);
+
+        // La lista de estudiantes quedó vacía.
+        await irA(page, 'Estudiantes');
+        await expect(page.getByText('AnaP', { exact: true })).toHaveCount(0);
+    });
+});
+
+test.describe('analítica del docente', () => {
+    test('muestra los paneles clave con los datos del curso', async ({ page }) => {
+        const errores = vigilarErrores(page);
+        await entrarComoProfesor(page);
+        await irA(page, 'Analítica');
+        await expect(page.getByRole('heading', { name: 'Analítica' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Distribución por nivel' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Mapa de calor de habilidades' })).toBeVisible();
+        // Hay 4 estudiantes sembrados.
+        await expect(page.getByText('Estudiantes', { exact: true }).first()).toBeVisible();
+        expect(errores).toEqual([]);
+    });
 });
 
 test.describe('modo de prueba', () => {
@@ -344,5 +469,46 @@ test.describe('aplicacion instalable', () => {
         await context.setOffline(true);
         await page.reload();
         await expect(page.getByRole('heading', { name: 'Filósofo en Formación' })).toBeVisible();
+    });
+});
+
+test.describe('arcade (biblioteca de juegos)', () => {
+    test('el docente agrega un juego, se guarda normalizado y el estudiante lo ve como enlace externo', async ({ context }) => {
+        const profe = await context.newPage();
+        await entrarComoProfesor(profe);
+        await irA(profe, 'Arcade');
+
+        await profe.getByRole('button', { name: /Nuevo enlace/ }).click();
+        await profe.getByLabel('Título del juego').fill('Dilema del tranvía');
+        await profe.getByLabel('Enlace del juego').fill('tranvia.cl/jugar'); // sin esquema: debe normalizarse a https
+        await profe.getByRole('button', { name: 'Guardar' }).click();
+
+        await expect(profe.getByText('Dilema del tranvía')).toBeVisible();
+        await profe.waitForTimeout(200);
+        const guardado = await readDb(profe, 'arcade');
+        const enlaces = Array.isArray(guardado) ? guardado : Object.values(guardado || {});
+        expect(enlaces.some((e) => e.url === 'https://tranvia.cl/jugar')).toBe(true);
+
+        // El estudiante del mismo curso lo ve y el enlace se abre fuera de la app.
+        const ana = await context.newPage();
+        await entrarComoEstudiante(ana, 'AnaP');
+        await ana.getByRole('button', { name: /Arcade/ }).last().click();
+        const enlace = ana.getByRole('link', { name: /Dilema del tranvía/ });
+        await expect(enlace).toBeVisible();
+        await expect(enlace).toHaveAttribute('href', 'https://tranvia.cl/jugar');
+        await expect(enlace).toHaveAttribute('target', '_blank');
+        await expect(enlace).toHaveAttribute('rel', /noopener/);
+    });
+
+    test('un enlace con esquema peligroso no se puede guardar', async ({ page }) => {
+        await entrarComoProfesor(page);
+        await irA(page, 'Arcade');
+        await page.getByRole('button', { name: /Nuevo enlace/ }).click();
+        await page.getByLabel('Título del juego').fill('Malicioso');
+        await page.getByLabel('Enlace del juego').fill('javascript:alert(1)');
+        await page.getByRole('button', { name: 'Guardar' }).click();
+        // El editor sigue abierto con el error; no se crea ninguna tarjeta.
+        await expect(page.getByRole('alert')).toBeVisible();
+        await expect(page.getByTestId('arcade-editor')).toBeVisible();
     });
 });
