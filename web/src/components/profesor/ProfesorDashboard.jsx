@@ -6,6 +6,7 @@ import { crearCurso, getPaleta } from '../../data/cursos.js';
 import { getContentPack } from '../../content/index.js';
 import { crearEstudiante } from '../../domain/estudiantes.js';
 import { nextId } from '../../domain/ids.js';
+import { Analitica } from './Analitica.jsx';
 import { GestionArcade } from './GestionArcade.jsx';
 import { GestionCursos } from './GestionCursos.jsx';
 import { GestionRuleset } from './GestionRuleset.jsx';
@@ -478,6 +479,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
     // ---- Tabs config ----
     var tabs = [
         { id: 'dashboard', label: 'Dashboard', emoji: '📊' },
+        { id: 'analitica', label: 'Analítica', emoji: '📈' },
         { id: 'estudiantes', label: 'Estudiantes', emoji: '👥' },
         { id: 'actividades', label: 'Actividades', emoji: '📝' },
         { id: 'unidades', label: 'Unidades', emoji: '📚' },
@@ -1247,6 +1249,15 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 )}
 
                 {/* ================ TAB: CURSOS ================ */}
+                {activeTab === 'analitica' && (
+                    <Analitica
+                        students={students}
+                        activities={activities}
+                        unidades={unidades}
+                        ruleset={ruleset}
+                    />
+                )}
+
                 {activeTab === 'progresion' && (
                     <GestionRuleset
                         cursoId={curso.id}

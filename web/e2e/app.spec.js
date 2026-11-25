@@ -63,7 +63,7 @@ test.describe('panel docente', () => {
     test('todas las pestañas cargan sin errores', async ({ page }) => {
         const errores = vigilarErrores(page);
         await entrarComoProfesor(page);
-        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Arcade', 'Cursos', 'Dashboard']) {
+        for (const tab of ['Analítica', 'Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Progresión', 'Arcade', 'Cursos', 'Dashboard']) {
             await irA(page, tab);
             await expect(page.locator('main, .max-w-7xl').last()).toBeVisible();
         }
@@ -73,7 +73,7 @@ test.describe('panel docente', () => {
     test('en un celular ninguna pestaña se desborda @movil', async ({ page }) => {
         await entrarComoProfesor(page);
         await expect(page.getByRole('button', { name: 'Salir' })).toBeInViewport();
-        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Arcade', 'Cursos', 'Dashboard']) {
+        for (const tab of ['Analítica', 'Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Progresión', 'Arcade', 'Cursos', 'Dashboard']) {
             await irA(page, tab);
             const desborde = await page.evaluate(() =>
                 document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -353,6 +353,20 @@ test.describe('editor de progresión (ruleset)', () => {
         // La pestaña Habilidades muestra el nombre nuevo.
         await irA(page, 'Habilidades');
         await expect(page.getByText('Pensamiento Lúdico', { exact: true }).first()).toBeVisible();
+        expect(errores).toEqual([]);
+    });
+});
+
+test.describe('analítica del docente', () => {
+    test('muestra los paneles clave con los datos del curso', async ({ page }) => {
+        const errores = vigilarErrores(page);
+        await entrarComoProfesor(page);
+        await irA(page, 'Analítica');
+        await expect(page.getByRole('heading', { name: 'Analítica' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Distribución por nivel' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Mapa de calor de habilidades' })).toBeVisible();
+        // Hay 4 estudiantes sembrados.
+        await expect(page.getByText('Estudiantes', { exact: true }).first()).toBeVisible();
         expect(errores).toEqual([]);
     });
 });
