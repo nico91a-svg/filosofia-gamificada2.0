@@ -28,6 +28,10 @@
       ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
       ".write": "auth != null && auth.token.role === 'docente'"
     },
+    "ruleset": {
+      ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+      ".write": "auth != null && auth.token.role === 'docente'"
+    },
     "unidades": {
       ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
       ".write": "auth != null && auth.token.role === 'docente'"
@@ -60,6 +64,10 @@
           ".write": "auth != null && auth.token.role === 'docente'"
         },
         "arcade": {
+          ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+          ".write": "auth != null && auth.token.role === 'docente'"
+        },
+        "ruleset": {
           ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
           ".write": "auth != null && auth.token.role === 'docente'"
         },
@@ -103,6 +111,10 @@
         ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
         ".write": "auth != null && auth.token.role === 'docente'"
       },
+      "ruleset": {
+        ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
+        ".write": "auth != null && auth.token.role === 'docente'"
+      },
       "unidades": {
         ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === '3B-2026')",
         ".write": "auth != null && auth.token.role === 'docente'"
@@ -134,6 +146,10 @@
             ".write": "auth != null && auth.token.role === 'docente'"
           },
           "arcade": {
+            ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
+            ".write": "auth != null && auth.token.role === 'docente'"
+          },
+          "ruleset": {
             ".read": "auth != null && (auth.token.role === 'docente' || auth.token.cursoId === $cursoId)",
             ".write": "auth != null && auth.token.role === 'docente'"
           },

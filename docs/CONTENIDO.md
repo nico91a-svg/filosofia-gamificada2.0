@@ -75,3 +75,12 @@ inexistentes).
 Los puntos de habilidad que gana una actividad quedan guardados en la propia
 actividad al registrarla, así que cambiar el ruleset de un curso no reescribe su
 historial.
+
+### Editar la progresión desde la app
+
+El docente puede ajustar la progresión de un curso sin tocar código: panel
+docente → pestaña **Progresión** → *Personalizar esta progresión*. Parte de una
+copia del preset y permite editar habilidades, niveles de dificultad y
+actividades (XP y habilidades que trabajan). Lo editado se guarda como dato del
+curso (nodo `ruleset`) y solo afecta a ese curso; *Volver al preset* lo descarta.
+Nunca cambia los ids ya usados, así que el historial de actividades se mantiene.

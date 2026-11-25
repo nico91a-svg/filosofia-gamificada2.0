@@ -8,6 +8,7 @@ import { crearEstudiante } from '../../domain/estudiantes.js';
 import { nextId } from '../../domain/ids.js';
 import { GestionArcade } from './GestionArcade.jsx';
 import { GestionCursos } from './GestionCursos.jsx';
+import { GestionRuleset } from './GestionRuleset.jsx';
 import { GestionUnidades } from './GestionUnidades.jsx';
 import { HABILIDADES as HABILIDADES_D, HABILIDAD_NIVELES as HABILIDAD_NIVELES_D, getHabilidadNivel as getHabilidadNivel_D } from '../../domain/habilidades.js';
 import { Icons } from '../shared/Icons.jsx';
@@ -25,7 +26,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
     students, setStudents, setNombreLegal,
     activities, setActivities,
     arcade, setArcade,
-    ruleset,
+    ruleset, setRuleset, resetRuleset, rulesetEsPersonalizado,
     unidades, setUnidades,
     currentUnidad, setCurrentUnidad,
     currentClase, setCurrentClase,
@@ -484,6 +485,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
         { id: 'misiones', label: 'Misiones', emoji: '🎯' },
         { id: 'artefactos', label: 'Artefactos', emoji: '🏺' },
         { id: 'habilidades', label: 'Habilidades', emoji: '🎯' },
+        { id: 'progresion', label: 'Progresión', emoji: '🧠' },
         { id: 'arcade', label: 'Arcade', emoji: '🕹️' },
         { id: 'cursos', label: 'Cursos', emoji: '🏛️' }
     ];
@@ -1245,6 +1247,16 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 )}
 
                 {/* ================ TAB: CURSOS ================ */}
+                {activeTab === 'progresion' && (
+                    <GestionRuleset
+                        cursoId={curso.id}
+                        ruleset={ruleset}
+                        esPersonalizado={rulesetEsPersonalizado}
+                        onGuardar={setRuleset}
+                        onReset={resetRuleset}
+                    />
+                )}
+
                 {activeTab === 'arcade' && (
                     <GestionArcade
                         enlaces={arcade}

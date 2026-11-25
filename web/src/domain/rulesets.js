@@ -118,6 +118,71 @@ export function getRuleset(id) {
     return RULESETS.find((r) => r.id === id) || RULESETS[0];
 }
 
+// ---- Rulesets personalizados (editados por el docente, guardados por curso) ----
+//
+// El docente puede partir de un preset y editarlo en la app. El resultado se
+// guarda como dato del curso (ver useCourseData / database.rules.json) y pasa a
+// ser la progresión efectiva de ese curso. Nunca cambia los ids de habilidades
+// ni de tipos ya usados (el historial de actividades los referencia).
+
+function _lista(v) {
+    if (!v) return [];
+    return (Array.isArray(v) ? v : Object.values(v)).filter(Boolean);
+}
+
+// Copia de datos de un ruleset lista para editar y guardar (sin la función).
+export function rulesetEditable(ruleset) {
+    const r = ruleset || getRuleset(DEFAULT_RULESET_ID);
+    return {
+        id: r.id,
+        nombre: r.nombre,
+        descripcion: r.descripcion || '',
+        grupoEtario: r.grupoEtario || '',
+        basadoEn: r.basadoEn || r.id,
+        habilidades: _lista(r.habilidades).map((h) => ({ ...h })),
+        habilidadNiveles: _lista(r.habilidadNiveles).map((n) => ({ ...n })),
+        categorias: _lista(r.categorias).map((c) => ({ ...c })),
+        tipos: _lista(r.tipos).map((t) => ({ ...t })),
+        rubricsXP: { ...(r.rubricsXP || {}) },
+        rubricsHabilidades: { ...(r.rubricsHabilidades || {}) }
+    };
+}
+
+// Deja un ruleset guardado (que vuelve de la base de datos, quizá incompleto)
+// en forma segura y usable, con su función puntos->nivel ya derivada.
+export function normalizeRuleset(raw) {
+    const r = raw || {};
+    const habilidades = _lista(r.habilidades).map((h) => ({
+        id: h.id, nombre: h.nombre || h.id, shortName: h.shortName || h.nombre || h.id,
+        emoji: h.emoji || '⭐', color: h.color || '#9d6bd8',
+        descripcion: h.descripcion || '', comoMejora: h.comoMejora || ''
+    })).filter((h) => h.id);
+    let niveles = _lista(r.habilidadNiveles).map((n) => ({
+        nivel: Number(n.nivel) || 0, nombre: n.nombre || ('Nivel ' + n.nivel),
+        min: Number(n.min) || 0, max: n.max != null ? Number(n.max) : 9999
+    })).sort((a, b) => a.min - b.min);
+    if (!niveles.length) niveles = HABILIDAD_NIVELES;
+    const categorias = _lista(r.categorias).length ? _lista(r.categorias) : CATEGORIAS_ACTIVIDAD;
+    const tipos = _lista(r.tipos).map((t) => ({
+        id: t.id, nombre: t.nombre || t.id, icon: t.icon || '📌', categoria: t.categoria || 'cotidiana'
+    })).filter((t) => t.id);
+    return {
+        id: r.id || 'personalizado',
+        nombre: r.nombre || 'Progresión personalizada',
+        descripcion: r.descripcion || '',
+        grupoEtario: r.grupoEtario || '',
+        basadoEn: r.basadoEn || null,
+        habilidades: habilidades.length ? habilidades : getRuleset(DEFAULT_RULESET_ID).habilidades,
+        habilidadNiveles: niveles,
+        categorias,
+        tipos: tipos.length ? tipos : getRuleset(DEFAULT_RULESET_ID).tipos,
+        rubricsXP: { ...(r.rubricsXP || {}) },
+        rubricsHabilidades: { ...(r.rubricsHabilidades || {}) },
+        getHabilidadNivel: makeGetHabilidadNivel(niveles),
+        personalizado: true
+    };
+}
+
 // Lista de problemas de un ruleset (vacía si está correcto). La usan las pruebas.
 export function validateRuleset(ruleset) {
     const problemas = [];

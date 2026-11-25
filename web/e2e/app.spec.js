@@ -322,6 +322,33 @@ test.describe('cursos y contenido', () => {
     });
 });
 
+test.describe('editor de progresión (ruleset)', () => {
+    test('el docente personaliza la progresión, renombra una habilidad y se refleja', async ({ page }) => {
+        const errores = vigilarErrores(page);
+        await entrarComoProfesor(page);
+        await irA(page, 'Progresión');
+
+        // Parte del preset: personalizar crea una copia editable.
+        await page.getByRole('button', { name: /Personalizar esta progresión/ }).click();
+        const primerNombre = page.getByLabel('Nombre de habilidad', { exact: true }).first();
+        await primerNombre.fill('Pensamiento Lúdico');
+        await page.getByRole('button', { name: 'Guardar cambios' }).click();
+        await expect(page.getByRole('status')).toContainText('guardados');
+
+        // Quedó guardado como progresión del curso.
+        await page.waitForTimeout(200);
+        const guardado = await readDb(page, 'ruleset');
+        expect(guardado).toBeTruthy();
+        const habs = Array.isArray(guardado.habilidades) ? guardado.habilidades : Object.values(guardado.habilidades || {});
+        expect(habs.some((h) => h.nombre === 'Pensamiento Lúdico')).toBe(true);
+
+        // La pestaña Habilidades muestra el nombre nuevo.
+        await irA(page, 'Habilidades');
+        await expect(page.getByText('Pensamiento Lúdico', { exact: true }).first()).toBeVisible();
+        expect(errores).toEqual([]);
+    });
+});
+
 test.describe('modo de prueba', () => {
     test('?db=sandbox usa datos separados y ?db=real vuelve a los reales', async ({ page }) => {
         await page.goto('/?db=sandbox');
