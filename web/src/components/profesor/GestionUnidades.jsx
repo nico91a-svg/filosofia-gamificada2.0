@@ -97,7 +97,7 @@ export const GestionUnidades = ({ unidades, setUnidades, currentUnidad, setCurre
                         <div className="flex justify-between items-center">
                             <div>
                                 <h3 className="text-2xl font-bold">{unidad.emoji} {unidad.nombre}</h3>
-                                <p className="text-white text-opacity-80">{unidad.periodo} | {unidad.totalClases} clases</p>
+                                <p className="text-parchment text-opacity-80">{unidad.periodo} | {unidad.totalClases} clases</p>
                             </div>
                             <button onClick={() => setEditingUnidad(editingUnidad === unidad.id ? null : unidad.id)}
                                 className="bg-dungeon-700 bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-none transition text-sm font-bold">

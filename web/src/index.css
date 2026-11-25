@@ -2,104 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variables de tema: claro por defecto (preferencia del profesor), oscuro
-   opcional via [data-theme='dark'] en <html> (ver ThemeToggle.jsx). Formato
-   "r g b" sin funcion, para que tailwind.config.js arme rgb(var(..) / a). */
+/* Paleta moderna "crepúsculo académico": violeta de marca + ámbar de logro
+   sobre lienzo claro. Tema claro por defecto; oscuro vía [data-theme='dark']
+   (ver ThemeToggle.jsx). Los NOMBRES de token se conservan (dungeon/stone/
+   gold/parchment/ruby/emerald/arcane) para no tocar las clases ya usadas en
+   los componentes; solo cambian los valores. Formato "r g b" para que
+   tailwind.config.js arme rgb(var(..) / <alpha-value>). */
 :root {
-    --c-dungeon-950: 244 234 212;
-    --c-dungeon-900: 236 223 189;
-    --c-dungeon-800: 226 209 165;
-    --c-dungeon-700: 216 196 146;
-    --c-dungeon-600: 203 180 125;
-    --c-stone-light: 255 250 235;
-    --c-stone: 138 122 74;
-    --c-stone-dark: 58 45 20;
-    --c-gold-light: 255 231 154;
-    --c-gold: 201 149 23;
-    --c-gold-dark: 140 96 10;
-    --c-parchment: 42 32 16;
-    --c-ruby: 184 42 66;
-    --c-emerald: 20 120 85;
-    --c-arcane: 107 69 168;
+    --c-dungeon-950: 247 246 251;  /* lienzo (fondo de página) */
+    --c-dungeon-900: 255 255 255;  /* superficie elevada */
+    --c-dungeon-800: 241 239 250;  /* superficie sutil / inputs */
+    --c-dungeon-700: 255 255 255;  /* tarjeta / panel */
+    --c-dungeon-600: 238 235 251;  /* violeta suave (ghost, logo) */
+    --c-stone-light: 255 255 255;
+    --c-stone: 203 201 219;         /* borde medio */
+    --c-stone-dark: 230 227 240;    /* línea sutil */
+    --c-gold-light: 246 177 60;
+    --c-gold: 185 129 27;           /* ámbar legible sobre claro */
+    --c-gold-dark: 138 94 18;
+    --c-parchment: 28 26 46;        /* tinta (texto principal) */
+    --c-ruby: 224 82 96;
+    --c-emerald: 47 163 107;
+    --c-arcane: 107 104 128;        /* texto atenuado */
+    --c-violet: 109 90 230;         /* marca */
+    --c-violet-soft: 238 235 251;
 }
 
 :root[data-theme='dark'] {
-    --c-dungeon-950: 14 11 30;
-    --c-dungeon-900: 22 18 50;
-    --c-dungeon-800: 34 26 69;
-    --c-dungeon-700: 46 36 88;
-    --c-dungeon-600: 59 47 110;
-    --c-stone-light: 107 95 163;
-    --c-stone: 74 63 122;
-    --c-stone-dark: 28 21 56;
+    --c-dungeon-950: 20 18 33;
+    --c-dungeon-900: 28 26 46;
+    --c-dungeon-800: 37 34 54;
+    --c-dungeon-700: 32 30 48;
+    --c-dungeon-600: 46 43 69;
+    --c-stone-light: 58 55 82;
+    --c-stone: 64 61 92;
+    --c-stone-dark: 46 43 69;
     --c-gold-light: 255 231 154;
-    --c-gold: 242 195 61;
-    --c-gold-dark: 176 125 24;
-    --c-parchment: 232 217 160;
-    --c-ruby: 224 80 106;
-    --c-emerald: 63 178 127;
-    --c-arcane: 157 107 216;
+    --c-gold: 246 177 60;
+    --c-gold-dark: 201 137 30;
+    --c-parchment: 236 234 245;
+    --c-ruby: 240 106 120;
+    --c-emerald: 63 176 126;
+    --c-arcane: 154 150 181;
+    --c-violet: 139 123 240;
+    --c-violet-soft: 46 43 69;
 }
 
 html, body {
-    font-family: 'Silkscreen', monospace;
+    font-family: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     background: rgb(var(--c-dungeon-950));
     color: rgb(var(--c-parchment));
     -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
-/* Sistema pixel "mazmorra": mismas recetas que PixelPanel/Button de la app
-   movil (bisel claro arriba/izq, oscuro abajo/der, sombra dura sin blur).
-   Ver docs/design/estetica-pixel-web.md. theme('colors.x') no sirve aqui
-   (arrastraria el placeholder <alpha-value> sin resolver), por eso se usa
-   rgb(var(..)) directo. */
+/* Sistema de superficie moderno: tarjetas con esquinas suaves, borde fino y
+   sombra difusa (reemplaza los biseles duros pixel-art). Se mantienen los
+   nombres de clase (.panel-pixel, .btn-pixel...) para no tocar componentes. */
 @layer components {
     .panel-pixel {
-        @apply bg-dungeon-700 border-[3px] border-stone-dark;
-        box-shadow:
-            inset 2px 2px 0 0 rgb(var(--c-stone-light)),
-            inset -2px -2px 0 0 rgb(var(--c-stone-dark)),
-            4px 4px 0 0 rgba(0, 0, 0, 0.8);
+        @apply bg-dungeon-700 border border-stone-dark rounded-2xl;
+        box-shadow: 0 1px 2px rgba(28, 26, 46, .05), 0 10px 28px rgba(28, 26, 46, .07);
     }
     .panel-pixel-dark {
-        @apply bg-dungeon-800 border-[3px] border-stone-dark;
-        box-shadow:
-            inset 2px 2px 0 0 rgb(var(--c-stone-light)),
-            inset -2px -2px 0 0 rgb(var(--c-stone-dark)),
-            4px 4px 0 0 rgba(0, 0, 0, 0.8);
+        @apply bg-dungeon-800 border border-stone-dark rounded-2xl;
+        box-shadow: 0 1px 2px rgba(28, 26, 46, .05), 0 10px 28px rgba(28, 26, 46, .07);
     }
 
     .btn-pixel {
-        @apply inline-flex items-center justify-center border-2 border-stone-dark font-bold uppercase tracking-wide transition-transform;
+        @apply inline-flex items-center justify-center gap-2 border font-semibold rounded-xl transition-all duration-150;
     }
-    .btn-pixel:active { transform: translateY(2px); box-shadow: none !important; }
+    .btn-pixel:active { transform: translateY(1px); }
 
     .btn-pixel-primary {
-        @apply btn-pixel bg-gold text-[#3a2a06];
-        box-shadow:
-            inset 2px 2px 0 0 rgb(var(--c-gold-light)),
-            inset -2px -2px 0 0 rgb(var(--c-gold-dark)),
-            0 3px 0 0 rgb(var(--c-stone-dark));
+        @apply btn-pixel text-white border-transparent;
+        background: rgb(var(--c-violet));
+        box-shadow: 0 1px 2px rgba(28, 26, 46, .08), 0 6px 16px rgba(109, 90, 230, .28);
     }
+    .btn-pixel-primary:hover { background: rgb(var(--c-violet-dark, 88 72 196)); filter: brightness(.96); }
+
     .btn-pixel-ghost {
-        @apply btn-pixel bg-dungeon-600 text-parchment;
-        box-shadow:
-            inset 2px 2px 0 0 rgb(var(--c-stone-light)),
-            inset -2px -2px 0 0 rgb(var(--c-stone-dark)),
-            0 3px 0 0 rgb(var(--c-stone-dark));
+        @apply btn-pixel bg-dungeon-600 text-parchment border-stone;
     }
+    .btn-pixel-ghost:hover { filter: brightness(.98); }
+
     .btn-pixel-danger {
-        @apply btn-pixel bg-ruby text-white;
-        box-shadow:
-            inset 2px 2px 0 0 #f08a9c,
-            inset -2px -2px 0 0 #a83246,
-            0 3px 0 0 rgb(var(--c-stone-dark));
+        @apply btn-pixel text-white border-transparent;
+        background: rgb(var(--c-ruby));
+        box-shadow: 0 1px 2px rgba(28, 26, 46, .08), 0 6px 16px rgba(224, 82, 96, .28);
     }
 
     .input-pixel {
-        @apply bg-dungeon-800 border-2 border-stone text-parchment placeholder-arcane/60;
+        @apply bg-dungeon-800 border border-stone text-parchment placeholder-arcane/60 rounded-xl;
     }
-    .input-pixel:focus { @apply outline-none border-gold; }
+    .input-pixel:focus {
+        @apply outline-none;
+        border-color: rgb(var(--c-violet));
+        box-shadow: 0 0 0 3px rgba(109, 90, 230, .22);
+    }
 }
 
 @keyframes pulse-slow {
@@ -123,10 +124,10 @@ html, body {
 .animate-float { animation: float-icon 2.6s ease-in-out infinite; }
 .animate-float:hover { animation-play-state: paused; }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgb(var(--c-stone-dark)); }
-::-webkit-scrollbar-thumb { background: rgb(var(--c-stone)); border: 1px solid rgb(var(--c-stone-dark)); }
-::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-gold)); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-stone)); border-radius: 999px; border: 2px solid rgb(var(--c-dungeon-950)); }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-violet)); }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

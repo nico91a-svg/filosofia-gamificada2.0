@@ -8,9 +8,11 @@ export default {
             // Las familias se remapean en vez de editar cada componente:
             // `font-serif` (titulares) pasa a la pixel chunky y `font-sans`
             // (default) a la pixel legible. Ver docs/design/estetica-pixel-web.md.
+            // Estética moderna: Inter para todo. `font-serif` (titulares) y
+            // `font-sans` (texto) comparten familia; la jerarquía la da el peso.
             fontFamily: {
-                sans: ['Silkscreen', 'monospace'],
-                serif: ['"Press Start 2P"', 'monospace']
+                sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
+                serif: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif']
             },
             // Paleta "mazmorra" portada de la app movil
             // (filosofia-app/tailwind.config.js, rama claude/web-to-mobile-app-3J0Il).
@@ -42,10 +44,16 @@ export default {
                 arcane: 'rgb(var(--c-arcane) / <alpha-value>)',
                 // Semanticos de rareza: no cambian con el tema.
                 rareza: {
-                    comun: '#9ca3af',
-                    raro: '#5aa9f2',
-                    epico: '#b06bf2',
-                    legendario: '#f2c33d'
+                    comun: '#94A3B8',
+                    raro: '#3B9EE5',
+                    epico: '#A855F7',
+                    legendario: '#F6B13C'
+                },
+                // Marca (violeta): acento moderno disponible como text-violet, etc.
+                violet: {
+                    light: '#8B7BF0',
+                    DEFAULT: '#6D5AE6',
+                    dark: '#5848C4'
                 }
             }
         }

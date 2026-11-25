@@ -113,7 +113,7 @@ export function LoginScreen({ cursos, cursoId, onCursoChange, onLogin, error, on
                                     <button key={id} type="button" onClick={() => setTipo(id)}
                                         className="btn-pixel-ghost w-full normal-case tracking-normal py-4 px-5 !justify-start gap-4">
                                         <div className={'w-10 h-10 border-2 border-stone-dark flex items-center justify-center ' + (id === 'profesor' ? 'bg-gold' : 'bg-arcane')}>
-                                            <Icon size={20} className={id === 'profesor' ? 'text-dungeon-950' : 'text-white'} />
+                                            <Icon size={20} className={id === 'profesor' ? 'text-dungeon-950' : 'text-parchment'} />
                                         </div>
                                         <div className="flex-1 text-left">
                                             <div>Acceso {r.titulo}</div>
@@ -131,7 +131,7 @@ export function LoginScreen({ cursos, cursoId, onCursoChange, onLogin, error, on
                         <form onSubmit={submit} className="space-y-4">
                             <div className="flex items-center gap-3 pb-4 border-b-2 border-stone-dark">
                                 <div className={'w-10 h-10 border-2 border-stone-dark flex items-center justify-center ' + (tipo === 'profesor' ? 'bg-gold' : 'bg-arcane')}>
-                                    <RolIcon size={20} className={tipo === 'profesor' ? 'text-dungeon-950' : 'text-white'} />
+                                    <RolIcon size={20} className={tipo === 'profesor' ? 'text-dungeon-950' : 'text-parchment'} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="text-parchment font-bold">{rol.titulo}</div>
