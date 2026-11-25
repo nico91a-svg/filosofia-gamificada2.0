@@ -181,6 +181,40 @@ describe('students_privado (nombre legal): solo el docente', () => {
     });
 });
 
+describe('arcade (biblioteca de juegos): lee el curso, escribe solo el docente', () => {
+    beforeEach(() => seed({
+        'cursos/curso-a/arcade': { 0: { id: 1, titulo: 'Juego', url: 'https://ok.com' } },
+        arcade: { 0: { id: 1, titulo: 'Juego original', url: 'https://ok.com' } }
+    }));
+
+    test('un estudiante del curso puede leer el arcade de su curso', async () => {
+        await assertSucceeds(get(ref(estudiante('uid-ana', 'curso-a', 1), 'cursos/curso-a/arcade')));
+    });
+
+    test('un estudiante de otro curso no puede leerlo', async () => {
+        await assertFails(get(ref(estudiante('uid-otro', 'curso-b', 2), 'cursos/curso-a/arcade')));
+    });
+
+    test('un estudiante no puede escribir en el arcade', async () => {
+        await assertFails(set(ref(estudiante('uid-ana', 'curso-a', 1), 'cursos/curso-a/arcade'), { 0: { id: 9, titulo: 'Pirata', url: 'https://x.com' } }));
+    });
+
+    test('un visitante sin sesion no puede leerlo', async () => {
+        await assertFails(get(ref(anonimo(), 'cursos/curso-a/arcade')));
+    });
+
+    test('el docente puede escribir el arcade (curso nuevo y curso original)', async () => {
+        const db = docente();
+        await assertSucceeds(set(ref(db, 'cursos/curso-a/arcade'), { 0: { id: 1, titulo: 'Juego', url: 'https://ok.com' } }));
+        await assertSucceeds(set(ref(db, 'arcade'), { 0: { id: 1, titulo: 'Juego', url: 'https://ok.com' } }));
+    });
+
+    test('el curso original (ruta plana) deja leer a su estudiante pero no a otros', async () => {
+        await assertSucceeds(get(ref(estudiante('uid-ana', '3B-2026', 1), 'arcade')));
+        await assertFails(get(ref(estudiante('uid-otro', 'otro-curso', 2), 'arcade')));
+    });
+});
+
 describe('namespace sandbox', () => {
     test('se comporta igual que el real: mismo curso lee y escribe su inventario, otros no', async () => {
         await seed({ 'sandbox/cursos/prueba/students': { 0: { id: 1, nombreSocial: 'Test', artefactos: [] } } });

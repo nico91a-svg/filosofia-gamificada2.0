@@ -13,6 +13,7 @@ import {
     CURSOS_BASE, CURSO_ORIGINAL_ID, getCurso, loadCursoSelection, normalizeCursos, saveCursoSelection
 } from './data/cursos.js';
 import { findStudentByCredentials, normalizeStudent } from './domain/estudiantes.js';
+import { normalizeEnlace } from './domain/arcade.js';
 import { normalizeUnidades } from './content/index.js';
 import { LoginScreen } from './components/LoginScreen.jsx';
 import { ProfesorDashboard } from './components/profesor/ProfesorDashboard.jsx';
@@ -163,6 +164,7 @@ export function App() {
             exportado: new Date().toISOString(),
             students: data.students,
             activities: data.activities,
+            arcade: data.arcade,
             unidades: data.unidades,
             position: { unidad: data.currentUnidad, clase: data.currentClase }
         };
@@ -204,6 +206,7 @@ export function App() {
                         return resto;
                     });
                     const activities = imported.activities ? toList(imported.activities) : null;
+                    const arcade = imported.arcade ? toList(imported.arcade).map(normalizeEnlace) : null;
                     const unidades = imported.unidades ? normalizeUnidades(imported.unidades) : null;
 
                     const resumen = (students ? students.length : 0) + ' estudiantes y ' +
@@ -219,6 +222,7 @@ export function App() {
                         });
                     }
                     if (activities) data.setActivities(activities);
+                    if (arcade) data.setArcade(arcade);
                     if (unidades && unidades.length) data.setUnidades(unidades);
                     if (imported.position && imported.position.unidad) {
                         data.setPosition({ unidad: imported.position.unidad, clase: Number(imported.position.clase) || 1 });
@@ -274,6 +278,8 @@ export function App() {
                 setNombreLegal={data.setNombreLegal}
                 activities={data.activities}
                 setActivities={data.setActivities}
+                arcade={data.arcade}
+                setArcade={data.setArcade}
                 unidades={data.unidades}
                 setUnidades={data.setUnidades}
                 onResetUnidades={data.resetUnidades}
@@ -300,6 +306,7 @@ export function App() {
                 students={data.students}
                 setStudents={data.setStudents}
                 activities={data.activities}
+                arcade={data.arcade}
                 unidades={data.unidades}
                 currentUnidad={data.currentUnidad}
                 currentClase={data.currentClase}

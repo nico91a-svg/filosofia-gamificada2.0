@@ -6,6 +6,7 @@ import { crearCurso, getPaleta } from '../../data/cursos.js';
 import { getContentPack } from '../../content/index.js';
 import { crearEstudiante } from '../../domain/estudiantes.js';
 import { nextId } from '../../domain/ids.js';
+import { GestionArcade } from './GestionArcade.jsx';
 import { GestionCursos } from './GestionCursos.jsx';
 import { GestionUnidades } from './GestionUnidades.jsx';
 import { HABILIDADES, HABILIDAD_NIVELES, getHabilidadNivel } from '../../domain/habilidades.js';
@@ -23,6 +24,7 @@ const { useState, useEffect } = React;
 export const ProfesorDashboard = function ProfesorDashboard({
     students, setStudents, setNombreLegal,
     activities, setActivities,
+    arcade, setArcade,
     unidades, setUnidades,
     currentUnidad, setCurrentUnidad,
     currentClase, setCurrentClase,
@@ -471,8 +473,25 @@ export const ProfesorDashboard = function ProfesorDashboard({
         { id: 'misiones', label: 'Misiones', emoji: '🎯' },
         { id: 'artefactos', label: 'Artefactos', emoji: '🏺' },
         { id: 'habilidades', label: 'Habilidades', emoji: '🎯' },
+        { id: 'arcade', label: 'Arcade', emoji: '🕹️' },
         { id: 'cursos', label: 'Cursos', emoji: '🏛️' }
     ];
+
+    // ---- Gestion del arcade (biblioteca de juegos) ----
+    function guardarEnlace(enlace) {
+        setArcade(function(prev) {
+            var lista = Array.isArray(prev) ? prev : [];
+            var existe = lista.some(function(e) { return e.id === enlace.id; });
+            return existe
+                ? lista.map(function(e) { return e.id === enlace.id ? enlace : e; })
+                : lista.concat([enlace]);
+        });
+    }
+    function eliminarEnlace(id) {
+        setArcade(function(prev) {
+            return (Array.isArray(prev) ? prev : []).filter(function(e) { return e.id !== id; });
+        });
+    }
 
     // ---- Gestion de cursos ----
     function addCurso() {
@@ -1214,6 +1233,15 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 )}
 
                 {/* ================ TAB: CURSOS ================ */}
+                {activeTab === 'arcade' && (
+                    <GestionArcade
+                        enlaces={arcade}
+                        unidades={unidades}
+                        onSave={guardarEnlace}
+                        onDelete={eliminarEnlace}
+                    />
+                )}
+
                 {activeTab === 'cursos' && (
                     <GestionCursos
                         cursos={cursos}

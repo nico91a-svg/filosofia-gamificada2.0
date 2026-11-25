@@ -1,5 +1,6 @@
 import React from 'react';
 import { ARTEFACTOS, COFRES, abrirCofre } from '../../domain/artefactos.js';
+import { urlSegura } from '../../domain/arcade.js';
 import { BADGES } from '../../domain/badges.js';
 import { CLASES_FILOSOFICAS } from '../../domain/clases-filosoficas.js';
 import { HABILIDADES, HABILIDAD_NIVELES, getHabilidadNivel } from '../../domain/habilidades.js';
@@ -16,7 +17,7 @@ import { ThemeToggle } from '../shared/ThemeToggle.jsx';
 
 // Dashboard del Estudiante - Vista gamificada completa
 // Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
-export const EstudianteDashboard = ({ currentUser, students, activities, unidades, currentUnidad, currentClase, onLogout, setStudents, curso }) => {
+export const EstudianteDashboard = ({ currentUser, students, activities, arcade, unidades, currentUnidad, currentClase, onLogout, setStudents, curso }) => {
     const { useState } = React;
     const [activeTab, setActiveTab] = useState('perfil');
     const [expandedUnidades, setExpandedUnidades] = useState({});
@@ -123,7 +124,8 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
         { id: 'ranking', label: 'Ranking', emoji: '🏆' },
         { id: 'vocabulario', label: 'Vocabulario', emoji: '📚' },
         { id: 'actividades', label: 'Actividades', emoji: '⚡' },
-        { id: 'artefactos', label: pendingChests > 0 ? 'Artefactos (' + pendingChests + ')' : 'Artefactos', emoji: pendingChests > 0 ? '📦' : '🏺', badge: pendingChests }
+        { id: 'artefactos', label: pendingChests > 0 ? 'Artefactos (' + pendingChests + ')' : 'Artefactos', emoji: pendingChests > 0 ? '📦' : '🏺', badge: pendingChests },
+        { id: 'arcade', label: 'Arcade', emoji: '🕹️' }
     ];
 
     // ---- Helpers ----
@@ -1106,6 +1108,51 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
     };
 
     // ============================================================
+    // ARCADE (biblioteca de juegos curada por el docente)
+    // ============================================================
+    const renderArcade = () => {
+        const enlaces = (Array.isArray(arcade) ? arcade : []).filter(e => e && urlSegura(e.url));
+        return (
+            <div>
+                <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-parchment">🕹️ Arcade</h2>
+                    <p className="text-sm text-arcane mt-1">Juegos y recursos que eligió tu profe. Se abren en una pestaña nueva.</p>
+                </div>
+                {enlaces.length === 0 ? (
+                    <div className="panel-pixel p-8 text-center text-arcane/70">
+                        Todavía no hay juegos aquí. Tu profe los irá agregando.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {enlaces.map(e => {
+                            const hab = HABILIDADES.find(h => h.id === e.habilidadId);
+                            const uni = (unidades || []).find(u => u.id === e.unidadId);
+                            return (
+                                <a key={e.id} href={urlSegura(e.url)} target="_blank" rel="noopener noreferrer"
+                                    data-testid={'arcade-link-' + e.id}
+                                    className="panel-pixel p-5 block hover:bg-dungeon-800 transition group">
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                        <div className="font-bold text-parchment group-hover:text-white break-words">{e.titulo}</div>
+                                        <span className="text-arcane shrink-0" aria-hidden="true">↗</span>
+                                    </div>
+                                    {e.descripcion && <p className="text-sm text-arcane mb-3 break-words">{e.descripcion}</p>}
+                                    <div className="flex flex-wrap gap-2">
+                                        {hab && <span className="text-xs bg-arcane/20 text-arcane font-semibold px-2 py-1 rounded">{hab.emoji} {hab.nombre}</span>}
+                                        {uni && <span className="text-xs bg-dungeon-800 text-parchment/80 font-semibold px-2 py-1 rounded">{uni.emoji} {uni.id}</span>}
+                                    </div>
+                                </a>
+                            );
+                        })}
+                    </div>
+                )}
+                <p className="text-xs text-arcane/60 mt-6 text-center">
+                    ⚠ Los enlaces llevan a sitios externos, fuera de la aplicación.
+                </p>
+            </div>
+        );
+    };
+
+    // ============================================================
     // RENDER PRINCIPAL
     // ============================================================
     const renderContent = () => {
@@ -1116,6 +1163,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             case 'vocabulario': return renderVocabulario();
             case 'actividades': return renderActividades();
             case 'artefactos': return renderArtefactos();
+            case 'arcade': return renderArcade();
             default: return renderPerfil();
         }
     };

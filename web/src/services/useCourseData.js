@@ -5,9 +5,11 @@ import { useResource } from './useResource.js';
 import { cursoPath } from '../data/cursos.js';
 import { getContentPack, normalizeUnidades } from '../content/index.js';
 import { normalizeStudent } from '../domain/estudiantes.js';
+import { normalizeEnlace } from '../domain/arcade.js';
 
 const STUDENTS = { kind: 'collection', normalize: normalizeStudent };
 const ACTIVITIES = { kind: 'collection' };
+const ARCADE = { kind: 'collection', normalize: normalizeEnlace };
 const STUDENTS_PRIVADO = { kind: 'value', fallback: {} };
 
 // `enabled=false` (sin sesion) deja los recursos en pausa: no tiene sentido
@@ -25,6 +27,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
 
     const students = useResource(backend, cursoPath(curso, 'students'), STUDENTS, [], enabled);
     const activities = useResource(backend, cursoPath(curso, 'activities'), ACTIVITIES, [], enabled);
+    const arcade = useResource(backend, cursoPath(curso, 'arcade'), ARCADE, [], enabled);
     // Sin unidades guardadas se usan las del pack; solo se guardan si el docente las edita.
     const unidades = useResource(backend, cursoPath(curso, 'unidades'),
         { kind: 'value', normalize: normalizeUnidades, fallback: pack.unidades }, [pack.id], enabled);
@@ -75,6 +78,11 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         setNombreLegal,
         activities: activities.value,
         setActivities: activities.set,
+        // El arcade no entra en `status` ni `blockedWrites`: si las reglas aun
+        // no permiten leerlo, la seccion queda vacia sin marcar toda la app
+        // como "sin conexion" (mismo criterio que students_privado).
+        arcade: arcade.value,
+        setArcade: arcade.set,
         unidades: unidadesValue,
         setUnidades: unidades.set,
         resetUnidades: unidades.reset,
@@ -85,6 +93,6 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         setCurrentClase,
         setPosition
     }), [status, blockedWrites, pack, studentsConNombreLegal, students.set, setNombreLegal, activities.value,
-        activities.set, unidadesValue, unidades.set, unidades.reset, unidades.usingFallback, currentUnidad,
-        pos.clase, setCurrentUnidad, setCurrentClase, setPosition]);
+        activities.set, arcade.value, arcade.set, unidadesValue, unidades.set, unidades.reset, unidades.usingFallback,
+        currentUnidad, pos.clase, setCurrentUnidad, setCurrentClase, setPosition]);
 }

@@ -63,7 +63,7 @@ test.describe('panel docente', () => {
     test('todas las pestañas cargan sin errores', async ({ page }) => {
         const errores = vigilarErrores(page);
         await entrarComoProfesor(page);
-        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Cursos', 'Dashboard']) {
+        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Arcade', 'Cursos', 'Dashboard']) {
             await irA(page, tab);
             await expect(page.locator('main, .max-w-7xl').last()).toBeVisible();
         }
@@ -73,7 +73,7 @@ test.describe('panel docente', () => {
     test('en un celular ninguna pestaña se desborda @movil', async ({ page }) => {
         await entrarComoProfesor(page);
         await expect(page.getByRole('button', { name: 'Salir' })).toBeInViewport();
-        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Cursos', 'Dashboard']) {
+        for (const tab of ['Estudiantes', 'Actividades', 'Unidades', 'Registro Masivo', 'Misiones', 'Artefactos', 'Habilidades', 'Arcade', 'Cursos', 'Dashboard']) {
             await irA(page, tab);
             const desborde = await page.evaluate(() =>
                 document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -190,7 +190,7 @@ test.describe('panel del estudiante', () => {
     test('recorre todas las pestañas sin errores @movil', async ({ page }) => {
         const errores = vigilarErrores(page);
         await entrarComoEstudiante(page, 'AnaP');
-        for (const tab of ['Aventura', 'Ranking', 'Vocabul', 'Activid', 'Artefact', 'Mi Perfil']) {
+        for (const tab of ['Aventura', 'Ranking', 'Vocabul', 'Activid', 'Artefact', 'Arcade', 'Mi Perfil']) {
             await page.getByRole('button', { name: new RegExp(tab) }).last().click();
             const desborde = await page.evaluate(() =>
                 document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -344,5 +344,46 @@ test.describe('aplicacion instalable', () => {
         await context.setOffline(true);
         await page.reload();
         await expect(page.getByRole('heading', { name: 'Filósofo en Formación' })).toBeVisible();
+    });
+});
+
+test.describe('arcade (biblioteca de juegos)', () => {
+    test('el docente agrega un juego, se guarda normalizado y el estudiante lo ve como enlace externo', async ({ context }) => {
+        const profe = await context.newPage();
+        await entrarComoProfesor(profe);
+        await irA(profe, 'Arcade');
+
+        await profe.getByRole('button', { name: /Nuevo enlace/ }).click();
+        await profe.getByLabel('Título del juego').fill('Dilema del tranvía');
+        await profe.getByLabel('Enlace del juego').fill('tranvia.cl/jugar'); // sin esquema: debe normalizarse a https
+        await profe.getByRole('button', { name: 'Guardar' }).click();
+
+        await expect(profe.getByText('Dilema del tranvía')).toBeVisible();
+        await profe.waitForTimeout(200);
+        const guardado = await readDb(profe, 'arcade');
+        const enlaces = Array.isArray(guardado) ? guardado : Object.values(guardado || {});
+        expect(enlaces.some((e) => e.url === 'https://tranvia.cl/jugar')).toBe(true);
+
+        // El estudiante del mismo curso lo ve y el enlace se abre fuera de la app.
+        const ana = await context.newPage();
+        await entrarComoEstudiante(ana, 'AnaP');
+        await ana.getByRole('button', { name: /Arcade/ }).last().click();
+        const enlace = ana.getByRole('link', { name: /Dilema del tranvía/ });
+        await expect(enlace).toBeVisible();
+        await expect(enlace).toHaveAttribute('href', 'https://tranvia.cl/jugar');
+        await expect(enlace).toHaveAttribute('target', '_blank');
+        await expect(enlace).toHaveAttribute('rel', /noopener/);
+    });
+
+    test('un enlace con esquema peligroso no se puede guardar', async ({ page }) => {
+        await entrarComoProfesor(page);
+        await irA(page, 'Arcade');
+        await page.getByRole('button', { name: /Nuevo enlace/ }).click();
+        await page.getByLabel('Título del juego').fill('Malicioso');
+        await page.getByLabel('Enlace del juego').fill('javascript:alert(1)');
+        await page.getByRole('button', { name: 'Guardar' }).click();
+        // El editor sigue abierto con el error; no se crea ninguna tarjeta.
+        await expect(page.getByRole('alert')).toBeVisible();
+        await expect(page.getByTestId('arcade-editor')).toBeVisible();
     });
 });
