@@ -357,6 +357,28 @@ test.describe('editor de progresión (ruleset)', () => {
     });
 });
 
+test.describe('vaciar curso', () => {
+    test('descarga un respaldo y deja el curso sin estudiantes ni actividades', async ({ page }) => {
+        page.on('dialog', (d) => d.accept()); // confirma los dos avisos y el alert final
+        await entrarComoProfesor(page);
+        await irA(page, 'Cursos');
+        const tarjeta = page.getByTestId('curso-3B-2026');
+
+        const [download] = await Promise.all([
+            page.waitForEvent('download'),
+            tarjeta.getByRole('button', { name: 'Vaciar curso' }).click()
+        ]);
+        expect(download.suggestedFilename()).toContain('filosofo_backup');
+
+        await page.waitForTimeout(300);
+        expect(await readDb(page, 'students')).toBe(null);
+
+        // La lista de estudiantes quedó vacía.
+        await irA(page, 'Estudiantes');
+        await expect(page.getByText('AnaP', { exact: true })).toHaveCount(0);
+    });
+});
+
 test.describe('analítica del docente', () => {
     test('muestra los paneles clave con los datos del curso', async ({ page }) => {
         const errores = vigilarErrores(page);

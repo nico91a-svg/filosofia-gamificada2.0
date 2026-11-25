@@ -24,7 +24,7 @@ import { ArtefactoIcon } from '../pixel/ArtefactoIcon.jsx';
 const { useState, useEffect } = React;
 
 export const ProfesorDashboard = function ProfesorDashboard({
-    students, setStudents, setNombreLegal,
+    students, setStudents, setNombreLegal, resetNombresLegales,
     activities, setActivities,
     arcade, setArcade,
     ruleset, setRuleset, resetRuleset, rulesetEsPersonalizado,
@@ -527,6 +527,16 @@ export const ProfesorDashboard = function ProfesorDashboard({
         setCursos(function(prev) {
             return prev.map(function(c) { return c.id === cursoId ? Object.assign({}, c, updates) : c; });
         });
+    }
+    function vaciarCurso() {
+        if (!confirm('¿Vaciar el curso "' + curso.nombre + ' ' + curso.anio + '"?\n\nSe borrarán TODOS sus estudiantes y actividades. El contenido (unidades), la progresión y el Arcade se conservan.')) return;
+        if (!confirm('Esta acción no se puede deshacer.\n\nPrimero se descargará un respaldo automático con los datos actuales. ¿Continuar?')) return;
+        onExportData();
+        setStudents([]);
+        setActivities([]);
+        if (resetNombresLegales) resetNombresLegales();
+        if (unidades && unidades[0]) { setCurrentUnidad(unidades[0].id); setCurrentClase(1); }
+        alert('Curso vaciado. Se descargó un respaldo con los datos anteriores.');
     }
     function deleteCurso(cursoId) {
         var c = cursos.find(function(x) { return x.id === cursoId; });
@@ -1287,6 +1297,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         onDuplicar={duplicarCurso}
                         onUpdate={updateCurso}
                         onDelete={deleteCurso}
+                        onVaciar={vaciarCurso}
                     />
                 )}
 

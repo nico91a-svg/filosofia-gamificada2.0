@@ -213,19 +213,31 @@ export function App() {
                         ? rulesetEditable(normalizeRuleset(imported.rulesetPersonalizado)) : null;
                     const unidades = imported.unidades ? normalizeUnidades(imported.unidades) : null;
 
-                    const resumen = (students ? students.length : 0) + ' estudiantes y ' +
-                        (activities ? activities.length : 0) + ' actividades';
+                    // El docente elige si trae también a los estudiantes o solo
+                    // el contenido/configuración (unidades, progresión y Arcade).
+                    const hayEstudiantes = !!(students && students.length);
+                    const incluirEstudiantes = hayEstudiantes && window.confirm(
+                        '¿Incluir estudiantes y actividades del respaldo?\n\n' +
+                        'Aceptar = importar TODO (' + (students ? students.length : 0) + ' estudiantes y ' +
+                        (activities ? activities.length : 0) + ' actividades).\n' +
+                        'Cancelar = importar SOLO contenido, progresión y Arcade (sin estudiantes).');
+
+                    const resumen = incluirEstudiantes
+                        ? ((students ? students.length : 0) + ' estudiantes y ' + (activities ? activities.length : 0) + ' actividades')
+                        : 'contenido, progresión y Arcade (sin estudiantes)';
                     if (!window.confirm('Importar ' + resumen + ' al curso "' + curso.nombre + ' ' + curso.anio +
-                        '"?\n\nEsto REEMPLAZA los datos actuales de ese curso. Exporta un respaldo antes si no lo has hecho.')) {
+                        '"?\n\nEsto REEMPLAZA esos datos del curso. Exporta un respaldo antes si no lo has hecho.')) {
                         return;
                     }
-                    if (students) data.setStudents(students);
-                    if (normalizados) {
-                        normalizados.forEach((s) => {
-                            if (s.nombreLegal && s.nombreLegal !== s.nombre) data.setNombreLegal(s.id, s.nombreLegal);
-                        });
+                    if (incluirEstudiantes) {
+                        if (students) data.setStudents(students);
+                        if (normalizados) {
+                            normalizados.forEach((s) => {
+                                if (s.nombreLegal && s.nombreLegal !== s.nombre) data.setNombreLegal(s.id, s.nombreLegal);
+                            });
+                        }
+                        if (activities) data.setActivities(activities);
                     }
-                    if (activities) data.setActivities(activities);
                     if (arcade) data.setArcade(arcade);
                     if (rulesetImp) data.setRuleset(rulesetImp);
                     if (unidades && unidades.length) data.setUnidades(unidades);
@@ -281,6 +293,7 @@ export function App() {
                 students={data.students}
                 setStudents={data.setStudents}
                 setNombreLegal={data.setNombreLegal}
+                resetNombresLegales={data.resetNombresLegales}
                 activities={data.activities}
                 setActivities={data.setActivities}
                 arcade={data.arcade}

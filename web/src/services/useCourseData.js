@@ -55,6 +55,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
     const setNombreLegal = useCallback((studentId, nombreLegal) => {
         studentsPrivado.set((prev) => ({ ...(prev || {}), [studentId]: nombreLegal }));
     }, [studentsPrivado.set]);
+    const resetNombresLegales = studentsPrivado.reset;
 
     const statuses = [students.status, activities.status, unidades.status, position.status];
     const status = statuses.includes('loading') ? 'loading'
@@ -90,6 +91,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         students: studentsConNombreLegal,
         setStudents: students.set,
         setNombreLegal,
+        resetNombresLegales,
         activities: activities.value,
         setActivities: activities.set,
         // El arcade no entra en `status` ni `blockedWrites`: si las reglas aun
@@ -107,7 +109,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         setCurrentClase,
         setPosition
     }), [status, blockedWrites, pack, ruleset, rulesetCustom.set, rulesetCustom.reset, rulesetCustom.value,
-        studentsConNombreLegal, students.set, setNombreLegal, activities.value,
+        studentsConNombreLegal, students.set, setNombreLegal, resetNombresLegales, activities.value,
         activities.set, arcade.value, arcade.set, unidadesValue, unidades.set, unidades.reset, unidades.usingFallback,
         currentUnidad, pos.clase, setCurrentUnidad, setCurrentClase, setPosition]);
 }
