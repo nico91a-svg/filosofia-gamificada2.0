@@ -52,3 +52,26 @@ Panel docente → **Cursos** → elegir el pack en **Contenido**.
   recibir una versión nueva del pack en un curso que ya tenía ediciones.
 - El vocabulario descubierto por cada estudiante se guarda por nombre del
   término: renombrar un término lo deja como no descubierto.
+
+## Progresión de habilidades (ruleset)
+
+Además del pack de contenido, cada curso elige un **ruleset**: las habilidades
+que entrena, sus niveles y los tipos de actividad con sus rúbricas de XP y de
+habilidad. Así un curso de básica puede tener una progresión más simple que uno
+de media. Se elige en el panel docente → **Cursos** → *Progresión de habilidades*.
+
+Rulesets incluidos (`web/src/domain/rulesets.js`):
+
+- `filosofia-3medio` — 6 habilidades filosóficas y todas las actividades (por
+  defecto; idéntico al comportamiento histórico).
+- `basica-introduccion` — 4 habilidades sencillas (observar, preguntar,
+  argumentar, dialogar) y actividades para los más pequeños.
+
+Para crear otro, agrega un objeto a `RULESETS` con `habilidades`, `habilidadNiveles`,
+`categorias`, `tipos`, `rubricsXP` y `rubricsHabilidades`, y corre `npm test`
+(la prueba valida la estructura y que las actividades no apunten a habilidades
+inexistentes).
+
+Los puntos de habilidad que gana una actividad quedan guardados en la propia
+actividad al registrarla, así que cambiar el ruleset de un curso no reescribe su
+historial.

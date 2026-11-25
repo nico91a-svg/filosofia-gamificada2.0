@@ -3,9 +3,9 @@ import { ARTEFACTOS, COFRES, abrirCofre } from '../../domain/artefactos.js';
 import { urlSegura } from '../../domain/arcade.js';
 import { BADGES } from '../../domain/badges.js';
 import { CLASES_FILOSOFICAS } from '../../domain/clases-filosoficas.js';
-import { HABILIDADES, HABILIDAD_NIVELES, getHabilidadNivel } from '../../domain/habilidades.js';
+import { HABILIDADES as HABILIDADES_D, HABILIDAD_NIVELES as HABILIDAD_NIVELES_D, getHabilidadNivel as getHabilidadNivel_D } from '../../domain/habilidades.js';
 import { Icons } from '../shared/Icons.jsx';
-import { RUBRICS_HABILIDADES, TIPOS_ACTIVIDAD } from '../../domain/tipos-actividad.js';
+import { RUBRICS_HABILIDADES as RUBRICS_HABILIDADES_D, TIPOS_ACTIVIDAD as TIPOS_ACTIVIDAD_D } from '../../domain/tipos-actividad.js';
 import { RadarChart } from '../shared/RadarChart.jsx';
 import { getMisionesDeClase } from '../../domain/misiones.js';
 import { getNivel } from '../../domain/niveles.js';
@@ -17,8 +17,14 @@ import { ThemeToggle } from '../shared/ThemeToggle.jsx';
 
 // Dashboard del Estudiante - Vista gamificada completa
 // Con: Leaderboard, Avatar Evolutivo, Mapa de Aventura, Intercambio de Artefactos
-export const EstudianteDashboard = ({ currentUser, students, activities, arcade, unidades, currentUnidad, currentClase, onLogout, setStudents, curso }) => {
+export const EstudianteDashboard = ({ currentUser, students, activities, arcade, ruleset, unidades, currentUnidad, currentClase, onLogout, setStudents, curso }) => {
     const { useState } = React;
+    // Habilidades y rúbricas del ruleset del curso (con respaldo al valor por defecto).
+    const HABILIDADES = (ruleset && ruleset.habilidades) || HABILIDADES_D;
+    const HABILIDAD_NIVELES = (ruleset && ruleset.habilidadNiveles) || HABILIDAD_NIVELES_D;
+    const getHabilidadNivel = (ruleset && ruleset.getHabilidadNivel) || getHabilidadNivel_D;
+    const TIPOS_ACTIVIDAD = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD_D;
+    const RUBRICS_HABILIDADES = (ruleset && ruleset.rubricsHabilidades) || RUBRICS_HABILIDADES_D;
     const [activeTab, setActiveTab] = useState('perfil');
     const [expandedUnidades, setExpandedUnidades] = useState({});
     const [showTradeModal, setShowTradeModal] = useState(false);
@@ -408,7 +414,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, arcade,
             {/* Radar de habilidades */}
             <div className="panel-pixel p-6">
                 <h3 className="text-lg font-bold text-parchment mb-4 text-center">Perfil de Habilidades</h3>
-                <RadarChart student={currentUser} darkMode={true} />
+                <RadarChart student={currentUser} darkMode={true} habilidades={HABILIDADES} getHabilidadNivel={getHabilidadNivel} />
             </div>
 
             {/* Grid de habilidades */}

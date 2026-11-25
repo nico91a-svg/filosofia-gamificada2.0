@@ -1,7 +1,6 @@
 // Panel docente para curar la biblioteca de juegos/recursos externos (Arcade).
 // El docente agrega, edita y borra enlaces; los estudiantes solo los ven.
 import React from 'react';
-import { HABILIDADES } from '../../domain/habilidades.js';
 import {
     ARCADE_MAX_DESCRIPCION, ARCADE_MAX_TITULO, crearEnlace, normalizeEnlace, urlSegura
 } from '../../domain/arcade.js';
@@ -14,7 +13,8 @@ const labelClass = 'block text-xs font-semibold uppercase text-arcane mb-1';
 
 const DRAFT_VACIO = { id: null, titulo: '', url: '', descripcion: '', habilidadId: '', unidadId: '' };
 
-export function GestionArcade({ enlaces, unidades, onSave, onDelete }) {
+export function GestionArcade({ enlaces, unidades, habilidades = [], onSave, onDelete }) {
+    const HABILIDADES = habilidades;
     const [draft, setDraft] = useState(null); // null = sin editor abierto
     const [error, setError] = useState('');
 

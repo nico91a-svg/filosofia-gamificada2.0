@@ -6,6 +6,7 @@ import { cursoPath } from '../data/cursos.js';
 import { getContentPack, normalizeUnidades } from '../content/index.js';
 import { normalizeStudent } from '../domain/estudiantes.js';
 import { normalizeEnlace } from '../domain/arcade.js';
+import { getRuleset } from '../domain/rulesets.js';
 
 const STUDENTS = { kind: 'collection', normalize: normalizeStudent };
 const ACTIVITIES = { kind: 'collection' };
@@ -23,6 +24,7 @@ const STUDENTS_PRIVADO = { kind: 'value', fallback: {} };
 // "sin permiso a proposito".
 export function useCourseData(backend, curso, enabled = true, esDocente = false) {
     const pack = getContentPack(curso.contentPackId);
+    const ruleset = getRuleset(curso.rulesetId);
     const firstUnidad = pack.unidades[0].id;
 
     const students = useResource(backend, cursoPath(curso, 'students'), STUDENTS, [], enabled);
@@ -73,6 +75,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         status,
         blockedWrites,
         pack,
+        ruleset,
         students: studentsConNombreLegal,
         setStudents: students.set,
         setNombreLegal,
@@ -92,7 +95,7 @@ export function useCourseData(backend, curso, enabled = true, esDocente = false)
         setCurrentUnidad,
         setCurrentClase,
         setPosition
-    }), [status, blockedWrites, pack, studentsConNombreLegal, students.set, setNombreLegal, activities.value,
+    }), [status, blockedWrites, pack, ruleset, studentsConNombreLegal, students.set, setNombreLegal, activities.value,
         activities.set, arcade.value, arcade.set, unidadesValue, unidades.set, unidades.reset, unidades.usingFallback,
         currentUnidad, pos.clase, setCurrentUnidad, setCurrentClase, setPosition]);
 }

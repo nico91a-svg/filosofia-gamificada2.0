@@ -107,12 +107,12 @@ export const AddStudentModal = ({ onClose, onAdd, backendKind, cursoId }) => {
 };
 
 // Modal para editar estudiante
-export const EditStudentModal = ({ student, onClose, onAddXP, onAddHabilidadPoints, onAddBadge, onAddArtefacto }) => {
+export const EditStudentModal = ({ student, onClose, onAddXP, onAddHabilidadPoints, onAddBadge, onAddArtefacto, ruleset }) => {
     const [xpToAdd, setXpToAdd] = useState('');
     const [selectedHab, setSelectedHab] = useState('');
     const [pointsToAdd, setPointsToAdd] = useState('');
     const [selectedBadge, setSelectedBadge] = useState('');
-    const habilidades = HABILIDADES;
+    const habilidades = (ruleset && ruleset.habilidades) || HABILIDADES;
     const badges = BADGES;
 
     return (
@@ -167,22 +167,24 @@ export const EditStudentModal = ({ student, onClose, onAddXP, onAddHabilidadPoin
 };
 
 // Modal para registrar actividad individual
-export const AddActivityModal = ({ students, onClose, onAdd, unidades, unidadActual, claseActual }) => {
+export const AddActivityModal = ({ students, onClose, onAdd, unidades, unidadActual, claseActual, ruleset }) => {
     const [formData, setFormData] = useState({
         studentId: '', tipo: '', nivel: 'competente', xp: 0, notas: '', comentario: '',
         unidadId: unidadActual || (unidades[0] ? unidades[0].id : 'U1'), claseNum: claseActual || 1
     });
-    const tiposActividad = TIPOS_ACTIVIDAD;
-    const categorias = CATEGORIAS_ACTIVIDAD || [];
-    const rubrics = RUBRICS_XP;
+    const tiposActividad = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD;
+    const categorias = (ruleset && ruleset.categorias) || CATEGORIAS_ACTIVIDAD || [];
+    const rubrics = (ruleset && ruleset.rubricsXP) || RUBRICS_XP;
+    const rubricsHab = (ruleset && ruleset.rubricsHabilidades) || RUBRICS_HABILIDADES;
+    const habilidades = (ruleset && ruleset.habilidades) || HABILIDADES;
     const currentUnidad = unidades.find(u => u.id === formData.unidadId);
 
     // Obtener categoria del tipo seleccionado
     const tipoSeleccionado = tiposActividad.find(t => t.id === formData.tipo);
     const categoriaActual = tipoSeleccionado ? (categorias.find(c => c.id === tipoSeleccionado.categoria) || null) : null;
 
-    // Info de cofre
-    const cofreInfo = formData.tipo ? getCofre(formData.tipo, formData.nivel) : null;
+    // Info de cofre (usa los tipos del ruleset para resolver la categoria)
+    const cofreInfo = formData.tipo ? getCofre(formData.tipo, formData.nivel, tiposActividad) : null;
 
     useEffect(() => {
         if (formData.tipo && formData.nivel) {
@@ -254,12 +256,12 @@ export const AddActivityModal = ({ students, onClose, onAdd, unidades, unidadAct
                         <span className="text-sm text-arcane">XP a otorgar:</span>
                         <span className="text-2xl font-bold text-arcane">{formData.xp} XP</span>
                     </div>
-                    {formData.tipo && RUBRICS_HABILIDADES[formData.tipo] && (
+                    {formData.tipo && rubricsHab[formData.tipo] && (
                         <div className="mt-2 pt-2 border-t border-arcane/40">
                             <div className="text-xs text-arcane mb-1.5">Habilidades que mejora:</div>
                             <div className="flex flex-wrap gap-1.5">
-                                {Object.entries(RUBRICS_HABILIDADES[formData.tipo]).map(([habId, pts]) => {
-                                    var hab = HABILIDADES.find(h => h.id === habId);
+                                {Object.entries(rubricsHab[formData.tipo]).map(([habId, pts]) => {
+                                    var hab = habilidades.find(h => h.id === habId);
                                     if (!hab) return null;
                                     return (
                                         <span key={habId} className="inline-flex items-center gap-1 bg-dungeon-700 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm border">
@@ -281,7 +283,7 @@ export const AddActivityModal = ({ students, onClose, onAdd, unidades, unidadAct
                             onAdd({
                                 ...formData,
                                 categoria: tipoSeleccionado ? tipoSeleccionado.categoria : 'cotidiana',
-                                habilidades: RUBRICS_HABILIDADES[formData.tipo] || {}
+                                habilidades: rubricsHab[formData.tipo] || {}
                             });
                         } else { alert('Por favor completa estudiante y tipo de actividad'); }
                     }} className="flex-1 bg-emerald hover:bg-emerald/80 text-white py-2 rounded-none font-bold">Registrar</button>
@@ -293,12 +295,14 @@ export const AddActivityModal = ({ students, onClose, onAdd, unidades, unidadAct
 };
 
 // Modal de detalle de estudiante - compacto para 100% zoom
-export const StudentDetailModal = ({ student, activities, onClose, onDeleteActivity }) => {
+export const StudentDetailModal = ({ student, activities, onClose, onDeleteActivity, ruleset }) => {
     const nivel = getNivel(student.xp);
     const clase = CLASES_FILOSOFICAS.find(c => c.id === student.clase);
     const studentActivities = activities.filter(a => a.studentId === student.id).slice(0, 10);
     const badges = BADGES;
-    const habilidades = HABILIDADES;
+    const habilidades = (ruleset && ruleset.habilidades) || HABILIDADES;
+    const getNivelHab = (ruleset && ruleset.getHabilidadNivel) || getHabilidadNivel;
+    const tiposActividad = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD;
     const [tab, setTab] = React.useState('resumen');
 
     return (
@@ -376,14 +380,14 @@ export const StudentDetailModal = ({ student, activities, onClose, onDeleteActiv
                             {/* Radar chart compacto */}
                             <div className="flex justify-center mb-3" style={{ maxHeight: '180px' }}>
                                 <div style={{ transform: 'scale(0.7)', transformOrigin: 'top center' }}>
-                                    <RadarChart student={student} />
+                                    <RadarChart student={student} habilidades={habilidades} getHabilidadNivel={getNivelHab} />
                                 </div>
                             </div>
                             {/* Grid de habilidades compacto */}
                             <div className="grid grid-cols-3 gap-2">
                                 {habilidades.map(hab => {
-                                    const puntos = student.habilidades[hab.id] || 0;
-                                    const nivelHab = getHabilidadNivel(puntos);
+                                    const puntos = (student.habilidades && student.habilidades[hab.id]) || 0;
+                                    const nivelHab = getNivelHab(puntos);
                                     return (
                                         <div key={hab.id} className="bg-dungeon-800 rounded-none p-2 text-center">
                                             <span className="text-lg">{hab.emoji}</span>
@@ -406,7 +410,7 @@ export const StudentDetailModal = ({ student, activities, onClose, onDeleteActiv
                             {studentActivities.length > 0 ? (
                                 <div className="space-y-1.5">
                                     {studentActivities.map(activity => {
-                                        const tipo = TIPOS_ACTIVIDAD.find(t => t.id === activity.tipo);
+                                        const tipo = tiposActividad.find(t => t.id === activity.tipo);
                                         return (
                                             <div key={activity.id} className="bg-dungeon-800 rounded-none p-2.5 flex items-center justify-between">
                                                 <div className="flex items-center gap-2 min-w-0">

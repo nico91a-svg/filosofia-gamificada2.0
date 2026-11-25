@@ -294,6 +294,32 @@ test.describe('cursos y contenido', () => {
         await expect(page.getByRole('heading', { name: 'AnaP' }).first()).toBeVisible();
         expect(errores).toEqual([]);
     });
+
+    test('un curso puede usar otra progresión de habilidades (ruleset) por grupo etario', async ({ page }) => {
+        const errores = vigilarErrores(page);
+        await entrarComoProfesor(page);
+        await irA(page, 'Cursos');
+        await page.getByRole('button', { name: 'Nuevo curso' }).click();
+
+        const cursos = await readDb(page, 'cursos_registro');
+        const nuevo = cursos[cursos.length - 1];
+        const tarjeta = page.getByTestId('curso-' + nuevo.id);
+        await tarjeta.getByLabel('Nombre del curso').fill('7° Básico');
+        await tarjeta.getByLabel('Progresión de habilidades').selectOption('basica-introduccion');
+        await tarjeta.getByRole('button', { name: 'Activar' }).click();
+        await expect(page.getByTestId('curso-activo')).toContainText('7° Básico');
+        expect((await readDb(page, 'cursos_registro')).find((c) => c.id === nuevo.id).rulesetId).toBe('basica-introduccion');
+
+        // La pestaña Habilidades muestra las del ruleset básico, no las de 3° medio.
+        await irA(page, 'Habilidades');
+        await expect(page.getByText('Observar', { exact: true }).first()).toBeVisible();
+        await expect(page.getByText('Análisis', { exact: true })).toHaveCount(0);
+
+        // La pestaña Actividades muestra los tipos del ruleset básico.
+        await irA(page, 'Actividades');
+        await expect(page.getByText('Pregunta del Día', { exact: true }).first()).toBeVisible();
+        expect(errores).toEqual([]);
+    });
 });
 
 test.describe('modo de prueba', () => {

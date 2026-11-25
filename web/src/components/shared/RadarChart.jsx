@@ -1,10 +1,11 @@
 import React from 'react';
-import { HABILIDADES, getHabilidadNivel } from '../../domain/habilidades.js';
+import { HABILIDADES, getHabilidadNivel as getHabilidadNivelDefault } from '../../domain/habilidades.js';
 
-// Gráfico de radar para habilidades filosóficas
-// Soporta dark mode (dashboard estudiante) y light mode (modal profesor)
-export const RadarChart = ({ student, darkMode }) => {
-    const habilidades = HABILIDADES;
+// Gráfico de radar para habilidades filosóficas.
+// Las habilidades y la función puntos->nivel llegan del ruleset del curso; si
+// no se pasan, usa el conjunto por defecto (compatibilidad).
+// Soporta dark mode (dashboard estudiante) y light mode (modal profesor).
+export const RadarChart = ({ student, darkMode, habilidades = HABILIDADES, getHabilidadNivel = getHabilidadNivelDefault }) => {
     const size = 280;
     const center = size / 2;
     const maxRadius = size / 2 - 45;

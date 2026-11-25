@@ -9,10 +9,10 @@ import { nextId } from '../../domain/ids.js';
 import { GestionArcade } from './GestionArcade.jsx';
 import { GestionCursos } from './GestionCursos.jsx';
 import { GestionUnidades } from './GestionUnidades.jsx';
-import { HABILIDADES, HABILIDAD_NIVELES, getHabilidadNivel } from '../../domain/habilidades.js';
+import { HABILIDADES as HABILIDADES_D, HABILIDAD_NIVELES as HABILIDAD_NIVELES_D, getHabilidadNivel as getHabilidadNivel_D } from '../../domain/habilidades.js';
 import { Icons } from '../shared/Icons.jsx';
 import { MISIONES_DB, getMisionesDeClase } from '../../domain/misiones.js';
-import { RUBRICS_HABILIDADES, RUBRICS_XP, TIPOS_ACTIVIDAD } from '../../domain/tipos-actividad.js';
+import { RUBRICS_HABILIDADES as RUBRICS_HABILIDADES_D, RUBRICS_XP as RUBRICS_XP_D, TIPOS_ACTIVIDAD as TIPOS_ACTIVIDAD_D } from '../../domain/tipos-actividad.js';
 import { RegistroMasivo } from './RegistroMasivo.jsx';
 import { getNivel } from '../../domain/niveles.js';
 import { ThemeToggle } from '../shared/ThemeToggle.jsx';
@@ -25,6 +25,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
     students, setStudents, setNombreLegal,
     activities, setActivities,
     arcade, setArcade,
+    ruleset,
     unidades, setUnidades,
     currentUnidad, setCurrentUnidad,
     currentClase, setCurrentClase,
@@ -33,6 +34,16 @@ export const ProfesorDashboard = function ProfesorDashboard({
     curso, cursos, setCursos, currentCursoId, setCurrentCursoId,
     backendKind
 }) {
+    // Habilidades, tipos de actividad y rúbricas salen del ruleset del curso
+    // (ver domain/rulesets.js). Si no llega ruleset, se usan los valores por
+    // defecto (comportamiento idéntico al anterior).
+    const HABILIDADES = (ruleset && ruleset.habilidades) || HABILIDADES_D;
+    const HABILIDAD_NIVELES = (ruleset && ruleset.habilidadNiveles) || HABILIDAD_NIVELES_D;
+    const getHabilidadNivel = (ruleset && ruleset.getHabilidadNivel) || getHabilidadNivel_D;
+    const TIPOS_ACTIVIDAD = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD_D;
+    const RUBRICS_XP = (ruleset && ruleset.rubricsXP) || RUBRICS_XP_D;
+    const RUBRICS_HABILIDADES = (ruleset && ruleset.rubricsHabilidades) || RUBRICS_HABILIDADES_D;
+
     // ---- Estado interno ----
     const [activeTab, setActiveTab] = useState('dashboard');
     const [showAddStudent, setShowAddStudent] = useState(false);
@@ -248,7 +259,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
         checkAndGrantBadges(data.studentId, data.tipo, updatedActivities);
 
         // --- OTORGAR COFRE si la actividad lo merece ---
-        var tipoCofre = getCofre(data.tipo, data.nivel);
+        var tipoCofre = getCofre(data.tipo, data.nivel, TIPOS_ACTIVIDAD);
         if (tipoCofre) {
             addArtefacto(data.studentId, 'cofre_' + tipoCofre);
         }
@@ -909,6 +920,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                         activities={activities}
                         unidadActual={currentUnidad}
                         claseActual={currentClase}
+                        ruleset={ruleset}
                     />
                 )}
 
@@ -1237,6 +1249,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     <GestionArcade
                         enlaces={arcade}
                         unidades={unidades}
+                        habilidades={HABILIDADES}
                         onSave={guardarEnlace}
                         onDelete={eliminarEnlace}
                     />
@@ -1275,6 +1288,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     onAddHabilidadPoints={addHabilidadPoints}
                     onAddBadge={addBadge}
                     onAddArtefacto={addArtefacto}
+                    ruleset={ruleset}
                 />
             )}
 
@@ -1282,6 +1296,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 <StudentDetailModal
                     student={showStudentDetail}
                     activities={activities}
+                    ruleset={ruleset}
                     onClose={function() { setShowStudentDetail(null); }}
                     onDeleteActivity={function(activityId) {
                         var act = activities.find(function(a) { return a.id === activityId; });
@@ -1316,6 +1331,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     claseActual={currentClase}
                     onClose={function() { setShowAddActivity(false); }}
                     onAdd={addActivity}
+                    ruleset={ruleset}
                 />
             )}
 

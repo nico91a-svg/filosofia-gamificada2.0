@@ -160,7 +160,7 @@ export function App() {
     // ---- respaldo ----
     const handleExportData = () => {
         const payload = {
-            curso: { id: curso.id, nombre: curso.nombre, anio: curso.anio, contentPackId: curso.contentPackId },
+            curso: { id: curso.id, nombre: curso.nombre, anio: curso.anio, contentPackId: curso.contentPackId, rulesetId: curso.rulesetId },
             exportado: new Date().toISOString(),
             students: data.students,
             activities: data.activities,
@@ -280,6 +280,7 @@ export function App() {
                 setActivities={data.setActivities}
                 arcade={data.arcade}
                 setArcade={data.setArcade}
+                ruleset={data.ruleset}
                 unidades={data.unidades}
                 setUnidades={data.setUnidades}
                 onResetUnidades={data.resetUnidades}
@@ -307,6 +308,7 @@ export function App() {
                 setStudents={data.setStudents}
                 activities={data.activities}
                 arcade={data.arcade}
+                ruleset={data.ruleset}
                 unidades={data.unidades}
                 currentUnidad={data.currentUnidad}
                 currentClase={data.currentClase}

@@ -2,6 +2,7 @@
 import React from 'react';
 import { CONTENT_PACKS, getContentPack } from '../../content/index.js';
 import { PALETAS, getPaleta } from '../../data/cursos.js';
+import { RULESETS, getRuleset } from '../../domain/rulesets.js';
 import { Icons } from '../shared/Icons.jsx';
 
 const inputClass = 'input-pixel w-full px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold';
@@ -27,6 +28,7 @@ export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDupl
                 {cursos.map((c) => {
                     const paleta = getPaleta(c.paleta);
                     const pack = getContentPack(c.contentPackId);
+                    const ruleset = getRuleset(c.rulesetId);
                     const activo = c.id === currentCursoId;
                     return (
                         <div key={c.id} data-testid={'curso-' + c.id}
@@ -81,6 +83,17 @@ export function GestionCursos({ cursos, currentCursoId, onActivar, onAdd, onDupl
                                         ))}
                                     </select>
                                     <p className="text-xs text-arcane mt-1">{pack.descripcion}</p>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className={labelClass}>Progresión de habilidades</label>
+                                    <select value={ruleset.id} aria-label="Progresión de habilidades"
+                                        onChange={(e) => onUpdate(c.id, { rulesetId: e.target.value })} className={inputClass}>
+                                        {RULESETS.map((r) => (
+                                            <option key={r.id} value={r.id}>{r.nombre}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-arcane mt-1">{ruleset.grupoEtario} · {ruleset.descripcion}</p>
                                 </div>
 
                                 <div className="mb-3">
