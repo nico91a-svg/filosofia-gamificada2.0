@@ -1,0 +1,104 @@
+{
+  "participacion": {
+    "basico": 5,
+    "competente": 10,
+    "avanzado": 15,
+    "excepcional": 20
+  },
+  "reflexion": {
+    "basico": 10,
+    "competente": 20,
+    "avanzado": 30,
+    "excepcional": 40
+  },
+  "kahoot": {
+    "basico": 15,
+    "competente": 25,
+    "avanzado": 35,
+    "excepcional": 45
+  },
+  "lectura": {
+    "basico": 15,
+    "competente": 25,
+    "avanzado": 35,
+    "excepcional": 45
+  },
+  "rutina": {
+    "basico": 15,
+    "competente": 25,
+    "avanzado": 40,
+    "excepcional": 55
+  },
+  "debate": {
+    "basico": 25,
+    "competente": 40,
+    "avanzado": 60,
+    "excepcional": 75
+  },
+  "experimento": {
+    "basico": 20,
+    "competente": 35,
+    "avanzado": 50,
+    "excepcional": 65
+  },
+  "mapa": {
+    "basico": 25,
+    "competente": 40,
+    "avanzado": 55,
+    "excepcional": 70
+  },
+  "dialogo": {
+    "basico": 30,
+    "competente": 50,
+    "avanzado": 70,
+    "excepcional": 90
+  },
+  "bitacora": {
+    "basico": 20,
+    "competente": 30,
+    "avanzado": 40,
+    "excepcional": 50
+  },
+  "control": {
+    "basico": 20,
+    "competente": 35,
+    "avanzado": 50,
+    "excepcional": 65
+  },
+  "investigacion": {
+    "basico": 40,
+    "competente": 60,
+    "avanzado": 80,
+    "excepcional": 100
+  },
+  "ensayo": {
+    "basico": 40,
+    "competente": 60,
+    "avanzado": 80,
+    "excepcional": 100
+  },
+  "ensayo_largo": {
+    "basico": 50,
+    "competente": 75,
+    "avanzado": 100,
+    "excepcional": 130
+  },
+  "presentacion": {
+    "basico": 35,
+    "competente": 55,
+    "avanzado": 75,
+    "excepcional": 95
+  },
+  "evaluacion_sumativa": {
+    "basico": 40,
+    "competente": 60,
+    "avanzado": 85,
+    "excepcional": 110
+  },
+  "proyecto": {
+    "basico": 50,
+    "competente": 75,
+    "avanzado": 100,
+    "excepcional": 130
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "cotidiana",
+    "nombre": "Cotidiana",
+    "emoji": "📌",
+    "descripcion": "Actividades diarias sin cofre"
+  },
+  {
+    "id": "proceso",
+    "nombre": "Proceso",
+    "emoji": "📂",
+    "descripcion": "Actividades de proceso (dan cofre bronce)"
+  },
+  {
+    "id": "evaluacion",
+    "nombre": "Evaluación",
+    "emoji": "📝",
+    "descripcion": "Evaluaciones con nota (dan cofre plata/oro)"
+  }
+]
