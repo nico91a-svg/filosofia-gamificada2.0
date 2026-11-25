@@ -108,6 +108,34 @@ test.describe('panel docente', () => {
             .toEqual(progreso(ESTUDIANTES).filter((s) => s.id !== 3));
     });
 
+    test('historial de actividades: busca, filtra y borra', async ({ page }) => {
+        page.on('dialog', (d) => d.accept());
+        await entrarComoProfesor(page);
+        await irA(page, 'Actividades');
+        await page.getByRole('button', { name: 'Registrar Actividad' }).click();
+        const modal = page.locator('div.fixed').filter({ hasText: 'Registrar Actividad' });
+        await modal.locator('select').nth(0).selectOption({ label: 'CaroS' });
+        await modal.locator('select').nth(3).selectOption('debate');
+        await modal.getByRole('button', { name: 'Registrar', exact: true }).click();
+
+        const historial = page.locator('div.panel-pixel').filter({ hasText: 'Historial de Actividades' });
+        await expect(historial.getByText('CaroS', { exact: true })).toBeVisible();
+
+        // Buscar un nombre que no existe -> sin coincidencias.
+        await page.getByLabel('Buscar por estudiante').fill('Zzz');
+        await expect(historial.getByText('Ninguna actividad coincide con el filtro.')).toBeVisible();
+
+        // Buscar el nombre real -> aparece.
+        await page.getByLabel('Buscar por estudiante').fill('Caro');
+        await expect(historial.getByText('CaroS', { exact: true })).toBeVisible();
+
+        // Borrar (confirma el diálogo): resta el XP y vacía el historial.
+        await historial.getByRole('button', { name: 'Eliminar actividad' }).click();
+        await page.waitForTimeout(200);
+        expect(await readDb(page, 'activities')).toBe(null);
+        expect((await readDb(page, 'students'))[2].xp).toBe(45); // vuelve a su XP inicial
+    });
+
     test('registro masivo: guarda una actividad por estudiante y respeta el limite diario', async ({ page }) => {
         await entrarComoProfesor(page);
         await irA(page, 'Registro Masivo');

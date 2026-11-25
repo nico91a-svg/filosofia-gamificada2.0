@@ -1232,7 +1232,9 @@ export const EstudianteDashboard = ({ currentUser, students, activities, arcade,
 
                 {/* Main content */}
                 <main className="flex-1 p-4 pb-24 md:pb-4 overflow-y-auto">
-                    {renderContent()}
+                    <div key={activeTab} className="animate-fade-in">
+                        {renderContent()}
+                    </div>
                 </main>
             </div>
 

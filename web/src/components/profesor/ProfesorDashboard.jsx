@@ -21,7 +21,7 @@ import { ThemeToggle } from '../shared/ThemeToggle.jsx';
 import { ArtefactoIcon } from '../pixel/ArtefactoIcon.jsx';
 
 // ProfesorDashboard.jsx - Dashboard principal del profesor
-const { useState, useEffect } = React;
+const { useState, useEffect, useMemo } = React;
 
 export const ProfesorDashboard = function ProfesorDashboard({
     students, setStudents, setNombreLegal, resetNombresLegales,
@@ -56,6 +56,23 @@ export const ProfesorDashboard = function ProfesorDashboard({
     const [showUseArtefacto, setShowUseArtefacto] = useState(false);
     const [showGiftArtefacto, setShowGiftArtefacto] = useState(false);
     const [selectedArtefactoStudent, setSelectedArtefactoStudent] = useState(null);
+    // Filtros del historial de actividades.
+    const [actQuery, setActQuery] = useState('');
+    const [actTipo, setActTipo] = useState('');
+    const [actUnidad, setActUnidad] = useState('');
+    const actividadesFiltradas = useMemo(function() {
+        var q = actQuery.trim().toLowerCase();
+        return activities.filter(function(a) {
+            if (actTipo && a.tipo !== actTipo) return false;
+            if (actUnidad && a.unidadId !== actUnidad) return false;
+            if (q) {
+                var st = students.find(function(s) { return s.id === a.studentId; });
+                var nombre = (st ? (st.nombreSocial || st.nombre || '') : '').toLowerCase();
+                if (nombre.indexOf(q) === -1) return false;
+            }
+            return true;
+        });
+    }, [activities, students, actQuery, actTipo, actUnidad]);
 
     // NOTA: la persistencia la maneja la capa de datos (services/SyncedResource).
     // Aqui solo se modifica el estado con setStudents / setActivities.
@@ -205,6 +222,26 @@ export const ProfesorDashboard = function ProfesorDashboard({
         newBadges.forEach(function(badgeId) {
             addBadge(studentId, badgeId);
         });
+    }
+
+    // Elimina una actividad y revierte su XP y puntos de habilidad al estudiante.
+    function eliminarActividad(activityId) {
+        var act = activities.find(function(a) { return a.id === activityId; });
+        if (!act) return;
+        if (!confirm('Eliminar esta actividad y restar ' + (act.xp || 0) + ' XP al estudiante?')) return;
+        setStudents(function(prev) {
+            return prev.map(function(s) {
+                if (s.id !== act.studentId) return s;
+                var newXP = Math.max(0, (s.xp || 0) - (act.xp || 0));
+                var newHabs = Object.assign({}, s.habilidades || {});
+                var habPoints = act.habilidades || (RUBRICS_HABILIDADES[act.tipo] || {});
+                Object.keys(habPoints).forEach(function(habId) {
+                    newHabs[habId] = Math.max(0, (newHabs[habId] || 0) - habPoints[habId]);
+                });
+                return Object.assign({}, s, { xp: newXP, habilidades: newHabs });
+            });
+        });
+        setActivities(function(prev) { return prev.filter(function(a) { return a.id !== activityId; }); });
     }
 
     function addActivity(data) {
@@ -620,7 +657,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
             </div>
 
             {/* ---- CONTENIDO ---- */}
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div key={activeTab} className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
 
                 {/* ================ TAB: DASHBOARD ================ */}
                 {activeTab === 'dashboard' && (
@@ -871,39 +908,67 @@ export const ProfesorDashboard = function ProfesorDashboard({
                             </div>
                         </div>
 
-                        {/* Historial */}
+                        {/* Historial con búsqueda y filtros */}
                         <div className="panel-pixel p-6">
-                            <h3 className="text-lg font-bold text-parchment mb-4">Historial de Actividades</h3>
-                            {activities.length > 0 ? (
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                                <h3 className="text-lg font-bold text-parchment">Historial de Actividades</h3>
+                                <span className="text-xs text-arcane">{actividadesFiltradas.length} de {activities.length}</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                                <input type="search" value={actQuery} onChange={function(e) { setActQuery(e.target.value); }}
+                                    placeholder="Buscar por estudiante…" aria-label="Buscar por estudiante"
+                                    className="input-pixel px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold" />
+                                <select value={actTipo} onChange={function(e) { setActTipo(e.target.value); }} aria-label="Filtrar por tipo"
+                                    className="input-pixel px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold">
+                                    <option value="">Todos los tipos</option>
+                                    {TIPOS_ACTIVIDAD.map(function(t) { return <option key={t.id} value={t.id}>{t.icon} {t.nombre}</option>; })}
+                                </select>
+                                <select value={actUnidad} onChange={function(e) { setActUnidad(e.target.value); }} aria-label="Filtrar por unidad"
+                                    className="input-pixel px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold">
+                                    <option value="">Todas las unidades</option>
+                                    {unidades.map(function(u) { return <option key={u.id} value={u.id}>{u.emoji} {u.id} · {u.nombre}</option>; })}
+                                </select>
+                            </div>
+
+                            {activities.length === 0 ? (
+                                <div className="text-center text-arcane/70 py-8">No hay actividades registradas aún.</div>
+                            ) : actividadesFiltradas.length === 0 ? (
+                                <div className="text-center text-arcane/70 py-8">Ninguna actividad coincide con el filtro.</div>
+                            ) : (
                                 <div className="space-y-2">
-                                    {activities.slice(0, 50).map(function(act) {
+                                    {actividadesFiltradas.slice(0, 100).map(function(act) {
                                         var tipo = TIPOS_ACTIVIDAD.find(function(t) { return t.id === act.tipo; });
                                         var student = students.find(function(s) { return s.id === act.studentId; });
                                         var unidad = unidades.find(function(u) { return u.id === act.unidadId; });
                                         return (
                                             <div key={act.id} className="flex items-center justify-between bg-dungeon-800 rounded-none p-3">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-2xl">{tipo ? tipo.icon : '📌'}</span>
-                                                    <div>
-                                                        <div className="font-semibold text-sm text-parchment">
-                                                            {student ? student.nombre : 'Desconocido'}
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <span className="text-2xl shrink-0">{tipo ? tipo.icon : '📌'}</span>
+                                                    <div className="min-w-0">
+                                                        <div className="font-semibold text-sm text-parchment truncate">
+                                                            {student ? (student.nombreSocial || student.nombre) : 'Desconocido'}
                                                         </div>
                                                         <div className="text-xs text-arcane">
                                                             {tipo ? tipo.nombre : act.tipo} | {unidad ? unidad.emoji + ' ' + unidad.id : ''} Clase {act.claseNum || '?'} | {new Date(act.date).toLocaleDateString()}
                                                         </div>
-                                                        {act.notas && <div className="text-xs text-arcane/70 mt-0.5 italic">{act.notas}</div>}
+                                                        {act.notas && <div className="text-xs text-arcane/70 mt-0.5 italic truncate">{act.notas}</div>}
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <div className="font-bold text-arcane">+{act.xp} XP</div>
-                                                    <div className="text-xs text-arcane capitalize">{act.nivel}</div>
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    <div className="text-right">
+                                                        <div className="font-bold text-arcane">+{act.xp} XP</div>
+                                                        <div className="text-xs text-arcane capitalize">{act.nivel}</div>
+                                                    </div>
+                                                    <button onClick={function() { eliminarActividad(act.id); }} aria-label="Eliminar actividad"
+                                                        className="text-ruby hover:bg-ruby/20 p-2 rounded-none transition">
+                                                        <Icons.Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            ) : (
-                                <div className="text-center text-arcane/70 py-8">No hay actividades registradas aun.</div>
                             )}
                         </div>
                     </div>
@@ -1333,28 +1398,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                     students={students}
                     ruleset={ruleset}
                     onClose={function() { setShowStudentDetail(null); }}
-                    onDeleteActivity={function(activityId) {
-                        var act = activities.find(function(a) { return a.id === activityId; });
-                        if (!act) return;
-                        if (!confirm('Eliminar esta actividad y restar ' + (act.xp || 0) + ' XP al estudiante?')) return;
-                        // Restar XP y habilidades al estudiante
-                        setStudents(function(prev) {
-                            return prev.map(function(s) {
-                                if (s.id !== act.studentId) return s;
-                                var newXP = Math.max(0, (s.xp || 0) - (act.xp || 0));
-                                var newHabs = Object.assign({}, s.habilidades || {});
-                                var habPoints = act.habilidades || (RUBRICS_HABILIDADES[act.tipo] || {});
-                                Object.keys(habPoints).forEach(function(habId) {
-                                    newHabs[habId] = Math.max(0, (newHabs[habId] || 0) - habPoints[habId]);
-                                });
-                                return Object.assign({}, s, { xp: newXP, habilidades: newHabs });
-                            });
-                        });
-                        // Eliminar la actividad
-                        setActivities(function(prev) {
-                            return prev.filter(function(a) { return a.id !== activityId; });
-                        });
-                    }}
+                    onDeleteActivity={eliminarActividad}
                 />
             )}
 
@@ -1446,8 +1490,8 @@ export const ProfesorDashboard = function ProfesorDashboard({
 
 // Sub-componente modal para regalar artefactos
 function GiftArtefactoModal({ fromStudent, students, onGift, onClose }) {
-    var _useState = useState(null), selectedArtIdx = _useState[0], setSelectedArtIdx = _useState[1];
-    var _useState2 = useState(''), toStudentId = _useState2[0], setToStudentId = _useState2[1];
+    const [selectedArtIdx, setSelectedArtIdx] = useState(null);
+    const [toStudentId, setToStudentId] = useState('');
 
     var artsDisponibles = (fromStudent.artefactos || [])
         .map(function(a, i) { return Object.assign({}, a, { _idx: i }); })
