@@ -4,7 +4,7 @@ import { CATEGORIAS_ACTIVIDAD, RUBRICS_HABILIDADES, RUBRICS_XP, TIPOS_ACTIVIDAD 
 import { CLASES_FILOSOFICAS } from '../../domain/clases-filosoficas.js';
 import { COFRES, getCofre } from '../../domain/artefactos.js';
 import { HABILIDADES, getHabilidadNivel } from '../../domain/habilidades.js';
-import { RadarChart } from './RadarChart.jsx';
+import { RadarChart, promedioHabilidades } from './RadarChart.jsx';
 import { getNivel } from '../../domain/niveles.js';
 
 // Modals compartidos
@@ -295,7 +295,7 @@ export const AddActivityModal = ({ students, onClose, onAdd, unidades, unidadAct
 };
 
 // Modal de detalle de estudiante - compacto para 100% zoom
-export const StudentDetailModal = ({ student, activities, onClose, onDeleteActivity, ruleset }) => {
+export const StudentDetailModal = ({ student, activities, students, onClose, onDeleteActivity, ruleset }) => {
     const nivel = getNivel(student.xp);
     const clase = CLASES_FILOSOFICAS.find(c => c.id === student.clase);
     const studentActivities = activities.filter(a => a.studentId === student.id).slice(0, 10);
@@ -303,6 +303,10 @@ export const StudentDetailModal = ({ student, activities, onClose, onDeleteActiv
     const habilidades = (ruleset && ruleset.habilidades) || HABILIDADES;
     const getNivelHab = (ruleset && ruleset.getHabilidadNivel) || getHabilidadNivel;
     const tiposActividad = (ruleset && ruleset.tipos) || TIPOS_ACTIVIDAD;
+    const maxNivel = ((ruleset && ruleset.habilidadNiveles) ? ruleset.habilidadNiveles.length : 5);
+    const comparaCurso = Array.isArray(students) && students.length > 1
+        ? [{ label: 'Promedio del curso', habilidades: promedioHabilidades(students, habilidades), color: '#f2c33d' }]
+        : [];
     const [tab, setTab] = React.useState('resumen');
 
     return (
@@ -380,7 +384,7 @@ export const StudentDetailModal = ({ student, activities, onClose, onDeleteActiv
                             {/* Radar chart compacto */}
                             <div className="flex justify-center mb-3" style={{ maxHeight: '180px' }}>
                                 <div style={{ transform: 'scale(0.7)', transformOrigin: 'top center' }}>
-                                    <RadarChart student={student} habilidades={habilidades} getHabilidadNivel={getNivelHab} />
+                                    <RadarChart student={student} habilidades={habilidades} getHabilidadNivel={getNivelHab} maxLevel={maxNivel} compare={comparaCurso} />
                                 </div>
                             </div>
                             {/* Grid de habilidades compacto */}

@@ -1308,6 +1308,7 @@ export const ProfesorDashboard = function ProfesorDashboard({
                 <StudentDetailModal
                     student={showStudentDetail}
                     activities={activities}
+                    students={students}
                     ruleset={ruleset}
                     onClose={function() { setShowStudentDetail(null); }}
                     onDeleteActivity={function(activityId) {

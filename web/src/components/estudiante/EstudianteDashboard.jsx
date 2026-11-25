@@ -6,7 +6,7 @@ import { CLASES_FILOSOFICAS } from '../../domain/clases-filosoficas.js';
 import { HABILIDADES as HABILIDADES_D, HABILIDAD_NIVELES as HABILIDAD_NIVELES_D, getHabilidadNivel as getHabilidadNivel_D } from '../../domain/habilidades.js';
 import { Icons } from '../shared/Icons.jsx';
 import { RUBRICS_HABILIDADES as RUBRICS_HABILIDADES_D, TIPOS_ACTIVIDAD as TIPOS_ACTIVIDAD_D } from '../../domain/tipos-actividad.js';
-import { RadarChart } from '../shared/RadarChart.jsx';
+import { RadarChart, promedioHabilidades } from '../shared/RadarChart.jsx';
 import { getMisionesDeClase } from '../../domain/misiones.js';
 import { getNivel } from '../../domain/niveles.js';
 import { PixelSprite } from '../pixel/PixelSprite.jsx';
@@ -414,7 +414,11 @@ export const EstudianteDashboard = ({ currentUser, students, activities, arcade,
             {/* Radar de habilidades */}
             <div className="panel-pixel p-6">
                 <h3 className="text-lg font-bold text-parchment mb-4 text-center">Perfil de Habilidades</h3>
-                <RadarChart student={currentUser} darkMode={true} habilidades={HABILIDADES} getHabilidadNivel={getHabilidadNivel} />
+                <RadarChart student={currentUser} darkMode={true} habilidades={HABILIDADES}
+                    getHabilidadNivel={getHabilidadNivel} maxLevel={HABILIDAD_NIVELES.length}
+                    compare={students && students.length > 1
+                        ? [{ label: 'Promedio del curso', habilidades: promedioHabilidades(students, HABILIDADES), color: '#f2c33d' }]
+                        : []} />
             </div>
 
             {/* Grid de habilidades */}

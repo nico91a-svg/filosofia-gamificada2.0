@@ -198,6 +198,14 @@ test.describe('panel del estudiante', () => {
         }
         expect(errores).toEqual([]);
     });
+
+    test('el radar del perfil compara contra el promedio del curso', async ({ page }) => {
+        await entrarComoEstudiante(page, 'AnaP');
+        // La pestaña "Mi Perfil" es la inicial; el radar y su leyenda del promedio se ven.
+        await expect(page.getByRole('img', { name: /Radar de habilidades de AnaP/ })).toBeVisible();
+        // El texto aparece en el <title> del SVG (oculto) y en la leyenda (visible): la leyenda va al final.
+        await expect(page.getByText('Promedio del curso').last()).toBeVisible();
+    });
 });
 
 test.describe('varios dispositivos a la vez', () => {
