@@ -270,7 +270,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         <span className="text-2xl">{cursoUnidadObj.emoji}</span>
                         <div className="flex-1 min-w-0">
                             <p className="text-cyan-300 text-xs font-semibold">CLASE ACTUAL DEL CURSO</p>
-                            <p className="text-white font-bold text-sm truncate">{cursoUnidadObj.id} - Clase {currentClase}: {cursoClaseObj ? cursoClaseObj.titulo : ''}</p>
+                            <p className="text-parchment font-bold text-sm truncate">{cursoUnidadObj.id} - Clase {currentClase}: {cursoClaseObj ? cursoClaseObj.titulo : ''}</p>
                         </div>
                         <div className="text-right shrink-0">
                             <p className="text-cyan-400 font-bold text-lg">{progresoCurso}%</p>
@@ -287,7 +287,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             {/* Misiones de Clase */}
             <div className="panel-pixel p-5">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-bold flex items-center gap-2">
+                    <h3 className="text-parchment font-bold flex items-center gap-2">
                         <span className="text-xl">🎯</span> Misiones de Clase
                     </h3>
                     <span className="bg-yellow-500/20 text-gold text-xs font-bold px-3 py-1 rounded-full">
@@ -311,7 +311,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                     <span className="text-2xl">{completada ? '✅' : mision.emoji}</span>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-0.5">
-                                            <p className={`font-semibold text-sm ${completada ? 'text-green-400' : 'text-white'}`}>
+                                            <p className={`font-semibold text-sm ${completada ? 'text-green-400' : 'text-parchment'}`}>
                                                 {mision.nombre}
                                             </p>
                                             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
@@ -348,7 +348,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                     <div className="text-7xl mb-2 drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>
                         {avatar.emoji}
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-1">{currentUser.nombreSocial || currentUser.nombre}</h2>
+                    <h2 className="text-3xl font-bold text-parchment mb-1">{currentUser.nombreSocial || currentUser.nombre}</h2>
                     <p className="text-parchment/80 text-sm font-semibold">{avatar.titulo}</p>
                     <div className="flex items-center justify-center gap-2 mt-2">
                         <span className={`inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${clase.color}`}>
@@ -363,7 +363,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
             {/* Evolucion del Avatar */}
             <div className="panel-pixel p-5">
-                <h3 className="text-white font-bold mb-3 text-center">Evolucion del Avatar</h3>
+                <h3 className="text-parchment font-bold mb-3 text-center">Evolucion del Avatar</h3>
                 <div className="flex items-center gap-1 overflow-x-auto pb-2">
                     {[1,2,3,4,5,6,7,8,9,10].map(n => {
                         var av = getAvatar(n);
@@ -375,7 +375,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 isReached ? 'bg-dungeon-600' : 'opacity-30'
                             }`}>
                                 <span className={`text-2xl ${!isReached ? 'grayscale' : ''}`}>{isReached ? av.emoji : '🔒'}</span>
-                                <span className="text-white text-xs font-bold mt-1">Nv.{n}</span>
+                                <span className="text-parchment text-xs font-bold mt-1">Nv.{n}</span>
                             </div>
                         );
                     })}
@@ -387,7 +387,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 <div className="flex items-center justify-between mb-2">
                     <div>
                         <span className="text-parchment/80 text-sm">Nivel {nivel.nivel}</span>
-                        <h3 className="text-xl font-bold text-white">{nivel.titulo}</h3>
+                        <h3 className="text-xl font-bold text-parchment">{nivel.titulo}</h3>
                     </div>
                     <div className="text-right">
                         <span className="text-3xl font-bold text-gold">{currentUser.xp || 0}</span>
@@ -405,13 +405,13 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
             {/* Radar de habilidades */}
             <div className="panel-pixel p-6">
-                <h3 className="text-lg font-bold text-white mb-4 text-center">Perfil de Habilidades</h3>
+                <h3 className="text-lg font-bold text-parchment mb-4 text-center">Perfil de Habilidades</h3>
                 <RadarChart student={currentUser} darkMode={true} />
             </div>
 
             {/* Grid de habilidades */}
             <div className="panel-pixel p-6">
-                <h3 className="text-lg font-bold text-white mb-4">Habilidades Filosoficas</h3>
+                <h3 className="text-lg font-bold text-parchment mb-4">Habilidades Filosoficas</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {HABILIDADES.map(hab => {
                         var pts = (currentUser.habilidades || {})[hab.id] || 0;
@@ -423,7 +423,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 <div className="mb-1 flex justify-center">
                                     {icono ? <PixelSprite sprite={icono} size={28} /> : <span className="text-2xl">{hab.emoji}</span>}
                                 </div>
-                                <p className="text-white text-sm font-semibold">{hab.shortName}</p>
+                                <p className="text-parchment text-sm font-semibold">{hab.shortName}</p>
                                 <div className="flex justify-center gap-0.5 my-1">
                                     {renderStars(habNivel)}
                                 </div>
@@ -437,7 +437,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
             {/* Badges */}
             <div className="panel-pixel p-6">
-                <h3 className="text-lg font-bold text-white mb-4">Insignias Obtenidas</h3>
+                <h3 className="text-lg font-bold text-parchment mb-4">Insignias Obtenidas</h3>
                 {(currentUser.badges || []).length === 0 ? (
                     <p className="text-arcane text-center text-sm">Aun no tienes insignias. Sigue participando para ganarlas.</p>
                 ) : (
@@ -448,7 +448,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                             return (
                                 <div key={bid} className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-3 text-center">
                                     <div className="text-3xl mb-1">{badge.icon}</div>
-                                    <p className="text-white text-xs font-semibold">{badge.nombre}</p>
+                                    <p className="text-parchment text-xs font-semibold">{badge.nombre}</p>
                                     <p className="text-arcane text-xs mt-1">{badge.descripcion}</p>
                                 </div>
                             );
@@ -482,11 +482,11 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 {/* Titulo del mapa */}
                 <div className="panel-pixel p-5 text-center">
                     <div className="text-4xl mb-2">🗺️</div>
-                    <h3 className="text-xl font-bold text-white">El Camino del Filosofo</h3>
+                    <h3 className="text-xl font-bold text-parchment">El Camino del Filosofo</h3>
                     <p className="text-arcane text-sm">Tu viaje a traves del saber filosofico</p>
                     <div className="flex items-center justify-center gap-2 mt-3">
                         <span className="text-2xl">{avatar.emoji}</span>
-                        <span className="text-white font-semibold">{avatar.titulo}</span>
+                        <span className="text-parchment font-semibold">{avatar.titulo}</span>
                     </div>
                 </div>
 
@@ -532,7 +532,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                         <span className="text-2xl">{unidad.emoji}</span>
-                                        <h4 className="text-white font-bold">{unidad.nombre}</h4>
+                                        <h4 className="text-parchment font-bold">{unidad.nombre}</h4>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-arcane/80 text-xs">{terreno.terrain}</span>
@@ -565,7 +565,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                     {participoYo ? cl.emoji : claseAlcanzada ? '✓' : esClaseActual ? '👣' : (ci + 1)}
                                                 </div>
                                                 <span className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-center leading-tight max-w-[40px] sm:max-w-[52px] ${
-                                                    participoYo ? 'text-white' : claseAlcanzada ? 'text-arcane/80' : 'text-gray-400'
+                                                    participoYo ? 'text-parchment' : claseAlcanzada ? 'text-arcane/80' : 'text-gray-400'
                                                 }`}>
                                                     {claseAlcanzada || participoYo ? cl.titulo.split(' ').slice(0, 2).join(' ') : 'C' + cl.num}
                                                 </span>
@@ -585,7 +585,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                             <div className="mb-2">
                                 <div className="flex justify-between text-sm mb-1">
                                     <span className="text-parchment/70">Progreso</span>
-                                    <span className="text-white font-bold">{clasesAlcanzadas}/{unidad.clases.length} clases</span>
+                                    <span className="text-parchment font-bold">{clasesAlcanzadas}/{unidad.clases.length} clases</span>
                                     {misClasesConActividad > 0 && misClasesConActividad < clasesAlcanzadas && (
                                         <span className="text-gold-light text-xs">(participaste en {misClasesConActividad})</span>
                                     )}
@@ -613,7 +613,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 <div className="flex items-center gap-2 mt-3 bg-black/20 rounded-lg p-2">
                                     <span className="text-lg">🎯</span>
                                     <div className="flex-1">
-                                        <p className="text-white text-xs font-semibold">{unidad.evaluacionSumativa.nombre}</p>
+                                        <p className="text-parchment text-xs font-semibold">{unidad.evaluacionSumativa.nombre}</p>
                                         <p className="text-arcane/70 text-xs">{unidad.evaluacionSumativa.descripcion}</p>
                                     </div>
                                 </div>
@@ -644,7 +644,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 {/* Tu posicion */}
                 <div className="panel-pixel p-6 text-center">
                     <div className="text-5xl mb-2">🏆</div>
-                    <h3 className="text-xl font-bold text-white">Tu Posicion</h3>
+                    <h3 className="text-xl font-bold text-parchment">Tu Posicion</h3>
                     <div className="flex items-center justify-center gap-4 mt-3">
                         <div>
                             <p className="text-4xl font-bold text-gold">#{rankPosition}</p>
@@ -665,7 +665,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
                 {/* Top 5 Leaderboard */}
                 <div className="panel-pixel p-5">
-                    <h3 className="text-white font-bold mb-4 text-center">Top 5 Filosofos</h3>
+                    <h3 className="text-parchment font-bold mb-4 text-center">Top 5 Filosofos</h3>
                     <div className="space-y-3">
                         {top5.map((student, idx) => {
                             var sNivel = getNivel(student.xp || 0);
@@ -682,7 +682,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         <span className="text-2xl">{sAvatar.emoji}</span>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <p className={`font-bold text-sm truncate ${isMe ? 'text-gold' : 'text-white'}`}>
+                                                <p className={`font-bold text-sm truncate ${isMe ? 'text-gold' : 'text-parchment'}`}>
                                                     {student.nombreSocial || student.nombre} {isMe ? '(Tu)' : ''}
                                                 </p>
                                                 {sClase && (
@@ -727,7 +727,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
                 {/* Stats comparativos */}
                 <div className="panel-pixel p-5">
-                    <h3 className="text-white font-bold mb-3">Tu desempeno vs el curso</h3>
+                    <h3 className="text-parchment font-bold mb-3">Tu desempeno vs el curso</h3>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-dungeon-800 border-2 border-stone-dark p-3 text-center">
                             <p className="text-arcane text-xs">Tu XP</p>
@@ -768,7 +768,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             <div className="space-y-4">
                 <div className="panel-pixel p-5 text-center">
                     <div className="text-4xl mb-2">📚</div>
-                    <h3 className="text-xl font-bold text-white">Lexico Filosofico</h3>
+                    <h3 className="text-xl font-bold text-parchment">Lexico Filosofico</h3>
                     <p className="text-3xl font-bold text-cyan-400 mt-1">{totalDescubiertos}/{totalTerminos}</p>
                     <p className="text-arcane text-sm">terminos descubiertos</p>
                     <div className="w-full bg-stone-dark border border-stone h-3 mt-3 max-w-xs mx-auto">
@@ -790,11 +790,11 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{unidad.emoji}</span>
                                     <div className="text-left">
-                                        <h4 className="text-white font-bold text-sm">{unidad.nombre}</h4>
+                                        <h4 className="text-parchment font-bold text-sm">{unidad.nombre}</h4>
                                         <span className="text-cyan-400 text-sm font-semibold">{found}/{vocab.length} descubierto</span>
                                     </div>
                                 </div>
-                                <span className={`text-white text-xl transition-transform ${isOpen ? 'rotate-90' : ''}`}>&#9654;</span>
+                                <span className={`text-parchment text-xl transition-transform ${isOpen ? 'rotate-90' : ''}`}>&#9654;</span>
                             </button>
                             {isOpen && (
                                 <div className="px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -813,7 +813,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                                     ) : (
                                                         <Icons.Lock size={16} className="text-gray-500" />
                                                     )}
-                                                    <span className={`font-bold text-sm ${discovered ? 'text-white' : 'text-gray-500'}`}>
+                                                    <span className={`font-bold text-sm ${discovered ? 'text-parchment' : 'text-gray-500'}`}>
                                                         {discovered ? v.termino : '???'}
                                                     </span>
                                                 </div>
@@ -869,7 +869,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
                 {Object.keys(tipoCount).length > 0 && (
                     <div className="panel-pixel p-5">
-                        <h3 className="text-white font-bold mb-3">Actividades por Tipo</h3>
+                        <h3 className="text-parchment font-bold mb-3">Actividades por Tipo</h3>
                         <div className="space-y-2">
                             {Object.entries(tipoCount).sort((a, b) => b[1] - a[1]).map(([tipo, count]) => {
                                 var tipoInfo = getActividadTipo(tipo);
@@ -881,7 +881,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         <div className="flex-1 bg-stone-dark border border-stone h-5 relative">
                                             <div className="bg-arcane h-5 transition-all flex items-center justify-end pr-2"
                                                 style={{ width: Math.max(pct, 10) + '%' }}>
-                                                <span className="text-white text-xs font-bold">{count}</span>
+                                                <span className="text-parchment text-xs font-bold">{count}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -892,7 +892,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                 )}
 
                 <div className="panel-pixel p-5">
-                    <h3 className="text-white font-bold mb-3">Actividades Recientes</h3>
+                    <h3 className="text-parchment font-bold mb-3">Actividades Recientes</h3>
                     {myActivities.length === 0 ? (
                         <p className="text-arcane text-center text-sm">No tienes actividades registradas aun.</p>
                     ) : (
@@ -906,7 +906,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         <div className="flex items-center gap-3">
                                             <span className="text-2xl">{tipoInfo.icon}</span>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-white text-sm font-semibold truncate">{tipoInfo.nombre}</p>
+                                                <p className="text-parchment text-sm font-semibold truncate">{tipoInfo.nombre}</p>
                                                 <p className="text-arcane text-xs">
                                                     {unidad ? unidad.emoji + ' ' + unidad.nombre : ''}{(act.date || act.fecha) ? ' - ' + new Date(act.date || act.fecha).toLocaleDateString() : ''}
                                                 </p>
@@ -984,7 +984,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             <div className="space-y-4">
                 <div className="panel-pixel p-5 text-center">
                     <div className="text-4xl mb-2">🏺</div>
-                    <h3 className="text-xl font-bold text-white">Inventario de Artefactos</h3>
+                    <h3 className="text-xl font-bold text-parchment">Inventario de Artefactos</h3>
                     <p className="text-arcane text-sm">{artefactosNormales.length} artefacto{artefactosNormales.length !== 1 ? 's' : ''} y {cofres.length} cofre{cofres.length !== 1 ? 's' : ''}</p>
                 </div>
 
@@ -1042,7 +1042,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h4 className="text-white font-bold text-sm">{art.nombre}</h4>
+                                                <h4 className="text-parchment font-bold text-sm">{art.nombre}</h4>
                                                 {art.usado ? (
                                                     <span className="bg-gray-500/30 text-gray-300 text-xs px-2 py-0.5 rounded-full">Usado</span>
                                                 ) : (
@@ -1081,7 +1081,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
 
                 {/* Catalogo */}
                 <div className="panel-pixel p-5">
-                    <h3 className="text-white font-bold mb-3">Catalogo Completo</h3>
+                    <h3 className="text-parchment font-bold mb-3">Catalogo Completo</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {ARTEFACTOS.map(art => {
                             var owned = items.some(it => it.id === art.id);
@@ -1093,7 +1093,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                     <div className="mb-1 flex items-center justify-center" style={{ height: 32 }}>
                                         {owned ? <ArtefactoIcon art={art} size={32} className="animate-float" /> : <span className="text-2xl">❓</span>}
                                     </div>
-                                    <p className={`text-xs font-semibold ${owned ? 'text-white' : 'text-gray-500'}`}>
+                                    <p className={`text-xs font-semibold ${owned ? 'text-parchment' : 'text-gray-500'}`}>
                                         {owned ? art.nombre : '???'}
                                     </p>
                                 </div>
@@ -1128,7 +1128,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                     <div className="flex items-center gap-2 min-w-0">
                         <span className="text-xl sm:text-2xl">{avatar.emoji}</span>
                         <div className="min-w-0">
-                            <h1 className="text-white font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombreSocial || currentUser.nombre}</h1>
+                            <h1 className="text-parchment font-bold text-sm sm:text-lg leading-tight truncate">{currentUser.nombreSocial || currentUser.nombre}</h1>
                             <p className="text-arcane text-xs hidden sm:block">
                                 Nv.{nivel.nivel} {avatar.titulo}
                                 {curso && <span className="ml-2 opacity-70">· {curso.emoji} {curso.nombre}</span>}
@@ -1186,7 +1186,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                         <button key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex flex-col items-center gap-0 px-1.5 py-1 rounded-lg transition-all min-w-0 ${
-                                activeTab === tab.id ? 'text-white' : 'text-purple-400'
+                                activeTab === tab.id ? 'text-parchment' : 'text-purple-400'
                             }`}>
                             <span className={`text-base ${activeTab === tab.id ? 'scale-110' : ''} transition-transform`}>{tab.emoji}</span>
                             <span className="text-[10px] font-medium leading-tight truncate max-w-[48px]">{tab.label}</span>
@@ -1283,7 +1283,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
                                     <div className="mb-3 flex justify-center">
                                         <ArtefactoIcon art={artDef} size={56} className="animate-float" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Usar {artDef.nombre}</h3>
+                                    <h3 className="text-xl font-bold text-parchment mb-2">Usar {artDef.nombre}</h3>
                                     <p className="text-green-300 text-sm mb-1">Efecto: {artDef.efecto}</p>
                                     <p className="text-gold text-xs mb-4">Una vez usado, no se puede recuperar. Tu profesor aplicara el efecto.</p>
                                 </>
@@ -1307,7 +1307,7 @@ export const EstudianteDashboard = ({ currentUser, students, activities, unidade
             {showTradeModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <div className="bg-gray-900 border border-purple-500/30 rounded-2xl p-6 max-w-sm w-full">
-                        <h3 className="text-xl font-bold text-white mb-4">🎁 Regalar Artefacto</h3>
+                        <h3 className="text-xl font-bold text-parchment mb-4">🎁 Regalar Artefacto</h3>
                         <p className="text-arcane text-sm mb-4">Selecciona a quien quieres regalar este artefacto:</p>
                         <select value={tradeTarget} onChange={e => setTradeTarget(e.target.value)}
                             className="w-full bg-gray-800 border border-purple-500/30 text-white rounded-xl px-4 py-3 mb-4 text-sm">

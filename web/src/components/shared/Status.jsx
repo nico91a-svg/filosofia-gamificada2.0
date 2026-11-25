@@ -6,10 +6,10 @@ import { OWL_SPRITE } from '../pixel/sprites.js';
 export function Logo({ size = 80 }) {
     return (
         <div
-            className="inline-flex items-center justify-center bg-dungeon-600 border-[3px] border-stone-dark"
-            style={{ width: size, height: size, boxShadow: 'inset 2px 2px 0 0 #6b5fa3, inset -2px -2px 0 0 #1c1538, 4px 4px 0 0 rgba(0,0,0,.8)' }}
+            className="inline-flex items-center justify-center rounded-2xl"
+            style={{ width: size, height: size, background: 'linear-gradient(135deg, #6D5AE6, #8B7BF0)', boxShadow: '0 8px 20px rgba(109, 90, 230, .35)' }}
         >
-            <PixelSprite sprite={OWL_SPRITE} size={size * 0.72} />
+            <PixelSprite sprite={OWL_SPRITE} size={size * 0.6} tint="#ffffff" />
         </div>
     );
 }

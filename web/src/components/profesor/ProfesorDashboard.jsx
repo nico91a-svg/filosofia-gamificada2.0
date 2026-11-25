@@ -511,13 +511,13 @@ export const ProfesorDashboard = function ProfesorDashboard({
     return (
         <div className="min-h-screen bg-dungeon-950">
             {/* ---- NAVBAR ---- */}
-            <nav className="text-white shadow-lg" style={{ background: navbarGradient }}>
+            <nav className="text-parchment shadow-lg" style={{ background: navbarGradient }}>
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     <div className="flex items-center gap-3 min-w-0">
                         <span className="text-2xl shrink-0">🏛️</span>
                         <div className="min-w-0">
                             <h1 className="text-base sm:text-lg font-bold leading-tight truncate">Dashboard del Profesor</h1>
-                            <div className="text-xs text-white/80 flex items-center gap-1.5 whitespace-nowrap" data-testid="curso-activo">
+                            <div className="text-xs text-parchment/80 flex items-center gap-1.5 whitespace-nowrap" data-testid="curso-activo">
                                 <span>{curso.emoji}</span>
                                 <span className="truncate">{curso.nombre}</span>
                                 <span className="opacity-60">·</span>
